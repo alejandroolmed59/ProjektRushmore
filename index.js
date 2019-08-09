@@ -16,7 +16,7 @@ client.on('message', message => {
   }
   if (message.content === "prueba") {
     console.log('entro!');
-    const streamOptions = { seek: 0, volume: 1 };
+    const streamOptions = { seek: 0, volume: 0.5 };
     var voiceChannel = message.member.voiceChannel;
     voiceChannel.join().then(connection => {
       console.log("joined channel");
@@ -42,13 +42,13 @@ client.on('message', message => {
     var item = respuestas[Math.floor(Math.random() * respuestas.length)];
     message.reply('La caracola magica dici: ' + item);
   }
-  if (message.content == 'hola') {
+  if (message.content.toLowerCase() == 'hola') {
     const dogtor = client.emojis.find(emoji => emoji.name === "diega");
     message.reply(`QUE DIIICE DOGGGTORR 🤙🏻🤙🏻`)
   }
   if (message.content.toLowerCase() == '!dios') {
     musica('https://www.youtube.com/watch?v=A_fCv76c4uQ', '476951287447945230');
-    const attachment = new Attachment('https://www.bilbaoplan.com/wp-content/uploads/2017/06/kidd-keo-santana-junio-bilbao.jpg');
+    const attachment = new Discord.Attachment('https://cdn141.picsart.com/288827876023211.png');
     message.channel.send(attachment);
   }
 });
@@ -84,8 +84,8 @@ setInterval(() => {
 
 function musica(url, voiceChannel){
   console.log('entro!');
-    const streamOptions = { seek: 0, volume: 1 };
-    var voiceChannel = client.channels.get('476951287447945230');
+    const streamOptions = { seek: 0, volume: 0.5 };
+    var voiceChannel = client.channels.get(voiceChannel);
     voiceChannel.join().then(connection => {
       console.log("joined channel");
       const stream = ytdl(url , { filter: 'audioonly' });
