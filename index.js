@@ -106,7 +106,17 @@ function musica(url, voiceChannel){
 
 client.login(process.env.TOKEN);
 
-var http = require('http');
-http.createServer(function (request, response) {
 
-}).listen(process.env.PORT || 5000);
+
+const express = require('express');
+const app = express();
+var port = process.env.PORT || 5000
+
+app.get('/', (req, res) => {
+  res.send('Hello World!');
+});
+
+const server = app.listen(port, () => {
+  console.log(`Express running → PORT ${server.address().port}`);
+});
+
