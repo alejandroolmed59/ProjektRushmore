@@ -1,0 +1,26 @@
+{
+  "name": "SOPHIA",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "start": "node index"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/WichoFlores/SOPHIA.git"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/WichoFlores/SOPHIA/issues"
+  },
+  "homepage": "https://github.com/WichoFlores/SOPHIA#readme",
+  "dependencies": {
+    "discord.js": "^11.5.1",
+    "dotenv": "^8.0.0",
+    "twitch-api-v5": "^2.0.4"
+  }
+}
