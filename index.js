@@ -48,7 +48,14 @@ client.on('message', message => {
   }
   if (message.content.toLowerCase() == '!dios') {
     musica('https://www.youtube.com/watch?v=A_fCv76c4uQ', '476951287447945230');
-    const attachment = new Discord.Attachment('https://cdn141.picsart.com/288827876023211.png');
+    pics = [
+      'https://i.imgur.com/ZXPa9YB.png',
+      'https://cdn141.picsart.com/288827876023211.png',
+      'https://ih1.redbubble.net/image.565335878.1839/aps,840x830,small,transparent-pad,1000x1000,f8f8f8.jpg',
+      'https://media.tenor.com/images/75f3917dfc85e18961d96a7e19d111e8/tenor.gif',
+      'https://www.kiddkeo.com/wp-content/uploads/2019/02/noticia_13.png'
+    ]
+    const attachment = new Discord.Attachment(pics[Math.floor(Math.random() * pics.length)]);
     message.channel.send(attachment);
   }
 });
