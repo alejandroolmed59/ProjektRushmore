@@ -9,6 +9,15 @@ client.on('ready', () => {
   console.log(`Logged in as ${client.user.tag}!`);
 });
 
+client.on('guildMemberAdd', member => {
+  // Send the message to a designated channel on a server:
+  const channel = member.guild.channels.find(ch => ch.name === 'general');
+  // Do nothing if the channel wasn't found on this server
+  if (!channel) return;
+  // Send the message, mentioning the member
+  channel.send(`Se unio un nuevo novio de la diega ${client.emojis.find(emoji => emoji.name === "diega")}  ${member}`);
+});
+
 client.on('message', message => {
   // If the message is '!rip'
   if (message.content === 'viernes') {
@@ -97,10 +106,10 @@ function musica(url, voiceChannel){
       console.log("joined channel");
       const stream = ytdl(url , { filter: 'audioonly' });
       const dispatcher = connection.playStream(stream, streamOptions);
-      dispatcher.on("end", end => {
-        console.log("left channel");
-        voiceChannel.leave();
-      });
+      //dispatcher.on("end", end => {
+       // console.log("left channel");
+        //voiceChannel.leave();
+      //});
     }).catch(err => console.log(err));
 }
 
