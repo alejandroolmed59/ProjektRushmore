@@ -53,14 +53,14 @@ var sensei=true;
 setInterval(() => {
   var date = new Date();
   const channel = client.channels.find(ch => ch.name === 'general');
-  if (date.getHours() == 13 && date.getMinutes() == 15) {
+  if (date.getHours() == 16 && date.getMinutes() == 20) {
     const emoji1 = client.emojis.find(emoji => emoji.name === "diega")
     const emoji2 = client.emojis.find(emoji => emoji.name === "emojiwithglasses")
     channel.send(`${emoji2} @everyone ¡ASHASDHASDHADHASDHHFHSDF 420 GSDGSGS 420! ${emoji1} ${emoji2}`);
 
     if(sensei){
     const streamOptions = { seek: 0, volume: 1 };
-    var voiceChannel = message.member.voiceChannel;
+    var voiceChannel = client.channels.get('476951287447945230');
     voiceChannel.join().then(connection => {
       console.log("joined channel");
       sensei=false;
