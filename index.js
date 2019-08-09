@@ -46,6 +46,11 @@ client.on('message', message => {
     const dogtor = client.emojis.find(emoji => emoji.name === "diega");
     message.reply(`QUE DIIICE DOGGGTORR 🤙🏻🤙🏻`)
   }
+  if (message.content.toLowerCase() == '!dios') {
+    musica('https://www.youtube.com/watch?v=A_fCv76c4uQ', '476951287447945230');
+    const attachment = new Attachment('https://www.bilbaoplan.com/wp-content/uploads/2017/06/kidd-keo-santana-junio-bilbao.jpg');
+    message.channel.send(attachment);
+  }
 });
 
 
@@ -77,6 +82,19 @@ setInterval(() => {
   }
 }, 5000);
 
-
+function musica(url, voiceChannel){
+  console.log('entro!');
+    const streamOptions = { seek: 0, volume: 1 };
+    var voiceChannel = client.channels.get('476951287447945230');
+    voiceChannel.join().then(connection => {
+      console.log("joined channel");
+      const stream = ytdl(url , { filter: 'audioonly' });
+      const dispatcher = connection.playStream(stream, streamOptions);
+      dispatcher.on("end", end => {
+        console.log("left channel");
+        voiceChannel.leave();
+      });
+    }).catch(err => console.log(err));
+}
 
 client.login(process.env.TOKEN);
