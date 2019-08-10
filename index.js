@@ -49,7 +49,17 @@ client.on('message', message => {
       "Tu gfa x si acaso"
     ];
     var item = respuestas[Math.floor(Math.random() * respuestas.length)];
-    message.reply('La caracola magica dici: ' + item);
+    message.channel.send('La caracola magica dice: ' + item, {
+      tts: true
+    });
+  }
+  if (message.content.includes('!moneda')) {
+    var respuestas = [
+      'https://www.random.org/coins/faces/60-usd/0100c-jefferson/obverse.jpg',
+      'https://www.random.org/coins/faces/60-usd/0100c-jefferson/reverse.jpg'
+    ];
+    const attachment = new Discord.Attachment(respuestas[Math.floor(Math.random() * respuestas.length)]);
+    message.channel.send(attachment);
   }
   if (message.content.toLowerCase() == 'hola') {
     const dogtor = client.emojis.find(emoji => emoji.name === "diega");
