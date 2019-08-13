@@ -43,12 +43,11 @@ client.on('message', message => {
   // If the message is '!rip'
   if (message.content.includes('!caracola')) {
     var respuestas = [
-      `Siempre preguntas pendejadas? 🤔  `,
+      `Le quedo mal ahí dogg ${client.emojis.find(emoji => emoji.name === "badman")} `,
       "Si",
       `Si 0te ${client.emojis.find(emoji => emoji.name === "emojiwithglasses")} `,
       "No",
-      `Nelson Mandela ${client.emojis.find(emoji => emoji.name === "doge")} `,
-      "Tu gfa x si acaso"
+      `Nelson Mandela ${client.emojis.find(emoji => emoji.name === "doge")} `
     ];
     var item = respuestas[Math.floor(Math.random() * respuestas.length)];
     message.channel.send('La caracola magica dice: ' + item, {
