@@ -20,7 +20,9 @@ client.on('guildMemberAdd', member => {
 
 client.on('message', message => {
   // If the message is '!rip'
-  if (message.content === 'viernes') {
+  var date = new Date();
+
+  if (message.content.includes('viernes') && date.getDay() == 5 ) {
     message.reply('De AHORCAR RUCAS MIJO!');
   }
   if (message.content === "prueba") {
