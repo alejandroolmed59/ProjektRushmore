@@ -3,7 +3,7 @@ require('dotenv').config()
 const Discord = require('discord.js');
 const client = new Discord.Client();
 const ytdl = require('ytdl-core');
-
+var horaSorry = randomHour(new Date().getHours(), 23);
 
 client.on('ready', () => {
   console.log(`Logged in as ${client.user.tag}!`);
@@ -112,6 +112,18 @@ setInterval(() => {
   }
 }, 5000);
 
+setInterval(() => {
+  var date = new Date();
+  
+  if(horaSorry.getHours() == date.getHours() && horaSorry.getMinutes()==date.getMinutes()){
+    const channel = client.channels.find(ch => ch.name === 'general');
+    channel.send(` @everyone Yeah perdonen kamehameha ${client.emojis.find(emoji => emoji.name === "8053_Steve_Dab")}`);
+  }
+  if(date.getHours() == 0){
+    horaSorry = randomHour(14,23);
+  }
+}, 20000);
+
 function musica(url, voiceChannel){
   console.log('entro!');
     const streamOptions = { seek: 0, volume: 0.5 };
@@ -127,6 +139,15 @@ function musica(url, voiceChannel){
     }).catch(err => console.log(err));
 }
 
+function randomHour(startHour, endHour) {
+  var date = new Date();
+  var hour = startHour + Math.random() * (endHour - startHour) | 0;
+  var minutes = date.getMinutes()+Math.random()*(59-date.getMinutes());
+  date.setHours(hour);
+  date.setMinutes(minutes);
+  return date;
+}
+
 client.login(process.env.TOKEN);
 
 
@@ -136,7 +157,7 @@ const app = express();
 var port = process.env.PORT || 5000
 
 app.get('/', (req, res) => {
-  res.send('Hello World!');
+  res.send(horaSorry.getHours()+ " "+horaSorry.getMinutes());
 });
 
 const server = app.listen(port, () => {
