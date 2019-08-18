@@ -81,6 +81,12 @@ client.on('message', message => {
     const attachment = new Discord.Attachment(pics[Math.floor(Math.random() * pics.length)]);
     message.channel.send(attachment);
   }
+  if( message.content.toLowerCase().includes('yeah') || message.content.toLowerCase().includes('perdonen') && !message.author.bot) {
+    musica('https://www.youtube.com/watch?v=wxk-jA5MsPM', '476951287447945230'); 
+  }
+  if( message.content.toLowerCase().includes('perdonado')){
+    client.channels.get('476951287447945230').leave();
+  }
 });
 
 
@@ -122,7 +128,7 @@ setInterval(() => {
   if(date.getHours() == 0){
     horaSorry = randomHour(14,23);
   }
-}, 20000);
+}, 40000);
 
 function musica(url, voiceChannel){
   console.log('entro!');
@@ -142,7 +148,7 @@ function musica(url, voiceChannel){
 function randomHour(startHour, endHour) {
   var date = new Date();
   var hour = startHour + Math.random() * (endHour - startHour) | 0;
-  var minutes = date.getMinutes()+Math.random()*(59-date.getMinutes());
+  var minutes = date.getMinutes() + Math.random() * (59-date.getMinutes());
   date.setHours(hour);
   date.setMinutes(minutes);
   return date;
