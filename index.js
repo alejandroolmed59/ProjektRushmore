@@ -48,6 +48,7 @@ client.on('message', message => {
       `Le quedo mal ahí dogg ${client.emojis.find(emoji => emoji.name === "badman")} `,
       "Si",
       `Si 0te ${client.emojis.find(emoji => emoji.name === "emojiwithglasses")} `,
+      `Jaja simon te me cuidas ${client.emojis.find(emoji => emoji.name === "7571_DabbingPengu")}`,
       "No",
       `Nelson Mandela ${client.emojis.find(emoji => emoji.name === "doge")} `
     ];
@@ -86,6 +87,7 @@ client.on('message', message => {
   }
   if( message.content.toLowerCase().includes('perdonado')){
     client.channels.get('476951287447945230').leave();
+    message.channel.send(`${client.emojis.find(emoji => emoji.name === "Dude")}`);
   }
 });
 
