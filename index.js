@@ -22,7 +22,7 @@ client.on('message', message => {
   // If the message is '!rip'
   var date = new Date();
 
-  if (message.content.includes('viernes') && date.getDay() == 5 ) {
+  if (message.content.includes('viernes') && date.getDay() == 5) {
     message.reply('De AHORCAR RUCAS MIJO!');
   }
   if (message.content === "prueba") {
@@ -57,6 +57,16 @@ client.on('message', message => {
       tts: false
 
     });
+    if (item == "Si" || item == "No") {
+      const random = Math.random();
+      console.log(random);
+      if (random < 0.30) {
+        setTimeout(function () {
+          message.channel.send(`KSUUKII DOGG ${client.emojis.find(emoji => emoji.name === "emojiwithglasses")} `);
+        }, 3000);
+
+      }
+    }
   }
   if (message.content.includes('!moneda')) {
     var respuestas = [
@@ -82,17 +92,17 @@ client.on('message', message => {
     const attachment = new Discord.Attachment(pics[Math.floor(Math.random() * pics.length)]);
     message.channel.send(attachment);
   }
-  if( message.content.toLowerCase().includes('yeah') || message.content.toLowerCase().includes('perdonen') && !message.author.bot) {
-    musica('https://www.youtube.com/watch?v=wxk-jA5MsPM', '476951287447945230'); 
+  if (message.content.toLowerCase().includes('yeah') || message.content.toLowerCase().includes('perdonen') && !message.author.bot) {
+    musica('https://www.youtube.com/watch?v=wxk-jA5MsPM', '476951287447945230');
   }
-  if( message.content.toLowerCase().includes('perdonado')){
+  if (message.content.toLowerCase().includes('perdonado')) {
     client.channels.get('476951287447945230').leave();
     message.channel.send(`${client.emojis.find(emoji => emoji.name === "Dude")}`);
   }
 });
 
 
-var sensei=true;
+var sensei = true;
 setInterval(() => {
   var date = new Date();
   const channel = client.channels.find(ch => ch.name === 'general');
@@ -101,56 +111,56 @@ setInterval(() => {
     const emoji2 = client.emojis.find(emoji => emoji.name === "emojiwithglasses")
     channel.send(`${emoji2} @everyone ¡ASHASDHASDHADHASDHHFHSDF 420 GSDGSGS 420! ${emoji1} ${emoji2}`);
 
-    if(sensei){
-    const streamOptions = { seek: 0, volume: 1 };
-    var voiceChannel = client.channels.get('476951287447945230');
-    voiceChannel.join().then(connection => {
-      console.log("joined channel");
-      sensei=false;
-      const stream = ytdl('https://www.youtube.com/watch?v=AiEIramZqZM', { filter: 'audioonly' });
-      const dispatcher = connection.playStream(stream, streamOptions);
-      dispatcher.on("end", end => {
-        console.log("left channel");
-        sensei=true;
-        voiceChannel.leave();
-      });
-    }).catch(err => console.log(err));
+    if (sensei) {
+      const streamOptions = { seek: 0, volume: 1 };
+      var voiceChannel = client.channels.get('476951287447945230');
+      voiceChannel.join().then(connection => {
+        console.log("joined channel");
+        sensei = false;
+        const stream = ytdl('https://www.youtube.com/watch?v=AiEIramZqZM', { filter: 'audioonly' });
+        const dispatcher = connection.playStream(stream, streamOptions);
+        dispatcher.on("end", end => {
+          console.log("left channel");
+          sensei = true;
+          voiceChannel.leave();
+        });
+      }).catch(err => console.log(err));
 
-  }  
+    }
   }
 }, 5000);
 
 setInterval(() => {
   var date = new Date();
-  
-  if(horaSorry.getHours() == date.getHours() && horaSorry.getMinutes()==date.getMinutes()){
+
+  if (horaSorry.getHours() == date.getHours() && horaSorry.getMinutes() == date.getMinutes()) {
     const channel = client.channels.find(ch => ch.name === 'general');
-    channel.send(` @everyone Yeah perdonen kamehameha ${client.emojis.find(emoji => emoji.name === "8053_Steve_Dab")}`);
+    channel.send(`${client.emojis.find(emoji => emoji.name === "5071_GokuHi")} @everyone Yeah perdonen kamehameha ${client.emojis.find(emoji => emoji.name === "8053_Steve_Dab")}`);
   }
-  if(date.getHours() == 0){
-    horaSorry = randomHour(14,23);
+  if (date.getHours() == 0) {
+    horaSorry = randomHour(1, 23);
   }
 }, 40000);
 
-function musica(url, voiceChannel){
+function musica(url, voiceChannel) {
   console.log('entro!');
-    const streamOptions = { seek: 0, volume: 0.5 };
-    var voiceChannel = client.channels.get(voiceChannel);
-    voiceChannel.join().then(connection => {
-      console.log("joined channel");
-      const stream = ytdl(url , { filter: 'audioonly' });
-      const dispatcher = connection.playStream(stream, streamOptions);
-      //dispatcher.on("end", end => {
-       // console.log("left channel");
-        //voiceChannel.leave();
-      //});
-    }).catch(err => console.log(err));
+  const streamOptions = { seek: 0, volume: 0.5 };
+  var voiceChannel = client.channels.get(voiceChannel);
+  voiceChannel.join().then(connection => {
+    console.log("joined channel");
+    const stream = ytdl(url, { filter: 'audioonly' });
+    const dispatcher = connection.playStream(stream, streamOptions);
+    //dispatcher.on("end", end => {
+    // console.log("left channel");
+    //voiceChannel.leave();
+    //});
+  }).catch(err => console.log(err));
 }
 
 function randomHour(startHour, endHour) {
   var date = new Date();
   var hour = startHour + Math.random() * (endHour - startHour) | 0;
-  var minutes = date.getMinutes() + Math.random() * (59-date.getMinutes());
+  var minutes = date.getMinutes() + Math.random() * (59 - date.getMinutes());
   date.setHours(hour);
   date.setMinutes(minutes);
   return date;
@@ -165,7 +175,7 @@ const app = express();
 var port = process.env.PORT || 5000
 
 app.get('/', (req, res) => {
-  res.send(horaSorry.getHours()+ " "+horaSorry.getMinutes());
+  res.send(horaSorry.getHours() + " " + horaSorry.getMinutes());
 });
 
 const server = app.listen(port, () => {
