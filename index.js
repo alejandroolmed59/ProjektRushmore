@@ -94,6 +94,10 @@ client.on('message', message => {
   }
   if (message.content.toLowerCase().includes('yeah') || message.content.toLowerCase().includes('perdonen') && !message.author.bot) {
     musica('https://www.youtube.com/watch?v=wxk-jA5MsPM', '476951287447945230');
+    
+  }
+  if (message.content.includes('PONGAN TUSA') && !message.author.bot) {
+    musica('https://www.youtube.com/watch?v=tbneQDc2H3I', '476951287447945230');
   }
   if (message.content.toLowerCase().includes('perdonado')) {
     client.channels.get('476951287447945230').leave();
@@ -182,3 +186,4 @@ const server = app.listen(port, () => {
   console.log(`Express running → PORT ${server.address().port}`);
 });
 
+///PEENASNDAN DE BURRO
