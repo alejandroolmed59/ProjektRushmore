@@ -3,7 +3,7 @@ require('dotenv').config()
 const Discord = require('discord.js');
 const client = new Discord.Client();
 const ytdl = require('ytdl-core');
-var horaSorry = randomHour(new Date().getHours(), 23);
+//var horaSorry = randomHour(new Date().getHours(), 23);
 
 client.on('ready', () => {
   console.log(`Logged in as ${client.user.tag}!`);
@@ -97,11 +97,19 @@ client.on('message', message => {
     
   }
   if (message.content.includes('PONGAN TUSA') && !message.author.bot) {
-    musica('https://www.youtube.com/watch?v=tbneQDc2H3I', '476951287447945230');
+    musica('https://www.youtube.com/watch?v=Yf33M4KI1qI', '476951287447945230');
   }
   if (message.content.toLowerCase().includes('perdonado')) {
     client.channels.get('476951287447945230').leave();
     message.channel.send(`${client.emojis.find(emoji => emoji.name === "Dude")}`);
+  }
+  
+  if(message.author.id == '268955815719862272'){
+    const proba = Math.random();
+    console.log(proba);
+    if(proba<=0.35){
+      message.channel.send(`Si torty, está bien ${client.emojis.find(emoji => emoji.name === "f_")}`);
+    }
   }
 });
 
@@ -133,7 +141,7 @@ setInterval(() => {
     }
   }
 }, 5000);
-
+/*
 setInterval(() => {
   var date = new Date();
 
@@ -145,9 +153,9 @@ setInterval(() => {
     horaSorry = randomHour(1, 23);
   }
 }, 40000);
+*/
 
 function musica(url, voiceChannel) {
-  console.log('entro!');
   const streamOptions = { seek: 0, volume: 0.5 };
   var voiceChannel = client.channels.get(voiceChannel);
   voiceChannel.join().then(connection => {
@@ -179,7 +187,7 @@ const app = express();
 var port = process.env.PORT || 5000
 
 app.get('/', (req, res) => {
-  res.send(horaSorry.getHours() + " " + horaSorry.getMinutes());
+  res.send('Estamos en vivo');
 });
 
 const server = app.listen(port, () => {
