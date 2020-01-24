@@ -3,6 +3,8 @@ require('dotenv').config()
 const Discord = require('discord.js');
 const client = new Discord.Client();
 const ytdl = require('ytdl-core');
+const lolApi = require('./lolDex')
+
 //var horaSorry = randomHour(new Date().getHours(), 23);
 
 client.on('ready', () => {
@@ -107,9 +109,20 @@ client.on('message', message => {
   if(message.author.id == '268955815719862272'){
     const proba = Math.random();
     console.log(proba);
-    if(proba<=0.35){
+    if(proba<=0.15){
       message.channel.send(`Si torty, está bien ${client.emojis.find(emoji => emoji.name === "f_")}`);
     }
+  }
+  if(message.content.includes('!QueTantoApesto')){
+    const arr = message.content.split(/ (.*)/);
+    const player = arr[1];
+    lolApi.Partidas(player).then(score=>{
+      if(score>4){
+        message.channel.send(`@${message.author.username} Bro tu posicion promedio de tus ultimas 10 partidas es ${score}, la neta si apestas ${client.emojis.find(emoji => emoji.name === "badman")}`)
+      }else{
+        message.channel.send(`@${message.author.username} Bro tu posicion promedio de tus ultimas 10 partidas es ${score}, keep up the good work ${client.emojis.find(emoji => emoji.name === "Dude")}`)
+      }
+    });
   }
 });
 
@@ -194,4 +207,3 @@ const server = app.listen(port, () => {
   console.log(`Express running → PORT ${server.address().port}`);
 });
 
-///PEENASNDAN DE BURRO
