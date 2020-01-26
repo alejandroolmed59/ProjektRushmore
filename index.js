@@ -116,11 +116,33 @@ client.on('message', message => {
   if(message.content.includes('!QueTantoApesto')){
     const arr = message.content.split(/ (.*)/);
     const player = arr[1];
-    lolApi.Partidas(player).then(score=>{
+    lolApi.Partidas(player, 10).then(score=>{
       if(score>4){
         message.channel.send(`@${message.author.username} Bro tu posicion promedio de tus ultimas 10 partidas es ${score}, la neta si apestas ${client.emojis.find(emoji => emoji.name === "badman")}`)
       }else{
         message.channel.send(`@${message.author.username} Bro tu posicion promedio de tus ultimas 10 partidas es ${score}, keep up the good work ${client.emojis.find(emoji => emoji.name === "Dude")}`)
+      }
+    });
+  }
+  if(message.content.includes('!UltimaPisada')){
+    const arr = message.content.split(/ (.*)/);
+    const player = arr[1];
+    lolApi.LastMatch(player).then(json=>{
+      if(!json.pericosBool){
+        message.channel.send(`@${message.author.username} We que pisada ${client.emojis.find(emoji => emoji.name === "badman")}
+          Quedaste de ${json.puesto} lugar
+          No llegaste a los pericos lul ${client.emojis.find(emoji => emoji.name === "thonkms")}
+          Te mamaste a ${json.eliminaciones} vatos, nice ${client.emojis.find(emoji => emoji.name === "Dude")}
+          Haciendoles ${json.damage} puntos de daño
+          Sobreviviste el ${json.PorcentajePartida}% de la partida clacl.
+        `)
+      }else{
+        message.channel.send(`@${message.author.username} Muy bien hijo sobreviviste a los pericos ${client.emojis.find(emoji => emoji.name === "Dude")}
+          Quedaste de ${json.puesto} lugar
+          Te mamaste a ${json.eliminaciones} vatos, nice ${client.emojis.find(emoji => emoji.name === "Dude")}
+          Haciendoles ${json.damage} puntos de daño
+          Sobreviviste el ${json.PorcentajePartida}% de la partida clacl.
+        `)
       }
     });
   }
