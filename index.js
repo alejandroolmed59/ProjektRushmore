@@ -161,7 +161,7 @@ setInterval(() => {
   if (date.getHours() == 16 && date.getMinutes() == 20) {
     const emoji1 = client.emojis.find(emoji => emoji.name === "diega")
     const emoji2 = client.emojis.find(emoji => emoji.name === "emojiwithglasses")
-    channel.send(`${emoji2} @everyone ¡ASHASDHASDHADHASDHHFHSDF 420 GSDGSGS 420! ${emoji1} ${emoji2}`);
+    channel.send(`W`);
 
     if (sensei) {
       const streamOptions = { seek: 0, volume: 1 };
@@ -180,7 +180,7 @@ setInterval(() => {
 
     }
   }
-}, 5000);
+}, 40000);
 /*
 setInterval(() => {
   var date = new Date();
