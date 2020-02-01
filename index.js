@@ -78,6 +78,11 @@ client.on('message', message => {
     const attachment = new Discord.Attachment(respuestas[Math.floor(Math.random() * respuestas.length)]);
     message.channel.send(attachment);
   }
+  if(message.content.toLowerCase().includes('nigga') || message.content.toLowerCase().includes('nigger') || message.content.toLowerCase().includes('niga') ){
+    const attachment = new Discord.Attachment('https://www.tntrafficticket.us/wp-content/uploads/2017/10/Police-officer-with-gun.jpg');
+    message.channel.send(attachment);
+    message.channel.send('STOP RIGHT THERE SHOW YOUR FUCKING N-WORD PASS NOW');
+  }
   if (message.content.toLowerCase() == 'hola') {
     const dogtor = client.emojis.find(emoji => emoji.name === "diega");
     message.reply(`QUE DIIICE DOGGGTORR 🤙🏻🤙🏻`)
@@ -124,7 +129,7 @@ client.on('message', message => {
       }
     });
   }
-  if(message.content.includes('!UltimaPisada')){
+  if(message.content.includes('!UltimoMatch')){
     const arr = message.content.split(/ (.*)/);
     const player = arr[1];
     lolApi.LastMatch(player).then(json=>{
