@@ -78,7 +78,7 @@ client.on('message', message => {
     const attachment = new Discord.Attachment(respuestas[Math.floor(Math.random() * respuestas.length)]);
     message.channel.send(attachment);
   }
-  if(message.content.toLowerCase().includes('nigga') || message.content.toLowerCase().includes('nigger') || message.content.toLowerCase().includes('niga') ){
+  if (message.content.toLowerCase().includes('nigga') || message.content.toLowerCase().includes('nigger') || message.content.toLowerCase().includes('niga')) {
     const attachment = new Discord.Attachment('https://www.tntrafficticket.us/wp-content/uploads/2017/10/Police-officer-with-gun.jpg');
     message.channel.send(attachment);
     message.channel.send('STOP RIGHT THERE SHOW YOUR FUCKING N-WORD PASS NOW');
@@ -101,7 +101,7 @@ client.on('message', message => {
   }
   if (message.content.toLowerCase().includes('yeah') || message.content.toLowerCase().includes('perdonen') && !message.author.bot) {
     musica('https://www.youtube.com/watch?v=wxk-jA5MsPM', '476951287447945230');
-    
+
   }
   if (message.content.includes('PONGAN TUSA') && !message.author.bot) {
     musica('https://www.youtube.com/watch?v=Yf33M4KI1qI', '476951287447945230');
@@ -110,30 +110,36 @@ client.on('message', message => {
     client.channels.get('476951287447945230').leave();
     message.channel.send(`${client.emojis.find(emoji => emoji.name === "Dude")}`);
   }
-  
-  if(message.author.id == '268955815719862272'){
+
+  if (message.author.id == '268955815719862272') {
     const proba = Math.random();
     console.log(proba);
-    if(proba<=0.15){
+    if (proba <= 0.15) {
       message.channel.send(`Si torty, está bien ${client.emojis.find(emoji => emoji.name === "f_")}`);
     }
   }
-  if(message.content.includes('!QueTantoApesto')){
+  if (message.content.includes('!QueTantoApesto')) {
     const arr = message.content.split(/ (.*)/);
     const player = arr[1];
-    lolApi.Partidas(player, 10).then(score=>{
-      if(score>4){
+
+    lolApi.Partidas(player, 10).then(score => {
+      if (score > 4) {
         message.channel.send(`@${message.author.username} Bro tu posicion promedio de tus ultimas 10 partidas es ${score}, la neta si apestas ${client.emojis.find(emoji => emoji.name === "badman")}`)
-      }else{
+      } else {
         message.channel.send(`@${message.author.username} Bro tu posicion promedio de tus ultimas 10 partidas es ${score}, keep up the good work ${client.emojis.find(emoji => emoji.name === "Dude")}`)
       }
+
+    }).catch(error=>{
+      message.channel.send(`Diganle al ojete de <@260599195034058753> que cambie la pinshi key ><`);
     });
+
+
   }
-  if(message.content.includes('!UltimoMatch')){
+  if (message.content.includes('!UltimoMatch')) {
     const arr = message.content.split(/ (.*)/);
     const player = arr[1];
-    lolApi.LastMatch(player).then(json=>{
-      if(!json.pericosBool){
+    lolApi.LastMatch(player).then(json => {
+      if (!json.pericosBool) {
         message.channel.send(`@${message.author.username} We que pisada ${client.emojis.find(emoji => emoji.name === "badman")}
           Quedaste de ${json.puesto} lugar
           No llegaste a los pericos lul ${client.emojis.find(emoji => emoji.name === "thonkms")}
@@ -141,7 +147,7 @@ client.on('message', message => {
           Haciendoles ${json.damage} puntos de daño
           Sobreviviste el ${json.PorcentajePartida}% de la partida clacl.
         `)
-      }else{
+      } else {
         message.channel.send(`@${message.author.username} Muy bien hijo sobreviviste a los pericos ${client.emojis.find(emoji => emoji.name === "Dude")}
           Quedaste de ${json.puesto} lugar
           Te mamaste a ${json.eliminaciones} vatos, nice ${client.emojis.find(emoji => emoji.name === "Dude")}
@@ -149,6 +155,8 @@ client.on('message', message => {
           Sobreviviste el ${json.PorcentajePartida}% de la partida clacl.
         `)
       }
+    }).catch(error=>{
+      message.channel.send(`Diganle al ojete de <@260599195034058753> que cambie la pinshi key ><`);
     });
   }
 });
