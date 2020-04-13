@@ -1,23 +1,10 @@
 {
-  "name": "Rushmore",
+  "name": "ProjectRushmore",
   "version": "1.0.0",
-  "description": "",
   "main": "index.js",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1",
     "start": "node index"
   },
-  "repository": {
-    "type": "git",
-    "url": "git+https://github.com/WichoFlores/SOPHIA.git"
-  },
-  "keywords": [],
-  "author": "",
-  "license": "ISC",
-  "bugs": {
-    "url": "https://github.com/WichoFlores/SOPHIA/issues"
-  },
-  "homepage": "https://github.com/WichoFlores/SOPHIA#readme",
   "dependencies": {
     "axios": "^0.19.2",
     "discord.js": "^12.1.1",
