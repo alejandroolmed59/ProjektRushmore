@@ -17,7 +17,7 @@ client.on('guildMemberAdd', member => {
   // Do nothing if the channel wasn't found on this server
   if (!channel) return;
   // Send the message, mentioning the member
-  channel.send(`Se unio un nuevo novio de la diega ${client.emojis.find(emoji => emoji.name === "diega")}  ${member}`);
+  channel.send(`Se unio un nuevo novio de la diega ${client.emojis.cache.find(emoji => emoji.name === "diega")}  ${member}`);
 });
 
 client.on('message', message => {
@@ -47,12 +47,12 @@ client.on('message', message => {
   // If the message is '!rip'
   if (message.content.includes('!caracola')) {
     var respuestas = [
-      `Le quedo mal ahí dogg ${client.emojis.find(emoji => emoji.name === "badman")} `,
+      `Le quedo mal ahí dogg ${client.emojis.cache.find(emoji => emoji.name === "badman")} `,
       "Si",
-      `Si 0te ${client.emojis.find(emoji => emoji.name === "emojiwithglasses")} `,
-      `Jaja simon te me cuidas ${client.emojis.find(emoji => emoji.name === "7571_DabbingPengu")}`,
+      `Si 0te ${client.emojis.cache.find(emoji => emoji.name === "emojiwithglasses")} `,
+      `Jaja simon te me cuidas ${client.emojis.cache.find(emoji => emoji.name === "7571_DabbingPengu")}`,
       "No",
-      `Nelson Mandela ${client.emojis.find(emoji => emoji.name === "doge")} `
+      `Nelson Mandela ${client.emojis.cache.find(emoji => emoji.name === "doge")} `
     ];
     var item = respuestas[Math.floor(Math.random() * respuestas.length)];
     message.channel.send('La caracola magica dice: ' + item, {
@@ -64,7 +64,7 @@ client.on('message', message => {
       console.log(random);
       if (random < 0.30) {
         setTimeout(function () {
-          message.channel.send(`KSUUKII DOGG ${client.emojis.find(emoji => emoji.name === "emojiwithglasses")} `);
+          message.channel.send(`KSUUKII DOGG ${client.emojis.cache.find(emoji => emoji.name === "emojiwithglasses")} `);
         }, 3000);
 
       }
@@ -84,8 +84,8 @@ client.on('message', message => {
     message.channel.send('STOP RIGHT THERE SHOW YOUR FUCKING N-WORD PASS NOW');
   }
   if (message.content.toLowerCase() == 'hola') {
-    const dogtor = client.emojis.find(emoji => emoji.name === "diega");
-    message.reply(`QUE DIIICE DOGGGTORR 🤙🏻🤙🏻`)
+    const dogtor = client.emojis.cache.find(emoji => emoji.name === "diega");
+    message.reply(`QUE DIIICE DOGGGTORR 🤙🏻🤙🏻 ${dogtor}`)
   }
   if (message.content.toLowerCase() == '!dios') {
     musica('https://www.youtube.com/watch?v=A_fCv76c4uQ', '476951287447945230');
@@ -107,15 +107,15 @@ client.on('message', message => {
     musica('https://www.youtube.com/watch?v=Yf33M4KI1qI', '476951287447945230');
   }
   if (message.content.toLowerCase().includes('perdonado')) {
-    client.channels.get('476951287447945230').leave();
-    message.channel.send(`${client.emojis.find(emoji => emoji.name === "Dude")}`);
+    client.channels.cache.get('476951287447945230').leave();
+    message.channel.send(`${client.emojis.cache.find(emoji => emoji.name === "Dude")}`);
   }
 
   if (message.author.id == '268955815719862272') {
     const proba = Math.random();
     console.log(proba);
     if (proba <= 0.15) {
-      message.channel.send(`Si torty, está bien ${client.emojis.find(emoji => emoji.name === "f_")}`);
+      message.channel.send(`Si torty, está bien ${client.emojis.cache.find(emoji => emoji.name === "f_")}`);
     }
   }
   if (message.content.includes('!QueTantoApesto')) {
@@ -124,9 +124,9 @@ client.on('message', message => {
 
     lolApi.Partidas(player, 10).then(score => {
       if (score > 4) {
-        message.channel.send(`@${message.author.username} Bro tu posicion promedio de tus ultimas 10 partidas es ${score}, la neta si apestas ${client.emojis.find(emoji => emoji.name === "badman")}`)
+        message.channel.send(`@${message.author.username} Bro tu posicion promedio de tus ultimas 10 partidas es ${score}, la neta si apestas ${client.emojis.cache.find(emoji => emoji.name === "badman")}`)
       } else {
-        message.channel.send(`@${message.author.username} Bro tu posicion promedio de tus ultimas 10 partidas es ${score}, keep up the good work ${client.emojis.find(emoji => emoji.name === "Dude")}`)
+        message.channel.send(`@${message.author.username} Bro tu posicion promedio de tus ultimas 10 partidas es ${score}, keep up the good work ${client.emojis.cache.find(emoji => emoji.name === "Dude")}`)
       }
 
     }).catch(error=>{
@@ -140,17 +140,17 @@ client.on('message', message => {
     const player = arr[1];
     lolApi.LastMatch(player).then(json => {
       if (!json.pericosBool) {
-        message.channel.send(`@${message.author.username} We que pisada ${client.emojis.find(emoji => emoji.name === "badman")}
+        message.channel.send(`@${message.author.username} We que pisada ${client.emojis.cache.find(emoji => emoji.name === "badman")}
           Quedaste de ${json.puesto} lugar
-          No llegaste a los pericos lul ${client.emojis.find(emoji => emoji.name === "thonkms")}
-          Te mamaste a ${json.eliminaciones} vatos, nice ${client.emojis.find(emoji => emoji.name === "Dude")}
+          No llegaste a los pericos lul ${client.emojis.cache.find(emoji => emoji.name === "thonkms")}
+          Te mamaste a ${json.eliminaciones} vatos, nice ${client.emojis.cache.find(emoji => emoji.name === "Dude")}
           Haciendoles ${json.damage} puntos de daño
           Sobreviviste el ${json.PorcentajePartida}% de la partida clacl.
         `)
       } else {
-        message.channel.send(`@${message.author.username} Muy bien hijo sobreviviste a los pericos ${client.emojis.find(emoji => emoji.name === "Dude")}
+        message.channel.send(`@${message.author.username} Muy bien hijo sobreviviste a los pericos ${client.emojis.cache.find(emoji => emoji.name === "Dude")}
           Quedaste de ${json.puesto} lugar
-          Te mamaste a ${json.eliminaciones} vatos, nice ${client.emojis.find(emoji => emoji.name === "Dude")}
+          Te mamaste a ${json.eliminaciones} vatos, nice ${client.emojis.cache.find(emoji => emoji.name === "Dude")}
           Haciendoles ${json.damage} puntos de daño
           Sobreviviste el ${json.PorcentajePartida}% de la partida clacl.
         `)
@@ -165,15 +165,15 @@ client.on('message', message => {
 var sensei = true;
 setInterval(() => {
   var date = new Date();
-  const channel = client.channels.find(ch => ch.name === 'general');
-  if (date.getHours() == 16 && date.getMinutes() == 20) {
-    const emoji1 = client.emojis.find(emoji => emoji.name === "diega")
-    const emoji2 = client.emojis.find(emoji => emoji.name === "emojiwithglasses")
+  const channel = client.channels.cache.find(ch => ch.name === 'general');
+  if (date.getHours() == 22 && date.getMinutes() == 20) {
+    const emoji1 = client.emojis.cache.find(emoji => emoji.name === "diega")
+    const emoji2 = client.emojis.cache.find(emoji => emoji.name === "emojiwithglasses")
     channel.send(`W`);
 
     if (sensei) {
       const streamOptions = { seek: 0, volume: 1 };
-      var voiceChannel = client.channels.get('476951287447945230');
+      var voiceChannel = client.channels.cache.get('476951287447945230');
       voiceChannel.join().then(connection => {
         console.log("joined channel");
         sensei = false;
@@ -205,7 +205,7 @@ setInterval(() => {
 
 function musica(url, voiceChannel) {
   const streamOptions = { seek: 0, volume: 0.5 };
-  var voiceChannel = client.channels.get(voiceChannel);
+  var voiceChannel = client.channels.cache.get(voiceChannel);
   voiceChannel.join().then(connection => {
     console.log("joined channel");
     const stream = ytdl(url, { filter: 'audioonly' });
