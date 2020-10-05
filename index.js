@@ -4,20 +4,13 @@ const Discord = require('discord.js');
 const client = new Discord.Client();
 const ytdl = require('ytdl-core');
 const lolApi = require('./lolDex')
-const mongoose = require('mongoose');
 const splash = require('./splashes')
-/*mongoose.connect(`mongodb+srv://${process.env.DBUSER}:${process.env.DBPASS}@controlbd-fogfz.mongodb.net/discord?retryWrites=true&w=majority`, {
-  useNewUrlParser:true, useUnifiedTopology:true})
-.then(()=> console.log('Conexion exitosa a la bd'))
-.catch((err)=> console.log(err));
-*/
-//var horaSorry = randomHour(new Date().getHours(), 23);
+const axios = require('axios');
 
 
 client.on('ready', () => {
   console.log(`Logged in as ${client.user.tag}!`);
   splash.Random().then(splash=>{
-    console.log(splash)
     client.user.setPresence({ activity: { name:  splash}, status: 'online' })
   });
 })
@@ -137,6 +130,24 @@ client.on('message', message => {
     //const canal = client.channels.cache.get("701160213130117199")
     //canal.send("!info")
   //}
+  if(message.content.toLowerCase().includes('!splasheado')){
+    const newStr = message.content.split(' ').slice(1).join(' ');
+    const author = message.author.username;
+    const config = {
+      headers: {
+          'Content-Type': 'application/json'
+      }
+    }
+    axios.post('https://controlasistenciacooler.herokuapp.com/splash/create', {
+      msg:newStr,
+      author:author
+    }, config)
+    .then(response=>{
+      const estadoTemp = newStr+' -'+author;
+      client.user.setPresence({ activity: { name:  estadoTemp}, status: 'online' })
+    })
+    .catch(err=>console.log(err))
+  }
   if(message.content.includes('!panamomento')){
     const arr = message.content.split(/ (.*)/);
     const repeat = arr[1];
@@ -238,7 +249,7 @@ setInterval(() => {
     console.log(splash)
     client.user.setPresence({ activity: { name:  splash}, status: 'online' })
   });
-}, 60000);
+}, 600000);
 
 
 function musica(url, voiceChannel) {

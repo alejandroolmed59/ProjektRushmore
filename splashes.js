@@ -13,7 +13,7 @@ async function fixArr (array){
 }
 
 async function Random(){
-        const arr = await axios.get('https://controlasistenciacooler.herokuapp.com/splash')
+        const arr = await axios.get('https://controlasistenciacooler.herokuapp.com/splash/')
         const random = await fixArr(arr.data)
         return random[0]
 }
