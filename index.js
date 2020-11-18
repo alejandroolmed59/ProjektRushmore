@@ -122,8 +122,8 @@ client.on('message', message => {
   if (message.author.id == '268955815719862272') {
     const proba = Math.random();
     console.log(proba);
-    if (proba <= 0.15) {
-      message.channel.send(`Si torty, está bien ${client.emojis.cache.find(emoji => emoji.name === "f_")}`);
+    if (proba <= 0.04) {
+      message.channel.send(`Si torty, que jodes, está bien ${client.emojis.cache.find(emoji => emoji.name === "f_")}`);
     }
   }
   //if(message.content.toLowerCase().includes('!test')){
@@ -138,7 +138,7 @@ client.on('message', message => {
           'Content-Type': 'application/json'
       }
     }
-    axios.post('https://controlasistenciacooler.herokuapp.com/splash/create', {
+    axios.post('http://ec2-100-25-153-160.compute-1.amazonaws.com:3000/splash/create', {
       msg:newStr,
       author:author
     }, config)
