@@ -4,12 +4,16 @@ const Discord = require('discord.js');
 const client = new Discord.Client();
 const ytdl = require('ytdl-core');
 const lolApi = require('./lolDex')
+const splash = require('./splashes')
+const axios = require('axios');
 
-//var horaSorry = randomHour(new Date().getHours(), 23);
 
 client.on('ready', () => {
   console.log(`Logged in as ${client.user.tag}!`);
-});
+  splash.Random().then(splash=>{
+    client.user.setPresence({ activity: { name:  splash}, status: 'online' })
+  });
+})
 
 client.on('guildMemberAdd', member => {
   // Send the message to a designated channel on a server:
@@ -17,7 +21,7 @@ client.on('guildMemberAdd', member => {
   // Do nothing if the channel wasn't found on this server
   if (!channel) return;
   // Send the message, mentioning the member
-  channel.send(`Se unio un nuevo novio de la diega ${client.emojis.find(emoji => emoji.name === "diega")}  ${member}`);
+  channel.send(`Se unio un nuevo novio de la diega ${client.emojis.cache.find(emoji => emoji.name === "diega")}  ${member}`);
 });
 
 client.on('message', message => {
@@ -47,12 +51,12 @@ client.on('message', message => {
   // If the message is '!rip'
   if (message.content.includes('!caracola')) {
     var respuestas = [
-      `Le quedo mal ahí dogg ${client.emojis.find(emoji => emoji.name === "badman")} `,
+      `Le quedo mal ahí dogg ${client.emojis.cache.find(emoji => emoji.name === "badman")} `,
       "Si",
-      `Si 0te ${client.emojis.find(emoji => emoji.name === "emojiwithglasses")} `,
-      `Jaja simon te me cuidas ${client.emojis.find(emoji => emoji.name === "7571_DabbingPengu")}`,
+      `Si 0te ${client.emojis.cache.find(emoji => emoji.name === "emojiwithglasses")} `,
+      `Jaja simon te me cuidas ${client.emojis.cache.find(emoji => emoji.name === "7571_DabbingPengu")}`,
       "No",
-      `Nelson Mandela ${client.emojis.find(emoji => emoji.name === "doge")} `
+      `Nelson Mandela ${client.emojis.cache.find(emoji => emoji.name === "doge")} `
     ];
     var item = respuestas[Math.floor(Math.random() * respuestas.length)];
     message.channel.send('La caracola magica dice: ' + item, {
@@ -64,7 +68,7 @@ client.on('message', message => {
       console.log(random);
       if (random < 0.30) {
         setTimeout(function () {
-          message.channel.send(`KSUUKII DOGG ${client.emojis.find(emoji => emoji.name === "emojiwithglasses")} `);
+          message.channel.send(`KSUUKII DOGG ${client.emojis.cache.find(emoji => emoji.name === "emojiwithglasses")} `);
         }, 3000);
 
       }
@@ -75,17 +79,17 @@ client.on('message', message => {
       'https://www.random.org/coins/faces/60-usd/0100c-jefferson/obverse.jpg',
       'https://www.random.org/coins/faces/60-usd/0100c-jefferson/reverse.jpg'
     ];
-    const attachment = new Discord.Attachment(respuestas[Math.floor(Math.random() * respuestas.length)]);
+    const attachment = new Discord.MessageAttachment(respuestas[Math.floor(Math.random() * respuestas.length)]);
     message.channel.send(attachment);
   }
   if (message.content.toLowerCase().includes('nigga') || message.content.toLowerCase().includes('nigger') || message.content.toLowerCase().includes('niga')) {
-    const attachment = new Discord.Attachment('https://www.tntrafficticket.us/wp-content/uploads/2017/10/Police-officer-with-gun.jpg');
+    const attachment = new Discord.MessageAttachment('https://www.tntrafficticket.us/wp-content/uploads/2017/10/Police-officer-with-gun.jpg');
     message.channel.send(attachment);
     message.channel.send('STOP RIGHT THERE SHOW YOUR FUCKING N-WORD PASS NOW');
   }
   if (message.content.toLowerCase() == 'hola') {
-    const dogtor = client.emojis.find(emoji => emoji.name === "diega");
-    message.reply(`QUE DIIICE DOGGGTORR 🤙🏻🤙🏻`)
+    const dogtor = client.emojis.cache.find(emoji => emoji.name === "diega");
+    message.reply(`QUE DIIICE DOGGGTORR 🤙🏻🤙🏻 ${dogtor}`)
   }
   if (message.content.toLowerCase() == '!dios') {
     musica('https://www.youtube.com/watch?v=A_fCv76c4uQ', '476951287447945230');
@@ -96,9 +100,13 @@ client.on('message', message => {
       'https://media.tenor.com/images/75f3917dfc85e18961d96a7e19d111e8/tenor.gif',
       'https://www.kiddkeo.com/wp-content/uploads/2019/02/noticia_13.png'
     ]
-    const attachment = new Discord.Attachment(pics[Math.floor(Math.random() * pics.length)]);
+    const attachment = new Discord.MessageAttachment(pics[Math.floor(Math.random() * pics.length)]);
+    message.channel.send(attachment);
+  }if(message.content.toLowerCase() == 'adios'){
+    const attachment = new Discord.MessageAttachment('https://i.redd.it/jiviogg6o1551.jpg');
     message.channel.send(attachment);
   }
+
   if (message.content.toLowerCase().includes('yeah') || message.content.toLowerCase().includes('perdonen') && !message.author.bot) {
     musica('https://www.youtube.com/watch?v=wxk-jA5MsPM', '476951287447945230');
 
@@ -107,15 +115,48 @@ client.on('message', message => {
     musica('https://www.youtube.com/watch?v=Yf33M4KI1qI', '476951287447945230');
   }
   if (message.content.toLowerCase().includes('perdonado')) {
-    client.channels.get('476951287447945230').leave();
-    message.channel.send(`${client.emojis.find(emoji => emoji.name === "Dude")}`);
+    client.channels.cache.get('476951287447945230').leave();
+    message.channel.send(`${client.emojis.cache.find(emoji => emoji.name === "Dude")}`);
   }
 
   if (message.author.id == '268955815719862272') {
     const proba = Math.random();
     console.log(proba);
-    if (proba <= 0.15) {
-      message.channel.send(`Si torty, está bien ${client.emojis.find(emoji => emoji.name === "f_")}`);
+    if (proba <= 0.04) {
+      message.channel.send(`Si torty, que jodes, está bien ${client.emojis.cache.find(emoji => emoji.name === "f_")}`);
+    }
+  }
+  //if(message.content.toLowerCase().includes('!test')){
+    //const canal = client.channels.cache.get("701160213130117199")
+    //canal.send("!info")
+  //}
+  if(message.content.toLowerCase().includes('!splasheado')){
+    const newStr = message.content.split(' ').slice(1).join(' ');
+    const author = message.author.username;
+    const config = {
+      headers: {
+          'Content-Type': 'application/json'
+      }
+    }
+    axios.post('http://ec2-100-25-153-160.compute-1.amazonaws.com:3000/splash/create', {
+      msg:newStr,
+      author:author
+    }, config)
+    .then(response=>{
+      const estadoTemp = newStr+' -'+author;
+      client.user.setPresence({ activity: { name:  estadoTemp}, status: 'online' })
+    })
+    .catch(err=>console.log(err))
+  }
+  if(message.content.includes('!panamomento')){
+    const arr = message.content.split(/ (.*)/);
+    const repeat = arr[1];
+    const pana = 'ese pana ';
+    if(!isNaN(repeat) && repeat>0){
+      message.reply(pana.repeat(repeat))
+      mimir(message)
+    }else{
+      message.reply(`Escriba bien dagg :rage:`)
     }
   }
   if (message.content.includes('!QueTantoApesto')) {
@@ -124,9 +165,9 @@ client.on('message', message => {
 
     lolApi.Partidas(player, 10).then(score => {
       if (score > 4) {
-        message.channel.send(`@${message.author.username} Bro tu posicion promedio de tus ultimas 10 partidas es ${score}, la neta si apestas ${client.emojis.find(emoji => emoji.name === "badman")}`)
+        message.channel.send(`@${message.author.username} Bro tu posicion promedio de tus ultimas 10 partidas es ${score}, la neta si apestas ${client.emojis.cache.find(emoji => emoji.name === "badman")}`)
       } else {
-        message.channel.send(`@${message.author.username} Bro tu posicion promedio de tus ultimas 10 partidas es ${score}, keep up the good work ${client.emojis.find(emoji => emoji.name === "Dude")}`)
+        message.channel.send(`@${message.author.username} Bro tu posicion promedio de tus ultimas 10 partidas es ${score}, keep up the good work ${client.emojis.cache.find(emoji => emoji.name === "Dude")}`)
       }
 
     }).catch(error=>{
@@ -140,17 +181,17 @@ client.on('message', message => {
     const player = arr[1];
     lolApi.LastMatch(player).then(json => {
       if (!json.pericosBool) {
-        message.channel.send(`@${message.author.username} We que pisada ${client.emojis.find(emoji => emoji.name === "badman")}
+        message.channel.send(`@${message.author.username} We que pisada ${client.emojis.cache.find(emoji => emoji.name === "badman")}
           Quedaste de ${json.puesto} lugar
-          No llegaste a los pericos lul ${client.emojis.find(emoji => emoji.name === "thonkms")}
-          Te mamaste a ${json.eliminaciones} vatos, nice ${client.emojis.find(emoji => emoji.name === "Dude")}
+          No llegaste a los pericos lul ${client.emojis.cache.find(emoji => emoji.name === "thonkms")}
+          Te mamaste a ${json.eliminaciones} vatos, nice ${client.emojis.cache.find(emoji => emoji.name === "Dude")}
           Haciendoles ${json.damage} puntos de daño
           Sobreviviste el ${json.PorcentajePartida}% de la partida clacl.
         `)
       } else {
-        message.channel.send(`@${message.author.username} Muy bien hijo sobreviviste a los pericos ${client.emojis.find(emoji => emoji.name === "Dude")}
+        message.channel.send(`@${message.author.username} Muy bien hijo sobreviviste a los pericos ${client.emojis.cache.find(emoji => emoji.name === "Dude")}
           Quedaste de ${json.puesto} lugar
-          Te mamaste a ${json.eliminaciones} vatos, nice ${client.emojis.find(emoji => emoji.name === "Dude")}
+          Te mamaste a ${json.eliminaciones} vatos, nice ${client.emojis.cache.find(emoji => emoji.name === "Dude")}
           Haciendoles ${json.damage} puntos de daño
           Sobreviviste el ${json.PorcentajePartida}% de la partida clacl.
         `)
@@ -161,19 +202,32 @@ client.on('message', message => {
   }
 });
 
+async function mimir(message){
+  var respuestas = [
+    `Lo quiero mucho`,
+    "Esta en el auto",
+    `La extraña `,
+    `Va a triunfar en la vida`,
+    "Esta trabado"
+  ];
+  var item = respuestas[Math.floor(Math.random() * respuestas.length)];
+  await new Promise(r => setTimeout(r, 3000));
+  message.reply(item);
+
+}
 
 var sensei = true;
 setInterval(() => {
   var date = new Date();
-  const channel = client.channels.find(ch => ch.name === 'general');
-  if (date.getHours() == 16 && date.getMinutes() == 20) {
-    const emoji1 = client.emojis.find(emoji => emoji.name === "diega")
-    const emoji2 = client.emojis.find(emoji => emoji.name === "emojiwithglasses")
+  const channel = client.channels.cache.find(ch => ch.name === 'general');
+  if (date.getHours() == 22 && date.getMinutes() == 20) {
+    const emoji1 = client.emojis.cache.find(emoji => emoji.name === "diega")
+    const emoji2 = client.emojis.cache.find(emoji => emoji.name === "emojiwithglasses")
     channel.send(`W`);
 
     if (sensei) {
       const streamOptions = { seek: 0, volume: 1 };
-      var voiceChannel = client.channels.get('476951287447945230');
+      var voiceChannel = client.channels.cache.get('476951287447945230');
       voiceChannel.join().then(connection => {
         console.log("joined channel");
         sensei = false;
@@ -189,23 +243,18 @@ setInterval(() => {
     }
   }
 }, 40000);
-/*
-setInterval(() => {
-  var date = new Date();
 
-  if (horaSorry.getHours() == date.getHours() && horaSorry.getMinutes() == date.getMinutes()) {
-    const channel = client.channels.find(ch => ch.name === 'general');
-    channel.send(`${client.emojis.find(emoji => emoji.name === "5071_GokuHi")} @everyone Yeah perdonen kamehameha ${client.emojis.find(emoji => emoji.name === "8053_Steve_Dab")}`);
-  }
-  if (date.getHours() == 0) {
-    horaSorry = randomHour(1, 23);
-  }
-}, 40000);
-*/
+setInterval(() => {
+  splash.Random().then(splash=>{
+    console.log(splash)
+    client.user.setPresence({ activity: { name:  splash}, status: 'online' })
+  });
+}, 600000);
+
 
 function musica(url, voiceChannel) {
   const streamOptions = { seek: 0, volume: 0.5 };
-  var voiceChannel = client.channels.get(voiceChannel);
+  var voiceChannel = client.channels.cache.get(voiceChannel);
   voiceChannel.join().then(connection => {
     console.log("joined channel");
     const stream = ytdl(url, { filter: 'audioonly' });
@@ -227,7 +276,6 @@ function randomHour(startHour, endHour) {
 }
 
 client.login(process.env.TOKEN);
-
 
 
 const express = require('express');

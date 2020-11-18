@@ -1,6 +1,7 @@
 {
-  "name": "ProjectRushmore",
-  "version": "1.0.0",
+  "name": "rushmore",
+  "description": "Hola perdida",
+  "version": "1.0.10",
   "main": "index.js",
   "scripts": {
     "start": "node index"
@@ -10,10 +11,10 @@
     "discord.js": "^12.1.1",
     "dotenv": "^8.2.0",
     "express": "^4.17.1",
-    "ffmpeg": "0.0.4",
-    "ffmpeg-binaries": "^4.0.0",
+    "mongoose": "^5.10.7",
     "opusscript": "0.0.7",
+    "shuffle-array": "^1.0.1",
     "twitch-api-v5": "^2.0.4",
-    "ytdl-core": "^2.0.1"
+    "ytdl-core": "^3.3.0"
   }
 }
