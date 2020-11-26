@@ -171,7 +171,7 @@ client.on('message', message => {
       }
 
     }).catch(error=>{
-      message.channel.send(`Diganle al ojete de <@260599195034058753> que cambie la pinshi key ><`);
+      message.channel.send(`HEY CIPOTE <@260599195034058753> cambia la key ><`);
     });
 
 
@@ -197,7 +197,8 @@ client.on('message', message => {
         `)
       }
     }).catch(error=>{
-      message.channel.send(`Diganle al ojete de <@260599195034058753> que cambie la pinshi key ><`);
+      message.channel.send(`HEY CIPOTE <@260599195034058753> cambia la key ><`);
+
     });
   }
 });
