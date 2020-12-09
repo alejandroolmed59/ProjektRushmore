@@ -126,10 +126,16 @@ client.on('message', message => {
       message.channel.send(`Si torty, que jodes, está bien ${client.emojis.cache.find(emoji => emoji.name === "f_")}`);
     }
   }
-  //if(message.content.toLowerCase().includes('!test')){
-    //const canal = client.channels.cache.get("701160213130117199")
-    //canal.send("!info")
-  //}
+ /* if(message.content.toLowerCase().includes('!test')){
+    message.channel.send(`ATENCION ATENCION `);
+    message.channel.send(`HEMOS IMPACTADO REPITO, HEMOS IMPACTADO `);
+    const attachment1 = new Discord.MessageAttachment('https://i.blogs.es/bf61c6/keanu-reeves-cyberpunk-2077/1366_2000.jpeg');
+    message.channel.send(attachment1);
+    const attachment2 = new Discord.MessageAttachment('https://www.masgamers.com/wp-content/uploads/2019/07/keanu-reeves-cyberpunk-2077-johnny-silverhand.jpg');
+    message.channel.send(attachment2);
+    const attachment3 = new Discord.MessageAttachment('https://i.pinimg.com/originals/8b/bd/30/8bbd300c6ce8e7cef45f107de46a7fdc.gif');
+    message.channel.send(attachment3);
+  }*/
   if(message.content.toLowerCase().includes('!splasheado')){
     const newStr = message.content.split(' ').slice(1).join(' ');
     const author = message.author.username;
@@ -143,8 +149,8 @@ client.on('message', message => {
       author:author
     }, config)
     .then(response=>{
-      const estadoTemp = newStr+' -'+author;
-      client.user.setPresence({ activity: { name:  estadoTemp}, status: 'online' })
+      const estadoTemp = newStr;
+      //client.user.setPresence({ activity: { name:  estadoTemp}, status: 'online' }) CYBERPUNK DAY
     })
     .catch(err=>console.log(err))
   }
@@ -248,10 +254,58 @@ setInterval(() => {
 setInterval(() => {
   splash.Random().then(splash=>{
     console.log(splash)
-    client.user.setPresence({ activity: { name:  splash}, status: 'online' })
+    //client.user.setPresence({ activity: { name:  splash}, status: 'online' }) cyberpunk 
   });
 }, 600000);
+//CYBERPUNK DAY
+var countDownDate = new Date("Dec 10, 2020 24:00:00").getTime();
 
+// Update the count down every 1 second
+var x = setInterval(function() {
+
+  // Get today's date and time
+  var now = new Date().getTime();
+    
+  // Find the distance between now and the count down date
+  var distance = countDownDate - now;
+    
+  // Time calculations for days, hours, minutes and seconds
+  var days = Math.floor(distance / (1000 * 60 * 60 * 24));
+  var hours = Math.floor((distance % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
+  var minutes = Math.floor((distance % (1000 * 60 * 60)) / (1000 * 60));
+  var seconds = Math.floor((distance % (1000 * 60)) / 1000);
+    
+  const keanu = `${hours} horas ${minutes} minutos ${seconds} PARA EL IMPACTO`
+  client.user.setPresence({ activity: { name:  keanu}, status: 'online' }) //cyberpunk 
+    
+  // If the count down is over, write some text 
+  if (distance < 0) {
+    clearInterval(x);
+  }
+}, 10000);
+setInterval(() => {
+  
+  var date = new Date();
+  console.log(date.getHours())
+  console.log(date.getMinutes())
+  const channel = client.channels.cache.find(ch => ch.name === 'general');
+  if (date.getHours() == 24 && date.getMinutes() == 00) {
+    channel.send(`ATENCION ATENCION `);
+    channel.send(`HEMOS IMPACTADO REPITO, HEMOS IMPACTADO `);
+    const attachment1 = new Discord.MessageAttachment('https://i.blogs.es/bf61c6/keanu-reeves-cyberpunk-2077/1366_2000.jpeg');
+    channel.send(attachment1);
+    const attachment2 = new Discord.MessageAttachment('https://www.masgamers.com/wp-content/uploads/2019/07/keanu-reeves-cyberpunk-2077-johnny-silverhand.jpg');
+    channel.send(attachment2);
+    const attachment3 = new Discord.MessageAttachment('https://i.pinimg.com/originals/8b/bd/30/8bbd300c6ce8e7cef45f107de46a7fdc.gif');
+    channel.send(attachment3);
+    const attachment4 = new Discord.MessageAttachment('https://as.com/meristation/imagenes/2020/10/04/header_image/875065311601806430.jpg');
+    channel.send(attachment4);
+    const attachment5 = new Discord.MessageAttachment('https://pbs.twimg.com/media/EjjzZt6XsAE9Khj.jpg');
+    channel.send(attachment5);
+    const keanu2 = `IMPACTADO, IT'S READY`
+    client.user.setPresence({ activity: { name:  keanu2}, status: 'online' }) //cyberpunk 
+  }
+}, 30000);
 
 function musica(url, voiceChannel) {
   const streamOptions = { seek: 0, volume: 0.5 };
