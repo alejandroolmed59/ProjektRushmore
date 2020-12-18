@@ -87,6 +87,10 @@ client.on('message', message => {
     message.channel.send(attachment);
     message.channel.send('STOP RIGHT THERE SHOW YOUR FUCKING N-WORD PASS NOW');
   }
+
+
+
+
   if (message.content.toLowerCase() == 'hola') {
     const dogtor = client.emojis.cache.find(emoji => emoji.name === "diega");
     message.reply(`QUE DIIICE DOGGGTORR 🤙🏻🤙🏻 ${dogtor}`)
@@ -130,6 +134,17 @@ client.on('message', message => {
     //const canal = client.channels.cache.get("701160213130117199")
     //canal.send("!info")
   //}
+
+  if(message.content.toLowerCase()=="dick"){
+    const proba = Math.random();
+    console.log(proba);
+    if(proba<=0.10){
+      message.channel.send(`Dick`);
+    }else if(proba<=0.04){
+      message.channel.send(`Duck`);
+    }
+  }
+
   if(message.content.toLowerCase().includes('!splasheado')){
     const newStr = message.content.split(' ').slice(1).join(' ');
     const author = message.author.username;
