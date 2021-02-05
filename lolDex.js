@@ -6,7 +6,7 @@ const apiKey = process.env.TFTKEY
 
 async function getPuuid(userName) {
     try {
-      const response = await axios.get(`https://la1.api.riotgames.com/lol/summoner/v4/summoners/by-name/${userName}?api_key=${apiKey}`);
+      const response = await axios.get(`https://la1.api.riotgames.com/tft/summoner/v1/summoners/by-name/${userName}?api_key=${apiKey}`);
       return response.data.puuid;
     } catch (error) {
       console.error(error);

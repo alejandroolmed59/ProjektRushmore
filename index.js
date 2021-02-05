@@ -153,7 +153,7 @@ client.on('message', message => {
           'Content-Type': 'application/json'
       }
     }
-    axios.post('http://ec2-100-25-153-160.compute-1.amazonaws.com:3000/splash/create', {
+    axios.post('http://ec2-35-168-1-45.compute-1.amazonaws.com:3000/splash/create', {
       msg:newStr,
       author:author
     }, config)
@@ -177,12 +177,12 @@ client.on('message', message => {
   if (message.content.includes('!QueTantoApesto')) {
     const arr = message.content.split(/ (.*)/);
     const player = arr[1];
-
-    lolApi.Partidas(player, 10).then(score => {
+    const numP = 7;
+    lolApi.Partidas(player, numP).then(score => {
       if (score > 4) {
-        message.channel.send(`@${message.author.username} Bro tu posicion promedio de tus ultimas 10 partidas es ${score}, la neta si apestas ${client.emojis.cache.find(emoji => emoji.name === "badman")}`)
+        message.channel.send(`@${message.author.username} Bro tu posicion promedio de tus ultimas ${numP} partidas es ${score}, la neta si apestas ${client.emojis.cache.find(emoji => emoji.name === "badman")}`)
       } else {
-        message.channel.send(`@${message.author.username} Bro tu posicion promedio de tus ultimas 10 partidas es ${score}, keep up the good work ${client.emojis.cache.find(emoji => emoji.name === "Dude")}`)
+        message.channel.send(`@${message.author.username} Bro tu posicion promedio de tus ultimas ${numP} partidas es ${score}, keep up the good work ${client.emojis.cache.find(emoji => emoji.name === "Dude")}`)
       }
 
     }).catch(error=>{
@@ -190,6 +190,21 @@ client.on('message', message => {
     });
 
 
+  }
+  if(message.content.includes('!Tiburon')){
+    axios.get(`https://api.nomics.com/v1/currencies/ticker?key=${process.env.TIBURON}&ids=DOGE&interval=1d,30d&convert=EUR&per-page=100&page=1`)
+    .then(response=>{
+      const attachment = new Discord.MessageAttachment('https://www.freepngimg.com/thumb/bitcoin/73394-shiba-inu-doge-bitcoin-cryptocurrency-dogecoin.png');
+      message.channel.send(attachment);
+      message.channel.send(`$ ${response.data[0].price}`)
+      if(response.data[0].price>1){
+        message.channel.send('WE ARE RICH!')
+      }
+    })
+    .catch(error=>{
+      message.channel.send(`Se comió el top 8 con la dogecoin ${client.emojis.cache.find(emoji => emoji.name === "badman")}`)
+    })
+    
   }
   if (message.content.includes('!UltimoMatch')) {
     const arr = message.content.split(/ (.*)/);

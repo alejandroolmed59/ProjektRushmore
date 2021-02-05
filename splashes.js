@@ -9,7 +9,7 @@ async function fixArr (array){
 }
 
 async function Random(){
-        const arr = await axios.get('http://ec2-100-25-153-160.compute-1.amazonaws.com:3000/splash')
+        const arr = await axios.get('http://ec2-35-168-1-45.compute-1.amazonaws.com:3000/splash')
         const random = await fixArr(arr.data)
         return random[0]
 }
