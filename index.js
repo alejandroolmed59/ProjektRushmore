@@ -8,6 +8,7 @@ const splash = require('./splashes')
 const axios = require('axios');
 
 
+
 client.on('ready', () => {
   console.log(`Logged in as ${client.user.tag}!`);
   splash.Random().then(splash=>{
@@ -28,9 +29,15 @@ client.on('message', message => {
   // If the message is '!rip'
   var date = new Date();
 
+
+  
   if (message.content.includes('viernes') && date.getDay() == 5) {
     message.reply('De AHORCAR RUCAS MIJO!');
   }
+
+
+
+
   if (message.content === "prueba") {
     console.log('entro!');
     const streamOptions = { seek: 0, volume: 0.5 };
@@ -138,10 +145,12 @@ client.on('message', message => {
   if(message.content.toLowerCase()=="dick"){
     const proba = Math.random();
     console.log(proba);
-    if(proba<=0.10){
+    if(proba<=0.15){
       message.channel.send(`Dick`);
-    }else if(proba<=0.04){
+    }if(proba<=0.05){
       message.channel.send(`Duck`);
+    }if(proba<=0.04){
+      message.channel.send(`No antojen :flushed: :pleading_face:`);
     }
   }
 
@@ -214,6 +223,7 @@ client.on('message', message => {
         message.channel.send(`@${message.author.username} We que pisada ${client.emojis.cache.find(emoji => emoji.name === "badman")}
           Quedaste de ${json.puesto} lugar
           No llegaste a los pericos lul ${client.emojis.cache.find(emoji => emoji.name === "thonkms")}
+          Marvin me dolio ${client.emoji.cache.find(emoji=>emoji.name==="marvin")}
           Te mamaste a ${json.eliminaciones} vatos, nice ${client.emojis.cache.find(emoji => emoji.name === "Dude")}
           Haciendoles ${json.damage} puntos de daño
           Sobreviviste el ${json.PorcentajePartida}% de la partida clacl.
