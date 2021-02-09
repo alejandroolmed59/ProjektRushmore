@@ -158,7 +158,7 @@ client.on('message', message => {
       author:author
     }, config)
     .then(response=>{
-      const estadoTemp = newStr+' -'+author;
+      const estadoTemp = newStr
       client.user.setPresence({ activity: { name:  estadoTemp}, status: 'online' })
     })
     .catch(err=>console.log(err))
@@ -194,7 +194,8 @@ client.on('message', message => {
   if(message.content.includes('!Tiburon')){
     axios.get(`https://api.nomics.com/v1/currencies/ticker?key=${process.env.TIBURON}&ids=DOGE&interval=1d,30d&convert=EUR&per-page=100&page=1`)
     .then(response=>{
-      const attachment = new Discord.MessageAttachment('https://www.freepngimg.com/thumb/bitcoin/73394-shiba-inu-doge-bitcoin-cryptocurrency-dogecoin.png');
+	const attachment = new Discord.MessageAttachment('https://lh3.googleusercontent.com/pw/ACtC-3cs8imfUslvovKymJcoL_tx5qT_0uPFZjGBW6_8pryzNYS6xtELj58shjEfj3iv3Zzt8332MeZ43YtZHvI5bnCRu-Oq40_qFiYEFxeLQ7uILS2jVeL5j68sJcGXaPXYjE_y84mjIJ7aNrSUSaNmJb09jw=w900-h969-no?authuser=0');
+      //const attachment = new Discord.MessageAttachment('https://www.freepngimg.com/thumb/bitcoin/73394-shiba-inu-doge-bitcoin-cryptocurrency-dogecoin.png');
       message.channel.send(attachment);
       message.channel.send(`$ ${response.data[0].price}`)
       if(response.data[0].price>1){
