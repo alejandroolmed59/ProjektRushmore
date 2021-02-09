@@ -16,7 +16,7 @@ client.on('ready', () => {
 })
 
 client.on('guildMemberAdd', member => {
-  // Send the message to a designated channel on a server:
+  // Send the message to a designated channel on a server:adsads
   const channel = member.guild.channels.find(ch => ch.name === 'general');
   // Do nothing if the channel wasn't found on this server
   if (!channel) return;
