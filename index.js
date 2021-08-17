@@ -30,14 +30,49 @@ client.on('message', message => {
   var date = new Date();
 
 
-  
-  if (message.content.includes('viernes') && date.getDay() == 5) {
-    message.reply('De AHORCAR RUCAS MIJO!');
+  if(message.content.includes('!help')){
+   message.reply('1. viernes: De ahorcar rucas. \n 2.!caracola: pregunta algo.  \n  3. SOS: pide ayuda.  \n  4. LIGOF: cringe moment.  \n  5. Amogus: ඞ \n 6. hola: hola. \n 7. yeah perdonden: perdonado. \n 8.PONGAN TUSA: opnen tusa \n 9. Dick: Antojas inmediatamente. \n 10. !splasheado: Pon un mensaje \n 11. !panamomento: besto momento \n 12. !Tiburon: la T en mayúsucula. \n 13. !QueTantoApesto: Promedio en tft. \n 14. !UltimoMatch: La ultima partida que jugaste de tft ' );
   }
-
-
-
-
+	
+  if (message.content.includes('viernes') && date.getDay() == 5) {
+    message.reply('DE AHORCAR RUCAS MIJO!');
+  }
+	
+if(message.content.inlcudes('LIGOF')){
+   message.reply('LEYENS');
+   }
+  if(message.content.toLowerCase()=="climaco"){
+	const proba = Math.random();
+    console.log(proba);
+    if (proba <= 0.04) {
+      message.channel.send(`¡DEJEN DORMIR! ${client.emojis.cache.find(emoji => emoji.name === "f_")}`);
+    }
+  }
+	 if(message.content.toLowerCase()=="AMOGUS"){
+	
+      message.reply(`
+⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⣠⣤⣤⣤⣤⣤⣶⣦⣤⣄⡀⠀⠀⠀⠀⠀⠀⠀⠀
+⠀⠀⠀⠀⠀⠀⠀⠀⢀⣴⣿⡿⠛⠉⠙⠛⠛⠛⠛⠻⢿⣿⣷⣤⡀⠀⠀⠀⠀⠀
+⠀⠀⠀⠀⠀⠀⠀⠀⣼⣿⠋⠀⠀⠀⠀⠀⠀⠀ ⢀⣀⣀⠈⢻⣿⣿⡄⠀⠀⠀⠀
+⠀⠀⠀⠀⠀⠀⠀⣸⣿⡏⠀⠀⠀⣠⣶⣾⣿⣿⣿⠿⠿⠿⢿⣿⣿⣿⣄⠀⠀⠀
+⠀⠀⠀⠀⠀⠀⠀⣿⣿⠁⠀⠀⢰⣿⣿⣯⠁⠀⠀⠀⠀⠀⠀⠀⠈⠙⢿⣷⡄⠀
+⠀⠀⣀⣤⣴⣶⣶⣿⡟⠀⠀⠀⢸⣿⣿⣿⣆⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⣿⣷⠀
+⠀⢰⣿⡟⠋⠉⣹⣿⡇⠀⠀⠀⠘⣿⣿⣿⣿⣷⣦⣤⣤⣤⣶⣶⣶⣶⣿⣿⣿⠀
+⠀⢸⣿⡇⠀⠀⣿⣿⡇⠀⠀⠀⠀⠹⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⡿⠃⠀
+⠀⣸⣿⡇⠀⠀⣿⣿⡇⠀⠀⠀⠀⠀⠉⠻⠿⣿⣿⣿⣿⡿⠿⠿⠛⢻⣿⡇⠀⠀
+⠀⣿⣿⠁⠀⠀⣿⣿⡇⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀ ⢸⣿⣧⠀⠀
+⠀⣿⣿⠀⠀⠀⣿⣿⡇⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀ ⢸⣿⣿⠀⠀
+⠀⣿⣿⠀⠀⠀⣿⣿⡇⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀ ⢸⣿⣿⠀⠀
+⠀⢿⣿⡆⠀⠀⣿⣿⡇⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀ ⠀⢸⣿⡇⠀⠀
+⠀⠸⣿⣧⡀⠀⣿⣿⡇⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀ ⠀⣿⣿⠃⠀⠀
+⠀⠀⠛⢿⣿⣿⣿⣿⣇⠀⠀⠀⠀⠀⣰⣿⣿⣷⣶⣶⣶⠀  ⢠⣿⣿⠀⠀⠀
+⠀⠀⠀⠀⠀⠀⠀⣿⣿⠀⠀⠀⠀⠀⣿⣿⡇⠀⣽⣿⡏⠁⠀⠀ ⢸⣿⡇⠀⠀⠀
+⠀⠀⠀⠀⠀⠀⠀⣿⣿⠀⠀⠀⠀⠀⣿⣿⡇⠀⢹⣿⡆⠀⠀⠀ ⣸⣿⠇⠀⠀⠀
+⠀⠀⠀⠀⠀⠀⠀⢿⣿⣦⣄⣀⣠⣴⣿⣿⠁⠀⠈⠻⣿⣿⣿⣿⡿⠏⠀⠀⠀⠀
+⠀⠀⠀⠀⠀⠀⠀⠈⠛⠻⠿⠿⠿⠿⠋⠁⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀`);
+    
+  }
+	
   if (message.content === "prueba") {
     console.log('entro!');
     const streamOptions = { seek: 0, volume: 0.5 };
@@ -64,6 +99,7 @@ client.on('message', message => {
       `Jaja simon te me cuidas ${client.emojis.cache.find(emoji => emoji.name === "7571_DabbingPengu")}`,
       "No",
       `Nelson Mandela ${client.emojis.cache.find(emoji => emoji.name === "doge")} `
+      `No sé pero estaría bueno que compraras Minoxidil ${client.emojis.cache.find(emoji => emoji.name === "chad")} `,
     ];
     var item = respuestas[Math.floor(Math.random() * respuestas.length)];
     message.channel.send('La caracola magica dice: ' + item, {
@@ -97,7 +133,10 @@ client.on('message', message => {
 
 
 
-
+if(message.content('SOS')){
+   message.reply('SUS ඞ');
+   }
+	  
   if (message.content.toLowerCase() == 'hola') {
     const dogtor = client.emojis.cache.find(emoji => emoji.name === "diega");
     message.reply(`QUE DIIICE DOGGGTORR 🤙🏻🤙🏻 ${dogtor}`)
@@ -130,11 +169,18 @@ client.on('message', message => {
     message.channel.send(`${client.emojis.cache.find(emoji => emoji.name === "Dude")}`);
   }
 
-  if (message.author.id == '268955815719862272') {
+  if (message.author.id == '232725409341505536') {
     const proba = Math.random();
     console.log(proba);
     if (proba <= 0.04) {
       message.channel.send(`Si torty, que jodes, está bien ${client.emojis.cache.find(emoji => emoji.name === "f_")}`);
+    }
+  }
+if (message.author.id == '268955815719862272') {
+    const proba = Math.random();
+    console.log(proba);
+    if (proba <= 0.04) {
+      message.channel.send(`Si Justin, Warzone ${client.emojis.cache.find(emoji => emoji.name === "f_")}`);
     }
   }
   //if(message.content.toLowerCase().includes('!test')){
@@ -250,7 +296,12 @@ async function mimir(message){
     "Esta en el auto",
     `La extraña `,
     `Va a triunfar en la vida`,
-    "Esta trabado"
+    "Esta trabado",
+	  "Esta comprando Shiba",
+	  "Debería dejar de jugar al lol",
+	  "Está en WarZZZone",
+	  "Se comió el Top 8"
+	
   ];
   var item = respuestas[Math.floor(Math.random() * respuestas.length)];
   await new Promise(r => setTimeout(r, 3000));
@@ -331,4 +382,3 @@ app.get('/', (req, res) => {
 const server = app.listen(port, () => {
   console.log(`Express running → PORT ${server.address().port}`);
 });
-
