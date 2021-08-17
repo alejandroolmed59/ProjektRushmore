@@ -176,9 +176,9 @@ if(message.content('SOS')){
       message.channel.send(`Si torty, que jodes, está bien ${client.emojis.cache.find(emoji => emoji.name === "f_")}`);
     }
   }
-<<<<<<< HEAD
+//<<<<<<< HEAD
   
-=======
+//=======
 if (message.author.id == '268955815719862272') {
     const proba = Math.random();
     console.log(proba);
@@ -186,7 +186,7 @@ if (message.author.id == '268955815719862272') {
       message.channel.send(`Si Justin, Warzone ${client.emojis.cache.find(emoji => emoji.name === "f_")}`);
     }
   }
->>>>>>> 8a46a0f749cd4f0ed144a43ea2b28742a6c3072b
+//>>>>>>> 8a46a0f749cd4f0ed144a43ea2b28742a6c3072b
   //if(message.content.toLowerCase().includes('!test')){
     //const canal = client.channels.cache.get("701160213130117199")
     //canal.send("!info")
