@@ -109,7 +109,7 @@ client.on('message', message => {
       'https://cdn141.picsart.com/288827876023211.png',
       'https://ih1.redbubble.net/image.565335878.1839/aps,840x830,small,transparent-pad,1000x1000,f8f8f8.jpg',
       'https://media.tenor.com/images/75f3917dfc85e18961d96a7e19d111e8/tenor.gif',
-      'https://www.kiddkeo.com/wp-content/uploads/2019/02/noticia_13.png'
+      'https://www.kiddkeo.com/wp-content/uploads/2019/02/noticia_12.png'
     ]
     const attachment = new Discord.MessageAttachment(pics[Math.floor(Math.random() * pics.length)]);
     message.channel.send(attachment);
@@ -137,6 +137,7 @@ client.on('message', message => {
       message.channel.send(`Si torty, que jodes, está bien ${client.emojis.cache.find(emoji => emoji.name === "f_")}`);
     }
   }
+  
   //if(message.content.toLowerCase().includes('!test')){
     //const canal = client.channels.cache.get("701160213130117199")
     //canal.send("!info")
@@ -201,9 +202,9 @@ client.on('message', message => {
 
   }
   if(message.content.includes('!Tiburon')){
-    axios.get(`https://api.nomics.com/v1/currencies/ticker?key=${process.env.TIBURON}&ids=DOGE&interval=1d,30d&convert=EUR&per-page=100&page=1`)
+    axios.get(`https://api.nomics.com/v1/currencies/ticker?key=${process.env.TIBURON}&ids=DOGE&interval=1d,30d&convert=USD&per-page=100&page=1`)
     .then(response=>{
-	const attachment = new Discord.MessageAttachment('https://lh3.googleusercontent.com/pw/ACtC-3cs8imfUslvovKymJcoL_tx5qT_0uPFZjGBW6_8pryzNYS6xtELj58shjEfj3iv3Zzt8332MeZ43YtZHvI5bnCRu-Oq40_qFiYEFxeLQ7uILS2jVeL5j68sJcGXaPXYjE_y84mjIJ7aNrSUSaNmJb09jw=w900-h969-no?authuser=0');
+	const attachment = new Discord.MessageAttachment('https://www.trecebits.com/wp-content/uploads/2021/04/Dogecoin-1.jpg');
       //const attachment = new Discord.MessageAttachment('https://www.freepngimg.com/thumb/bitcoin/73394-shiba-inu-doge-bitcoin-cryptocurrency-dogecoin.png');
       message.channel.send(attachment);
       message.channel.send(`$ ${response.data[0].price}`)
@@ -224,7 +225,7 @@ client.on('message', message => {
         message.channel.send(`@${message.author.username} We que pisada ${client.emojis.cache.find(emoji => emoji.name === "badman")}
           Quedaste de ${json.puesto} lugar
           No llegaste a los pericos lul ${client.emojis.cache.find(emoji => emoji.name === "thonkms")}
-          Marvin me dolio ${client.emoji.cache.find(emoji=>emoji.name==="marvin")}
+          Marvin me dolio ${client.emojis.cache.find(emoji=>emoji.name==="marvin")}
           Te mamaste a ${json.eliminaciones} vatos, nice ${client.emojis.cache.find(emoji => emoji.name === "Dude")}
           Haciendoles ${json.damage} puntos de daño
           Sobreviviste el ${json.PorcentajePartida}% de la partida clacl.
@@ -238,6 +239,8 @@ client.on('message', message => {
         `)
       }
     }).catch(error=>{
+      message.channel.send(error);
+      console.log(error)
       message.channel.send(`HEY CIPOTE <@260599195034058753> cambia la key ><`);
 
     });
