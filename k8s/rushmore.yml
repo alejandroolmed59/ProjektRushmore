@@ -1,0 +1,37 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: rushmore
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: rushmore
+  template:
+    metadata:
+      labels:
+        app: rushmore
+    spec:
+      containers:
+      - name: rushmore
+        image: alejandroolmed59/rushmore:1.0
+        env:
+          - name: TOKEN
+            valueFrom:
+              secretKeyRef:
+                name: rushmore-keys
+                key: token-discord
+          - name: TFTKEY
+            value: RGAPI-1f237f60-cba3-4f66-a989-0775071e2086
+          - name: TIBURON
+            value: c97d36191080ea5520f8ca25b4b3ca51
+          - name: DBUSER
+            value: master
+          - name: DBPASS
+            value: master
+        resources:
+          limits:
+            memory: "128Mi"
+            cpu: "100m"
+        ports:
+        - containerPort: 5005

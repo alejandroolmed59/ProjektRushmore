@@ -38,7 +38,7 @@ client.on('message', message => {
     message.reply('DE AHORCAR RUCAS MIJO!');
   }
 	
-if(message.content.inlcudes('LIGOF')){
+if(message.content.includes('LIGOF')){
    message.reply('LEYENS');
    }
   if(message.content.toLowerCase()=="climaco"){
@@ -96,10 +96,10 @@ client.on('message', message => {
       `Le quedo mal ahí dogg ${client.emojis.cache.find(emoji => emoji.name === "badman")} `,
       "Si",
       `Si 0te ${client.emojis.cache.find(emoji => emoji.name === "emojiwithglasses")} `,
-      `Jaja simon te me cuidas ${client.emojis.cache.find(emoji => emoji.name === "7571_DabbingPengu")}`,
-      "No",
-      `Nelson Mandela ${client.emojis.cache.find(emoji => emoji.name === "doge")} `
-      `No sé pero estaría bueno que compraras Minoxidil ${client.emojis.cache.find(emoji => emoji.name === "chad")} `,
+      `Jaja simon te me cuidas ${client.emojis.cache.find(emoji => emoji.name === "DabbingPengu")}`,
+      'No',
+      `Nelson Mandela ${client.emojis.cache.find(emoji => emoji.name === "doge")} `,
+      `No sé pero estaría bueno que compraras Minoxidil ${client.emojis.cache.find(emoji => emoji.name === "chad")} `
     ];
     var item = respuestas[Math.floor(Math.random() * respuestas.length)];
     message.channel.send('La caracola magica dice: ' + item, {
@@ -133,7 +133,7 @@ client.on('message', message => {
 
 
 
-if(message.content('SOS')){
+if(message.content == 'SOS'){
    message.reply('SUS ඞ');
    }
 	  
@@ -181,6 +181,7 @@ if(message.content('SOS')){
 //=======
 /*
 if (message.author.id == '268955815719862272') {
+if (message.author.id == '232725409341505536') {
     const proba = Math.random();
     console.log(proba);
     if (proba <= 0.04) {
@@ -380,7 +381,7 @@ client.login(process.env.TOKEN);
 
 const express = require('express');
 const app = express();
-var port = process.env.PORT || 5000
+var port = process.env.PORT || 5005
 
 app.get('/', (req, res) => {
   res.send('Estamos en vivo');
