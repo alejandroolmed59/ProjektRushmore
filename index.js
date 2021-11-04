@@ -168,24 +168,25 @@ if(message.content('SOS')){
     client.channels.cache.get('476951287447945230').leave();
     message.channel.send(`${client.emojis.cache.find(emoji => emoji.name === "Dude")}`);
   }
-
+/*
   if (message.author.id == '232725409341505536') {
     const proba = Math.random();
     console.log(proba);
     if (proba <= 0.04) {
       message.channel.send(`Si torty, que jodes, está bien ${client.emojis.cache.find(emoji => emoji.name === "f_")}`);
     }
-  }
+  }*/
 //<<<<<<< HEAD
   
 //=======
+/*
 if (message.author.id == '268955815719862272') {
     const proba = Math.random();
     console.log(proba);
     if (proba <= 0.04) {
       message.channel.send(`Si Justin, Warzone ${client.emojis.cache.find(emoji => emoji.name === "f_")}`);
     }
-  }
+  }*/
 //>>>>>>> 8a46a0f749cd4f0ed144a43ea2b28742a6c3072b
   //if(message.content.toLowerCase().includes('!test')){
     //const canal = client.channels.cache.get("701160213130117199")
