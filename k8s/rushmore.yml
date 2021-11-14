@@ -17,7 +17,10 @@ spec:
         image: alejandroolmed59/rushmore:1.0
         env:
           - name: TOKEN
-            value: NjA5NDM0MjM5MzMwNDE4NzA5
+            valueFrom:
+              secretKeyRef:
+                name: rushmore-keys
+                key: token-discord
           - name: TFTKEY
             value: RGAPI-1f237f60-cba3-4f66-a989-0775071e2086
           - name: TIBURON
