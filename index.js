@@ -181,7 +181,7 @@ client.on('message', message => {
   if (message.author.id == '232725409341505536') {
     const proba = Math.random();
     console.log(proba);
-    if (proba = 0.01) {
+    if (proba == 0.01) {
       message.channel.send(`Si torty, que jodes, está bien ${client.emojis.cache.find(emoji => emoji.name === "f_")}`);
     }
   }
@@ -189,7 +189,7 @@ client.on('message', message => {
   if (message.author.id == '232725409341505536') {
     const proba = Math.random();
     console.log(proba);
-    if (proba = 0.01) {
+    if (proba == 0.01) {
       message.channel.send(`Si Justin, Warzone ${client.emojis.cache.find(emoji => emoji.name === "f_")}`);
     }
   }
@@ -197,7 +197,7 @@ client.on('message', message => {
   if (message.author.id == '329013675132452864') {
     const proba = Math.random();
     console.log(proba);
-    if (proba = 0.01) {
+    if (proba == 0.01) {
       message.channel.send(`Si Zork, andá a jugar lol ${client.emojis.cache.find(emoji => emoji.name === "f_")}`);
     }
   }
@@ -205,7 +205,7 @@ client.on('message', message => {
   if (message.author.id == '311297360615440404') {
     const proba = Math.random();
     console.log(proba);
-    if (proba = 0.01) {
+    if (proba == 0.01) {
       message.channel.send(`Si Ra, ya sabemos que odias a las embraz ${client.emojis.cache.find(emoji => emoji.name === "f_")}`);
     }
   }
@@ -213,7 +213,7 @@ client.on('message', message => {
   if (message.author.id == '260599195034058753') {
     const proba = Math.random();
     console.log(proba);
-    if (proba = 0.01) {
+    if (proba == 0.01) {
       message.channel.send(`Lo que digas Olmedo ${client.emojis.cache.find(emoji => emoji.name === "f_")}`);
     }
   }
@@ -221,7 +221,7 @@ client.on('message', message => {
   if (message.author.id == '221099047161692163') {
     const proba = Math.random();
     console.log(proba);
-    if (proba = 0.01) {
+    if (proba == 0.01) {
       message.channel.send(`Ok Alexis ${client.emojis.cache.find(emoji => emoji.name === "f_")}`);
     }
   }
@@ -230,11 +230,11 @@ client.on('message', message => {
   if (message.content.toLowerCase() == "dick") {
     const proba = Math.random();
     console.log(proba);
-    if (proba = 0.15) {
+    if (proba == 0.15) {
       message.channel.send(`Dick`);
-    } if (proba = 0.05) {
+    } if (proba == 0.05) {
       message.channel.send(`Duck`);
-    } if (proba = 0.04) {
+    } if (proba == 0.04) {
       message.channel.send(`No antojen :flushed: :pleading_face:`);
     }
   }
@@ -311,22 +311,22 @@ client.on('message', message => {
 
   //GVGMALL
   if (message.content == '!GVGVMALL') {
-    message.send('Este video está patrocinado por GVG Mall. GVG Mall es una tienda online de claves de software, donde puedes encontrar claves para Windows 10 profesional, como la que estoy comprando ahora mismo para mi pc. Las claves son mucho más económicas que las que vende Microsoft (de hecho esta cuesta tan solo quince dólares) porque son de un tipo muy especial llamado OEM. GVG Mall está autorizado para venderlas y son claves legales, la única pega que tienen es que se van a ligar al hardware que tienes en tu pc instalado ahora mismo, por lo que si algún día cambias algún componente posiblemente tengas que volver a activar Windows... pero por el precio, comparado por una clave completa, creo que vale muchísimo la pena. Se pueden pagar por PayPal y no tenéis que esperar horas o días como pasa en otras tiendas online. Os dejo enlaces a la tienda en la descripción y también un código de descuento de un 15%. Ahora sigamos con el video de hoy.');
+    message.channel.send('Este video está patrocinado por GVG Mall. GVG Mall es una tienda online de claves de software, donde puedes encontrar claves para Windows 10 profesional, como la que estoy comprando ahora mismo para mi pc. Las claves son mucho más económicas que las que vende Microsoft (de hecho esta cuesta tan solo quince dólares) porque son de un tipo muy especial llamado OEM. GVG Mall está autorizado para venderlas y son claves legales, la única pega que tienen es que se van a ligar al hardware que tienes en tu pc instalado ahora mismo, por lo que si algún día cambias algún componente posiblemente tengas que volver a activar Windows... pero por el precio, comparado por una clave completa, creo que vale muchísimo la pena. Se pueden pagar por PayPal y no tenéis que esperar horas o días como pasa en otras tiendas online. Os dejo enlaces a la tienda en la descripción y también un código de descuento de un 15%. Ahora sigamos con el video de hoy.');
   }
 
   //Morterito
   if(message.content == '!lectura'){
-    message.send('¡Joder! ¿Todavía no han leído eso? Y entonces ¿en qué carajo estamos pues? Miren bichos, yo no les voy a ayudar en nada. Les voy a dejar la nota del parcial así, con ese 6. Y me voy a poner yuca con los trabajos de los esquemas y más con el ensayo. Tal vez así avivan y se ponen las pilas de una puta vez. Estuvieron va de joder de que les mandara el ejemplo; les mando los dos putos ejemplos ¡y no los han leído! ¡Es una puta vergüenza con ustedes! Y algunos ya son de cuarto y de quinto año ¿qué mierda van a ir a hacer a un trabajo? No me jodan. ¿Qué mierda van a ir a hacer a un trabajo? Les debería de dar vergüenza. Puta, un maldito examen de mierda no pueden sacar una nota decente estando en la puta casa con toda la computadora, el internet, los apuntes y con las clases grabadas... ¡No me jodan! ¡No me jodan! Puta, ya hubiéramos querido nosotros en nuestra época que nos lo dieran todo en la trompa... puta a ustedes lo tienen todo, tienen computadoras, tienen tecnología, muchos de ustedes no hacen ni mierda, sus papás son los que les pagan las cosas ¡y siguen de huevones y no quieren hacer las cosas! ¡No hacen las mierdas! Bichos, no jodan hombre. Puta, no sean sin vergüenzas. Mejor díganle a su papá o a su mamá: "Mira no me pagues la universidad, me voy a ir a vender tomates al mercado". No quiero, no quiero volver a hacer una pregunta y que pasen más de dos segundos callados sin que me contesten. Ayer me dijeron: "¡Ay! Es que mucho material". ¡Déjense de mariconadas! ¡Déjense de mariconadas! ¡Déjense de mierdas! Hoy se van a enterar lo que es tener mucho material. De aquí en adelante se van a enterar lo que es tener mucho material para leer. Joder con ustedes mano, joder... madre...')
+    message.channel.send('¡Joder! ¿Todavía no han leído eso? Y entonces ¿en qué carajo estamos pues? Miren bichos, yo no les voy a ayudar en nada. Les voy a dejar la nota del parcial así, con ese 6. Y me voy a poner yuca con los trabajos de los esquemas y más con el ensayo. Tal vez así avivan y se ponen las pilas de una puta vez. Estuvieron va de joder de que les mandara el ejemplo; les mando los dos putos ejemplos ¡y no los han leído! ¡Es una puta vergüenza con ustedes! Y algunos ya son de cuarto y de quinto año ¿qué mierda van a ir a hacer a un trabajo? No me jodan. ¿Qué mierda van a ir a hacer a un trabajo? Les debería de dar vergüenza. Puta, un maldito examen de mierda no pueden sacar una nota decente estando en la puta casa con toda la computadora, el internet, los apuntes y con las clases grabadas... ¡No me jodan! ¡No me jodan! Puta, ya hubiéramos querido nosotros en nuestra época que nos lo dieran todo en la trompa... puta a ustedes lo tienen todo, tienen computadoras, tienen tecnología, muchos de ustedes no hacen ni mierda, sus papás son los que les pagan las cosas ¡y siguen de huevones y no quieren hacer las cosas! ¡No hacen las mierdas! Bichos, no jodan hombre. Puta, no sean sin vergüenzas. Mejor díganle a su papá o a su mamá: "Mira no me pagues la universidad, me voy a ir a vender tomates al mercado". No quiero, no quiero volver a hacer una pregunta y que pasen más de dos segundos callados sin que me contesten. Ayer me dijeron: "¡Ay! Es que mucho material". ¡Déjense de mariconadas! ¡Déjense de mariconadas! ¡Déjense de mierdas! Hoy se van a enterar lo que es tener mucho material. De aquí en adelante se van a enterar lo que es tener mucho material para leer. Joder con ustedes mano, joder... madre...')
   }
 
   //Surfshark
   if(message.content == '!Surfshark'){
-    message.send('Surfshark es un servicio de VPN. En otras palabras te permite conectarte a internet a través de sus servidores, de esa manera puedes cambiar tu ip y engañar a distintos servicios que sólo estan disponibles en ciertos países, como por ejemplo Hulu, o incluso ver contenido que está restringido como ciertas películas o series de Netflix. Además una vez lo tienes activado se encarga de filtrar por ti anuncios maliciosos y malware, y sobre todo si te conectas desde redes públicas o incluso si un vecino te está robando tu Wi-Fi no podrá espiarte porque la conexión está encriptada con un algoritmo de cifrado AES-256. Utiliza el código de descuento "Nate" para obtener un 85% de descuento y 3 meses gratis. Te dejo abajo el link en la descripción. Gracias a Surfshark por patrocinar este video. Y ahora sigamos con el contenido de hoy 3 meses gratis')
+    message.channel.send('Surfshark es un servicio de VPN. En otras palabras te permite conectarte a internet a través de sus servidores, de esa manera puedes cambiar tu ip y engañar a distintos servicios que sólo estan disponibles en ciertos países, como por ejemplo Hulu, o incluso ver contenido que está restringido como ciertas películas o series de Netflix. Además una vez lo tienes activado se encarga de filtrar por ti anuncios maliciosos y malware, y sobre todo si te conectas desde redes públicas o incluso si un vecino te está robando tu Wi-Fi no podrá espiarte porque la conexión está encriptada con un algoritmo de cifrado AES-256. Utiliza el código de descuento "Nate" para obtener un 85% de descuento y 3 meses gratis. Te dejo abajo el link en la descripción. Gracias a Surfshark por patrocinar este video. Y ahora sigamos con el contenido de hoy 3 meses gratis')
   }
 
   //Albion
   if(message.content == '!Albion'){
-    message.send('Albion online es un mmorpg no lineal en el que escribes tu propia historia sin limitarte a seguir un camino prefijado, explora un amplio mundo abierto con cinco biomas unicos, todo cuanto hagas tendra su repercusíon en el mundo, con su economia orientada al jugador de albion los jugadores crean practicamente todo el equipo a partir de los recursos que consiguen, el equipo que llevas define quien eres, cambia de arma y armadura para pasar de caballero a mago o juego como una mezcla de ambas clases, aventurate en el mundo abierto y haz frente a los habitantes y las criaturas de albion, inicia expediciones o adentrate en mazmorras en las que encontraras enemigos aun mas dificiles, enfrentate a otros jugadores en encuentros en el mundo abierto, lucha por los territorios o por ciudades enteras en batallas tacticas, relajate en tu isla privada donde podras construir un hogar, cultivar cosechas, criar animales, unete a un gremio, todo es mejor cuando se trabaja en grupo [musica] adentrate ya en el mundo de albion y escribe tu propia historia.')
+    message.channel.send('Albion online es un mmorpg no lineal en el que escribes tu propia historia sin limitarte a seguir un camino prefijado, explora un amplio mundo abierto con cinco biomas unicos, todo cuanto hagas tendra su repercusíon en el mundo, con su economia orientada al jugador de albion los jugadores crean practicamente todo el equipo a partir de los recursos que consiguen, el equipo que llevas define quien eres, cambia de arma y armadura para pasar de caballero a mago o juego como una mezcla de ambas clases, aventurate en el mundo abierto y haz frente a los habitantes y las criaturas de albion, inicia expediciones o adentrate en mazmorras en las que encontraras enemigos aun mas dificiles, enfrentate a otros jugadores en encuentros en el mundo abierto, lucha por los territorios o por ciudades enteras en batallas tacticas, relajate en tu isla privada donde podras construir un hogar, cultivar cosechas, criar animales, unete a un gremio, todo es mejor cuando se trabaja en grupo [musica] adentrate ya en el mundo de albion y escribe tu propia historia.')
   }
 
   //Odias a las embraz
