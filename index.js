@@ -336,7 +336,7 @@ client.on('message', message => {
     }
     const numeroal = getRandomArbitrary(0,100);
     
-    message.channel.reply(`le tienes un ${parseInt(numeroal)}% de odio a las embraz`)
+    message.channel.send(`le tienes un ${parseInt(numeroal)}% de odio a las embraz`)
   }
 
   //ultimo match tft
