@@ -489,5 +489,5 @@ app.get('/', (req, res) => {
 });
 
 const server = app.listen(port, () => {
-  console.log(`Express running → PORT ${server.address().port}`);
+  console.log(`Express runnning → PORT ${server.address().port}`);
 });
