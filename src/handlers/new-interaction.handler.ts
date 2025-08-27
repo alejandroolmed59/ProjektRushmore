@@ -16,18 +16,18 @@ export const newInteractionHandler = async (
     // RESPUESTAS
     if (interaction.isModalSubmit()) {
         console.log(`Interaccion del comando: ${interaction.customId}`)
-        if (interaction.customId === 'myModalId') {
+        if (interaction.customId === 'modalApuesta') {
             const respuesta = gamblingModalSubmission(interaction)
             // Send the message with embed and buttons
             await interaction.reply({
-                embeds: [respuesta.embed],
-                components: [respuesta.component],
+                embeds: respuesta.embed,
+                components: respuesta.component,
             })
         }
     }
     //COMANDOS
     if (interaction.isChatInputCommand()) {
-        if (interaction.commandName === 'onooo') {
+        if (interaction.commandName === 'polymarket') {
             const gamblingModal = gamblingModalBuilder()
             await interaction.showModal(gamblingModal)
         }
@@ -35,11 +35,11 @@ export const newInteractionHandler = async (
     // button confirmado
     if (interaction.isButton()) {
         console.log(
-            `Boton presionado: ${interaction.customId}, respuesta: ${interaction.customId}, interactuo con user ${interaction.user.globalName} userId ${interaction.user.id}`
+            `Boton presionado: ${interaction.customId}, interactuo con user ${interaction.user.globalName} userId ${interaction.user.id}`
         )
         const gameId = interaction.customId.split('-')[2]
         await interaction.reply({
-            content: `🎮 <@${interaction.user.globalName}> joined the game! Interaction Id ${gameId}`,
+            content: `🎰 <@${interaction.user.globalName}> Acaba de apostar ${gameId}`,
         })
     }
 }

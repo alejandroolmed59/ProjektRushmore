@@ -14,57 +14,76 @@ import {
 
 export const gamblingModalSubmission = (
     interaction: ModalSubmitInteraction
-): { embed: EmbedBuilder; component: ActionRowData<AnyComponentBuilder> } => {
-    const foodResponse =
-        interaction.fields.getTextInputValue('favoriteFoodInput')
-    const ageResponse = interaction.fields.getTextInputValue('ageInput')
+): {
+    embed: EmbedBuilder[]
+    component: ActionRowData<AnyComponentBuilder>[]
+} => {
+    const descripcionApuesta =
+        interaction.fields.getTextInputValue('descripcionApuesta')
+    const probabilidadApuestaInput =
+        Number(interaction.fields.getTextInputValue('probabilidadApuesta')) /
+        100
+    if (!probabilidadApuestaInput)
+        throw new Error(
+            'Formato de numero no valido en probabilidad de apuesta input'
+        )
+    const endDate = interaction.fields.getTextInputValue('endDateApuesta')
+    //Calcular los porcentajes
+    const probabilidadSi = probabilidadApuestaInput
+    const probabilidadNo = 1 - probabilidadSi
+    const multiplicadorSi = (1 / probabilidadSi).toFixed(2)
+    const multiplicadorNo = (1 / probabilidadNo).toFixed(2)
     // Create the embed
     const gameMatchEmbed = new EmbedBuilder()
         .setColor(Colors.DarkOrange) // Discord blurple color
         .setTitle('Game match request')
         .setDescription(
-            `@${interaction.user.username} created a new game with id ${interaction.id} match request`
+            `@${interaction.user.username} creó una nueva apuesta 🤑:\n${descripcionApuesta}`
         )
         .addFields(
             {
-                name: 'Comida fav',
-                value: foodResponse,
+                name: 'Probabilidad SI',
+                value: `${probabilidadSi}%`,
                 inline: true,
             },
             {
-                name: 'Edad',
-                value: ageResponse,
+                name: 'Probabilidad NO',
+                value: `${probabilidadNo}%`,
                 inline: true,
             }
         )
         .setTimestamp()
-
+    const montoApuesta = new TextInputBuilder()
+        .setCustomId(`dinero-apuesta-${interaction.id}`)
+        .setRequired(true)
+        .setLabel('Que tanto vamos a apostarle 💸')
     // Create the buttons
     const joinButton = new ButtonBuilder()
-        .setCustomId(`join-game-${interaction.id}`)
-        .setLabel('Join')
+        .setCustomId(`si-apuesta-${interaction.id}`)
+        .setLabel(`SI x${multiplicadorSi} 🍀`)
         .setStyle(ButtonStyle.Primary)
 
     const cancelButton = new ButtonBuilder()
-        .setCustomId(`cancel-game-${interaction.id}`)
-        .setLabel('Cancel')
+        .setCustomId(`no-apuesta-${interaction.id}`)
+        .setLabel(`NO x${multiplicadorNo} 🥀`)
         .setStyle(ButtonStyle.Danger)
 
     // Create action row with buttons
+    const apuestaRow = new ActionRowBuilder().addComponents(montoApuesta)
     const buttonRow = new ActionRowBuilder().addComponents(
         joinButton,
         cancelButton
     )
     return {
-        embed: gameMatchEmbed,
-        component: buttonRow as any,
+        embed: [gameMatchEmbed],
+        component: [buttonRow] as any,
     }
 }
 
 export const gamblingModalBuilder = (): ModalBuilder => {
     const modal = new ModalBuilder()
         .setCustomId('modalApuesta')
-        .setTitle('❤️♠️♦️♣️ Hora de apostar ❤️♠️♦️♣️')
+        .setTitle('❤️♠️♦️♣️ Hora de apostar ')
 
     const descripcionApuesta = new TextInputBuilder()
         .setCustomId('descripcionApuesta')
@@ -77,7 +96,7 @@ export const gamblingModalBuilder = (): ModalBuilder => {
 
     const probabilidadApuesta = new TextInputBuilder()
         .setCustomId('probabilidadApuesta')
-        .setLabel('Cual es el % de probabilidad inicial de que se gane?')
+        .setLabel('Cual es la probabilidad de que se gane?')
         .setStyle(TextInputStyle.Short)
         .setPlaceholder('60')
         .setRequired(true)
