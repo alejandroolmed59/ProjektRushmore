@@ -63,24 +63,42 @@ export const gamblingModalSubmission = (
 
 export const gamblingModalBuilder = (): ModalBuilder => {
     const modal = new ModalBuilder()
-        .setCustomId('myModalId')
-        .setTitle('My Awesome Modal')
+        .setCustomId('modalApuesta')
+        .setTitle('❤️♠️♦️♣️ Hora de apostar ❤️♠️♦️♣️')
 
-    const favoriteFoodInput = new TextInputBuilder()
-        .setCustomId('favoriteFoodInput')
-        .setLabel('What is your favorite food?')
-        .setStyle(TextInputStyle.Short)
+    const descripcionApuesta = new TextInputBuilder()
+        .setCustomId('descripcionApuesta')
+        .setLabel('A que le vamos a apostar hoy?')
+        .setPlaceholder(
+            'El zork se termina silksong antes de que termine septiembre?'
+        )
+        .setStyle(TextInputStyle.Paragraph)
+        .setRequired(true)
 
-    const ageInput = new TextInputBuilder()
-        .setCustomId('ageInput')
-        .setLabel('Whats your age')
+    const probabilidadApuesta = new TextInputBuilder()
+        .setCustomId('probabilidadApuesta')
+        .setLabel('Cual es el % de probabilidad inicial de que se gane?')
         .setStyle(TextInputStyle.Short)
+        .setPlaceholder('60')
+        .setRequired(true)
+
+    const endDate = new TextInputBuilder()
+        .setCustomId('endDateApuesta')
+        .setLabel('Cuando es la fecha limite de la apuesta')
+        .setStyle(TextInputStyle.Short)
+        .setPlaceholder('1756389600')
         .setRequired(false)
-
     const firstActionRow = new ActionRowBuilder().addComponents(
-        favoriteFoodInput
+        descripcionApuesta
     )
-    const secondActionRow = new ActionRowBuilder().addComponents(ageInput)
-    modal.addComponents(firstActionRow as any, secondActionRow as any)
+    const secondActionRow = new ActionRowBuilder().addComponents(
+        probabilidadApuesta
+    )
+    const thirdActionRow = new ActionRowBuilder().addComponents(endDate)
+    modal.addComponents(
+        firstActionRow as any,
+        secondActionRow as any,
+        thirdActionRow as any
+    )
     return modal
 }
