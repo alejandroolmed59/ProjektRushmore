@@ -21,6 +21,9 @@
     "homepage": "https://github.com/alejandroolmed59/ProjektRushmore#readme",
     "description": "",
     "devDependencies": {
+        "@aws-sdk/client-dynamodb": "^3.670.0",
+        "@aws-sdk/lib-dynamodb": "^3.670.0",
+        "@aws-sdk/util-dynamodb": "^3.670.0",
         "@types/node": "^24.3.0",
         "esbuild": "^0.25.9",
         "nodemon": "^3.1.10",

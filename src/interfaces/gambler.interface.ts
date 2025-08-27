@@ -1,4 +1,4 @@
 export interface Gambler {
-    name: string
-    value: string
+    discordId: string
+    money: number //ccc
 }

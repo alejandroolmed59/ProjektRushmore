@@ -1,24 +1,6 @@
-import {
-    Message,
-    EmbedBuilder,
-    ModalBuilder,
-    TextInputBuilder,
-    TextInputStyle,
-    ActionRowBuilder,
-} from 'discord.js'
-import { Gambler } from '../interfaces/gambler.interface'
+import { Message, EmbedBuilder } from 'discord.js'
+import { createNewGambler, getMoney } from '../handlers/money.handler'
 import os from 'os'
-
-const gamblers: Gambler[] = [
-    {
-        name: 'olme59',
-        value: '500',
-    },
-    {
-        name: 'zork',
-        value: '500',
-    },
-]
 
 export const newMessageInChannel = async (message: Message): Promise<void> => {
     if (message.author.bot) return // ignore bots
@@ -33,17 +15,14 @@ export const newMessageInChannel = async (message: Message): Promise<void> => {
         const embed = new EmbedBuilder()
             .setTitle('Dineros')
             .setDescription('Balance de teclennios')
-            .addFields([...gamblers])
+            .addFields([])
             .setColor(0x5865f2)
 
         message.reply({ embeds: [embed] })
     }
     if (message.content === '!cajero') {
-        const gamblerExisting = gamblers.find((gambler) => {
-            return gambler.name === message.author.id
-        })
-        if (!gamblerExisting) {
-            gamblers.push({ name: message.author.id, value: '500' })
+        const gamblerCreateResponse = await createNewGambler(message.author.id)
+        if (gamblerCreateResponse) {
             message.reply('Nuevo gambler creado!')
         } else {
             message.reply('gambler ya tiene mony')
