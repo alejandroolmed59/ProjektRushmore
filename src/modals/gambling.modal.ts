@@ -6,8 +6,11 @@ import {
     ButtonStyle,
     Colors,
     EmbedBuilder,
+    InteractionReplyOptions,
     ModalBuilder,
     ModalSubmitInteraction,
+    StringSelectMenuBuilder,
+    StringSelectMenuOptionBuilder,
     TextInputBuilder,
     TextInputStyle,
 } from 'discord.js'
@@ -29,13 +32,13 @@ export const gamblingModalSubmission = (
         )
     const endDate = interaction.fields.getTextInputValue('endDateApuesta')
     //Calcular los porcentajes
-    const probabilidadSi = probabilidadApuestaInput
-    const probabilidadNo = 1 - probabilidadSi
-    const multiplicadorSi = (1 / probabilidadSi).toFixed(2)
-    const multiplicadorNo = (1 / probabilidadNo).toFixed(2)
+    const probabilidadSi: number = Number(probabilidadApuestaInput.toFixed(2))
+    const probabilidadNo: number = 1 - probabilidadSi
+    const multiplicadorSi: number = Number((1 / probabilidadSi).toFixed(2))
+    const multiplicadorNo: number = Number((1 / probabilidadNo).toFixed(2))
     // Create the embed
     const gameMatchEmbed = new EmbedBuilder()
-        .setColor(Colors.DarkOrange) // Discord blurple color
+        .setColor(Colors.Purple) // Discord blurple color
         .setTitle(`@${interaction.user.username} creó una nueva apuesta 🤑`)
         .setDescription(descripcionApuesta)
         .addFields(
@@ -47,6 +50,11 @@ export const gamblingModalSubmission = (
             {
                 name: 'Probabilidad NO',
                 value: `${probabilidadNo}%`,
+                inline: true,
+            },
+            {
+                name: 'Fecha limite',
+                value: endDate,
                 inline: true,
             }
         )
@@ -70,7 +78,7 @@ export const gamblingModalSubmission = (
     }
 }
 
-export const gamblingModalBuilder = (): ModalBuilder => {
+export const gamblingModalBuilder = (endDate: string): ModalBuilder => {
     const modal = new ModalBuilder()
         .setCustomId('modalApuesta')
         .setTitle('❤️♠️♦️♣️ Hora de apostar ')
@@ -91,23 +99,68 @@ export const gamblingModalBuilder = (): ModalBuilder => {
         .setPlaceholder('60')
         .setRequired(true)
 
-    const endDate = new TextInputBuilder()
-        .setCustomId('endDateApuesta')
-        .setLabel('Cuando es la fecha limite de la apuesta')
+    const montoApuesta = new TextInputBuilder()
+        .setCustomId('montoApuesta')
+        .setLabel('Cuantas CCC van a apostar los participantes?')
         .setStyle(TextInputStyle.Short)
-        .setPlaceholder('1756389600')
-        .setRequired(false)
+        .setPlaceholder('200')
+        .setRequired(true)
+
+    const endDateApuesta = new TextInputBuilder()
+        .setCustomId('endDateApuesta')
+        .setLabel('Finalizacion')
+        .setStyle(TextInputStyle.Short)
+        .setValue(endDate)
+        .setRequired(true)
+
     const firstActionRow = new ActionRowBuilder().addComponents(
         descripcionApuesta
     )
     const secondActionRow = new ActionRowBuilder().addComponents(
         probabilidadApuesta
     )
-    const thirdActionRow = new ActionRowBuilder().addComponents(endDate)
+    const thirdActionRow = new ActionRowBuilder().addComponents(montoApuesta)
+    const fourthActionRow = new ActionRowBuilder().addComponents(endDateApuesta)
     modal.addComponents(
         firstActionRow as any,
         secondActionRow as any,
-        thirdActionRow as any
+        thirdActionRow as any,
+        fourthActionRow as any
     )
     return modal
+}
+
+export const selectEndDateMenu = (): InteractionReplyOptions => {
+    const endDateMenu = new StringSelectMenuBuilder()
+        .setCustomId('endDateApuesta')
+        .setMinValues(1)
+        .setMaxValues(1)
+        .addOptions(
+            new StringSelectMenuOptionBuilder()
+                .setLabel('Horas')
+                .setDescription('La apuesta se cierra en 2 horas')
+                .setValue('2Hours')
+                .setEmoji('🕑'),
+            new StringSelectMenuOptionBuilder()
+                .setLabel('Final del dia')
+                .setDescription('La apuesta se cierra al final del dia')
+                .setValue('endDay')
+                .setEmoji('🌙'),
+            new StringSelectMenuOptionBuilder()
+                .setLabel('Semana')
+                .setDescription('La apuesta se cierra en una semana')
+                .setValue('1Week')
+                .setEmoji('🌄'),
+            new StringSelectMenuOptionBuilder()
+                .setLabel('Mes')
+                .setDescription('La apuesta se cierra en un mes')
+                .setValue('1Month')
+                .setEmoji('📅')
+        )
+    const row = new ActionRowBuilder().addComponents(endDateMenu)
+    return {
+        content: 'Cuando es la fecha limite de la apuesta?',
+        components: [row as any],
+        flags: 'Ephemeral',
+    }
 }
