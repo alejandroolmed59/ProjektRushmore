@@ -1,4 +1,11 @@
-import { Message, EmbedBuilder } from 'discord.js'
+import {
+    Message,
+    EmbedBuilder,
+    ModalBuilder,
+    TextInputBuilder,
+    TextInputStyle,
+    ActionRowBuilder,
+} from 'discord.js'
 import { Gambler } from '../interfaces/gambler.interface'
 import os from 'os'
 
@@ -13,7 +20,7 @@ const gamblers: Gambler[] = [
     },
 ]
 
-export const newMessageInChannel = (message: Message): void => {
+export const newMessageInChannel = async (message: Message): Promise<void> => {
     if (message.author.bot) return // ignore bots
     if (message.content === '!ping') {
         message.reply(
