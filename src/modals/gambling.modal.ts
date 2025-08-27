@@ -36,10 +36,8 @@ export const gamblingModalSubmission = (
     // Create the embed
     const gameMatchEmbed = new EmbedBuilder()
         .setColor(Colors.DarkOrange) // Discord blurple color
-        .setTitle('Game match request')
-        .setDescription(
-            `@${interaction.user.username} creó una nueva apuesta 🤑:\n${descripcionApuesta}`
-        )
+        .setTitle(`@${interaction.user.username} creó una nueva apuesta 🤑`)
+        .setDescription(descripcionApuesta)
         .addFields(
             {
                 name: 'Probabilidad SI',
@@ -53,27 +51,19 @@ export const gamblingModalSubmission = (
             }
         )
         .setTimestamp()
-    const montoApuesta = new TextInputBuilder()
-        .setCustomId(`dinero-apuesta-${interaction.id}`)
-        .setRequired(true)
-        .setLabel('Que tanto vamos a apostarle 💸')
     // Create the buttons
-    const joinButton = new ButtonBuilder()
+    const siButton = new ButtonBuilder()
         .setCustomId(`si-apuesta-${interaction.id}`)
         .setLabel(`SI x${multiplicadorSi} 🍀`)
         .setStyle(ButtonStyle.Primary)
 
-    const cancelButton = new ButtonBuilder()
+    const noButton = new ButtonBuilder()
         .setCustomId(`no-apuesta-${interaction.id}`)
         .setLabel(`NO x${multiplicadorNo} 🥀`)
         .setStyle(ButtonStyle.Danger)
 
     // Create action row with buttons
-    const apuestaRow = new ActionRowBuilder().addComponents(montoApuesta)
-    const buttonRow = new ActionRowBuilder().addComponents(
-        joinButton,
-        cancelButton
-    )
+    const buttonRow = new ActionRowBuilder().addComponents(siButton, noButton)
     return {
         embed: [gameMatchEmbed],
         component: [buttonRow] as any,
