@@ -13,9 +13,9 @@ export interface Forecast {
     amount: number
     status: 'ACTIVE' | 'DONE'
 }
-export interface ForecastHistory {
+export interface PredictionHistory {
     discordId: string
-    forecastId: string
+    predictionId: string
     gambleId: string
     gambleDecision: 'yes' | 'no'
     multiplier: number

@@ -36,3 +36,40 @@ export const allBetsEmbedBuilder = (
         .setColor(Colors.Purple)
     return embed
 }
+export const editForecastEmbedBuilder = (forecast: Forecast): EmbedBuilder => {
+    //Calcular los porcentajes
+    const probabilidadSi: number = Number(forecast.yesOdds.toFixed(2))
+    const probabilidadNo: number = 1 - probabilidadSi
+    const multiplicadorSi: number = Number((1 / probabilidadSi).toFixed(2))
+    const multiplicadorNo: number = Number((1 / probabilidadNo).toFixed(2))
+
+    const embed = new EmbedBuilder()
+        .setTitle('Las probabilidades cambiaron!! 🍀')
+        .setDescription(
+            `La apuesta de ${forecast.descripcion} cambiaron las probabilidades, Hora de predecir!`
+        )
+        .addFields(
+            {
+                name: 'Probabilidad SI',
+                value: `${probabilidadSi}%`,
+                inline: true,
+            },
+            {
+                name: 'Probabilidad NO',
+                value: `${probabilidadNo}%`,
+                inline: true,
+            },
+            {
+                name: 'Multiplicador SI',
+                value: `x${multiplicadorSi}`,
+                inline: true,
+            },
+            {
+                name: 'Multiplicador NO',
+                value: `x${multiplicadorNo}%`,
+                inline: true,
+            }
+        )
+        .setColor(Colors.LuminousVividPink)
+    return embed
+}

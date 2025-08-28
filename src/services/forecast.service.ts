@@ -1,12 +1,13 @@
 import { v4 as uuidv4 } from 'uuid'
 import ddbClient from '../database/ddbclient.singleton'
 import {
-    ForecastHistory,
+    PredictionHistory,
     Forecast,
     Gambler,
 } from '../interfaces/gambler.interface'
 const gambleTable: string = process.env.GAMBLE_TABLE_NAME!
-const forecastHistoryTable: string = process.env.FORECAST_HISTORY_TABLE_NAME!
+const predictionHistoryTable: string =
+    process.env.PREDICTION_HISTORY_TABLE_NAME!
 const moneyTable: string = process.env.GAMBLERS_MONEY_TABLE_NAME!
 export const getForecast = async (gambleId: string): Promise<Forecast> => {
     try {
@@ -57,6 +58,26 @@ export const createForecast = async (
         throw e
     }
 }
+export const editForecast = async (gambleId: string, yesOddsInput: number) => {
+    try {
+        const probabilidadApuestaInput = Number(yesOddsInput) / 100
+        const yesOdds: number = Number(probabilidadApuestaInput.toFixed(2))
+        const dataPayload: Pick<Forecast, 'yesOdds'> = {
+            yesOdds,
+        }
+        const createCommand = await ddbClient.update<Forecast>(
+            gambleTable,
+            { gambleId },
+            dataPayload,
+            undefined,
+            'ALL_NEW'
+        )
+        return createCommand.Attributes as Forecast
+    } catch (e) {
+        console.log('Edit forecast error', e)
+        throw e
+    }
+}
 export const createPredictionFromForecast = async (
     gambleId: string,
     amountWagered: number,
@@ -76,17 +97,17 @@ export const createPredictionFromForecast = async (
         throw new Error('Not enough ccc, negative remaining money', {
             cause: { status: 3 },
         })
-    const dataPayload: ForecastHistory = {
+    const dataPayload: PredictionHistory = {
         discordId,
-        forecastId: uuidv4(),
+        predictionId: uuidv4(),
         gambleId,
         amountWagered,
         gambleDecision,
         multiplier,
     }
     //Create forecast table
-    const createForecastCommand = await ddbClient.add(
-        forecastHistoryTable,
+    const createPredictionCommand = await ddbClient.add(
+        predictionHistoryTable,
         dataPayload
     )
     const updateGamblerCommand = await ddbClient.update<Gambler>(
@@ -100,6 +121,6 @@ export const createPredictionFromForecast = async (
     return {
         status: 0,
         message: 'success',
-        ctx: { createForecastCommand, updateGamblerCommand },
+        ctx: { createPredictionCommand, updateGamblerCommand },
     }
 }

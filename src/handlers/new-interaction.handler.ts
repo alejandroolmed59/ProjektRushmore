@@ -8,10 +8,12 @@ import {
     createForecast,
     getForecast,
     scanForecast,
+    editForecast,
 } from '../services/forecast.service'
 import {
     newGambleEmbedBuilder,
     allBetsEmbedBuilder,
+    editForecastEmbedBuilder,
 } from '../embeds/gamble.embed'
 import { helperCreateForecast } from '../services/helper.service'
 import { Gambler } from '../interfaces/gambler.interface'
@@ -74,6 +76,20 @@ export const newInteractionHandler = async (
                     }
                     await interaction.reply('Error creando forecast')
                 }
+                break
+            case 'editarApuesta':
+                const gambleidInput =
+                    interaction.options.getString('gamble-id')!
+                const yesOddsInput = interaction.options.getInteger('yes-odds')!
+                const editForecastResponse = await editForecast(
+                    gambleidInput,
+                    yesOddsInput
+                )
+                const editForecastEmbed =
+                    editForecastEmbedBuilder(editForecastResponse)
+                await interaction.reply({
+                    embeds: [editForecastEmbed],
+                })
                 break
             default:
                 await interaction.reply('Comando desconocido')
