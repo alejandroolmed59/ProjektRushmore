@@ -101,7 +101,7 @@ export const createPredictionFromForecast = async (
             dataPayload
         )
         const updateGamblerCommand = await ddbClient.update<Gambler>(
-            gambleTable,
+            moneyTable,
             { discordId },
             { money: remainingMoney, moneyReserved: totalReserved }
         )
