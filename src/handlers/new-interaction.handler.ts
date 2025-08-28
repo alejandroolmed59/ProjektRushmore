@@ -7,19 +7,34 @@ import {
 import {
     createForecast,
     getForecast,
+    scanForecast,
     createPredictionFromForecast,
 } from '../services/forecast.service'
-import { newGambleEmbedBuilder } from '../embeds/new-gamble.embed'
+import {
+    newGambleEmbedBuilder,
+    allBetsEmbedBuilder,
+} from '../embeds/gamble.embed'
 
 export const newInteractionHandler = async (
     interaction: Interaction
 ): Promise<void> => {
     //COMANDOS
     if (interaction.isChatInputCommand()) {
-        if (interaction.commandName === 'polymarket') {
-            // Select menu
-            const endDateSelected = selectEndDateMenu()
-            await interaction.reply(endDateSelected)
+        switch (interaction.commandName) {
+            case 'polymarket':
+                // Select menu
+                const endDateSelected = selectEndDateMenu()
+                await interaction.reply(endDateSelected)
+                break
+            case 'apuestas':
+                const allGambles = await scanForecast()
+                const embedRes = allBetsEmbedBuilder(allGambles)
+                await interaction.reply({
+                    embeds: [embedRes],
+                })
+                break
+            default:
+                0
         }
     }
     // RESPUESTAS

@@ -15,6 +15,10 @@ function defineCommands() {
             .setName('polymarket')
             .setDescription('❤️♠️♦️♣️ Hora de apostar ❤️♠️♦️♣️')
             .toJSON(),
+        new SlashCommandBuilder()
+            .setName('apuestas')
+            .setDescription('Lista de apuestas activas')
+            .toJSON(),
         /*
         new SlashCommandBuilder()
             .setName('')

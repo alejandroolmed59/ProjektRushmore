@@ -15,6 +15,19 @@ export const getForecast = async (gambleId: string): Promise<Forecast> => {
         throw e
     }
 }
+export const scanForecast = async (): Promise<Forecast[]> => {
+    try {
+        const queryForecastResponse = await ddbClient.scan(
+            gambleTable,
+            undefined,
+            { status: 'ACTIVE' }
+        )
+        return queryForecastResponse.Items as Forecast[]
+    } catch (e) {
+        console.log('error')
+        throw e
+    }
+}
 export const createForecast = async (
     gambleId: string,
     createdByDiscordId: string,
@@ -29,6 +42,7 @@ export const createForecast = async (
             descripcion,
             yesOdds,
             amount,
+            status: 'ACTIVE',
         }
         const createCommand = await ddbClient.add(gambleTable, dataPayload)
         return createCommand.$metadata.httpStatusCode

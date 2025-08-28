@@ -11,6 +11,7 @@ export interface Forecast {
     createdBy: string
     yesOdds: number
     amount: number
+    status: 'ACTIVE' | 'DONE'
 }
 export interface DecisionHistory {
     discordId: string
