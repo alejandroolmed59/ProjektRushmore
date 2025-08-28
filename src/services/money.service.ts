@@ -5,7 +5,6 @@ const moneyTable: string = process.env.GAMBLERS_MONEY_TABLE_NAME!
 export const getMoney = async (): Promise<Gambler[]> => {
     try {
         const fetchUsersMoneyCommand = await ddbClient.scan(moneyTable)
-        console.log(fetchUsersMoneyCommand)
         return fetchUsersMoneyCommand.Items as Gambler[]
     } catch (e) {
         console.log('error')

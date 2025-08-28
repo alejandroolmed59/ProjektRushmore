@@ -91,12 +91,16 @@ export const helperEndForecast = async (
     const arrayResults = Object.values(results)
     for (const gambler of arrayResults) {
         try {
-            const moneyPrize = Number(
-                (
-                    gambler.profile.money +
-                    (gambler.totalWon - gambler.totalLost)
-                ).toFixed(2)
-            )
+            // Only sum in the database if the amount is positive, the balance was previosly deducted
+            const gambleResultsMoney = gambler.totalWon - gambler.totalLost
+            const moneyAwared =
+                gambleResultsMoney > 0
+                    ? Number(
+                          (gambler.profile.money + gambleResultsMoney).toFixed(
+                              2
+                          )
+                      )
+                    : gambler.profile.money
             const amountWagered = Number(
                 (
                     gambler.profile.moneyReserved -
@@ -104,7 +108,7 @@ export const helperEndForecast = async (
                 ).toFixed(2)
             )
             await editGambler(gambler.discordId, {
-                money: moneyPrize,
+                money: moneyAwared,
                 moneyReserved: amountWagered,
             })
         } catch (e) {
@@ -116,9 +120,13 @@ export const helperEndForecast = async (
     //End all predictions
     for (const prediction of predictions) {
         try {
-            await endPredictionStatus(prediction.predictionId, {
-                status: 'DONE',
-            })
+            await endPredictionStatus(
+                prediction.discordId,
+                prediction.predictionId,
+                {
+                    status: 'DONE',
+                }
+            )
         } catch (e) {
             console.log(
                 `Error updating prediction money ${prediction.predictionId} of gambler ${prediction.discordId}`

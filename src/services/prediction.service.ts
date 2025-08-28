@@ -66,12 +66,14 @@ export const getPrectionsFromAForecast = async (gambleId: string) => {
     return getPredictionsCommand.Items as PredictionHistory[]
 }
 export const endPredictionStatus = async (
+    discordId: string,
     predictionId: string,
     body: Pick<PredictionHistory, 'status'>
 ) => {
     const updatePredictionCommand = await ddbClient.update<PredictionHistory>(
         predictionHistoryTable,
         {
+            discordId,
             predictionId,
         },
         { ...body }
