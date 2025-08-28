@@ -1,15 +1,8 @@
-import {
-    Client,
-    GatewayIntentBits,
-    Message,
-    EmbedBuilder,
-    Interaction,
-} from 'discord.js'
 import dotenv from 'dotenv'
+dotenv.config()
+import { Client, GatewayIntentBits, Message, Interaction } from 'discord.js'
 import { newMessageInChannel } from './handlers/new-message.handler'
 import { newInteractionHandler } from './handlers/new-interaction.handler'
-
-dotenv.config()
 
 const client = new Client({
     intents: [
