@@ -108,6 +108,10 @@ export const newInteractionHandler = async (
             interaction.user.id,
             gambleDecision
         )
+        if (helperResponse.status !== 0) {
+            await interaction.reply('Error desconocido')
+            return
+        }
         const embedRes = newGambleEmbedBuilder(
             helperResponse.forecast,
             gambleDecision,

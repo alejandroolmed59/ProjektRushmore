@@ -10,7 +10,9 @@ export const newGambleEmbedBuilder = (
     const embed = new EmbedBuilder()
         .setTitle('Nuevo pronostico!')
         .setDescription(
-            `${discordDisplayName} acaba de apostar ${forecast.amount} que ${gambleDecision === 'yes' ? 'SI' : 'NO'} se cumple a la apuesta de "${forecast.descripcion}"\nCon un multiplicador de x${multiplier}, a ganar ${(multiplier * forecast.amount).toFixed(2)} Cool Club Coins `
+            `${discordDisplayName} acaba de apostar ${forecast.amount} que ${gambleDecision === 'yes' ? 'SI' : 'NO'} se cumple a la apuesta de "${forecast.descripcion}"\n
+            Con un multiplicador de x${multiplier}, para ganar ${(multiplier * forecast.amount).toFixed(2)} Cool Club Coins 🤑\n
+            Le quedan `
         )
         .setColor(gambleDecision === 'yes' ? Colors.DarkGreen : Colors.DarkRed)
     return embed

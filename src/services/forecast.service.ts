@@ -1,11 +1,12 @@
+import { v4 as uuidv4 } from 'uuid'
 import ddbClient from '../database/ddbclient.singleton'
 import {
-    DecisionHistory,
+    ForecastHistory,
     Forecast,
     Gambler,
 } from '../interfaces/gambler.interface'
 const gambleTable: string = process.env.GAMBLE_TABLE_NAME!
-const gambleHistoryTable: string = process.env.GAMBLE_HISTORY_TABLE_NAME!
+const forecastHistoryTable: string = process.env.FORECAST_HISTORY_TABLE_NAME!
 const moneyTable: string = process.env.GAMBLERS_MONEY_TABLE_NAME!
 export const getForecast = async (gambleId: string): Promise<Forecast> => {
     try {
@@ -88,8 +89,9 @@ export const createPredictionFromForecast = async (
                     remainingMoney,
                 },
             }
-        const dataPayload: DecisionHistory = {
+        const dataPayload: ForecastHistory = {
             discordId,
+            forecastId: uuidv4(),
             gambleId,
             amountWagered,
             gambleDecision,
@@ -97,13 +99,15 @@ export const createPredictionFromForecast = async (
         }
         //Create forecast table
         const createForecastCommand = await ddbClient.add(
-            gambleHistoryTable,
+            forecastHistoryTable,
             dataPayload
         )
         const updateGamblerCommand = await ddbClient.update<Gambler>(
             moneyTable,
             { discordId },
-            { money: remainingMoney, moneyReserved: totalReserved }
+            { money: remainingMoney, moneyReserved: totalReserved },
+            undefined,
+            'ALL_NEW'
         )
         // Update gamblers table
         return {

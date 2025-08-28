@@ -24,8 +24,9 @@ export const helperCreateForecast = async (
         multiplier,
         decision
     )
-    console.log(response.ctx)
+    if (response.status !== 0) return { status: 1 }
     return {
+        status: 0,
         ddbResponse: response,
         forecast: forecastDdb,
         odds: proba,
