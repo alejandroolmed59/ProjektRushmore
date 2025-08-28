@@ -47,31 +47,23 @@ function defineCommands() {
                     .setRequired(true)
             )
             .toJSON(),
-        /*
         new SlashCommandBuilder()
-            .setName('')
-            .setDescription('Create a game match request')
-            .addStringOption(option =>
-                option.setName('start-time')
-                    .setDescription('When does the game start?')
-                    .setRequired(true))
-            .addIntegerOption(option =>
-                option.setName('max-players')
-                    .setDescription('Maximum number of players')
+            .setName('editarApuesta')
+            .setDescription('Edita una apuesta existente por su ID')
+            .addStringOption((option) =>
+                option
+                    .setName('gamble-id')
+                    .setDescription(
+                        'Id de la apuesta, usa /apuestas para ver todas'
+                    )
                     .setRequired(true)
-                    .setMinValue(2)
-                    .setMaxValue(20))
-            .toJSON(),
-            
-        new SlashCommandBuilder()
-            .setName('user')
-            .setDescription('Get info about a user')
-            .addUserOption(option =>
-                option.setName('target')
-                    .setDescription('The user to get info about')
-                    .setRequired(false))
-            .toJSON()
-            */
+            )
+            .addIntegerOption((option) =>
+                option
+                    .setName('yes-odds')
+                    .setDescription('A cuanto cambio la probabilidad de SI??')
+                    .setRequired(true)
+            ),
     ]
 }
 
