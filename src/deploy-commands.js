@@ -48,7 +48,7 @@ function defineCommands() {
             )
             .toJSON(),
         new SlashCommandBuilder()
-            .setName('editarApuesta')
+            .setName('editarapuesta')
             .setDescription('Edita una apuesta existente por su ID')
             .addStringOption((option) =>
                 option
