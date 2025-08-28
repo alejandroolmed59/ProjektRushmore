@@ -1,13 +1,12 @@
 import ddbClient from '../database/ddbclient.singleton'
-import { Forecast } from '../interfaces/gambler.interface'
+import { DecisionHistory, Forecast } from '../interfaces/gambler.interface'
 const gambleTable: string = process.env.GAMBLE_TABLE_NAME!
-
+const gambleHistoryTable: string = process.env.GAMBLE_HISTORY_TABLE_NAME!
 export const getForecast = async (gambleId: string): Promise<Forecast> => {
     try {
         const queryForecastResponse = await ddbClient.query(gambleTable, {
             gambleId,
         })
-        console.log(queryForecastResponse)
         if (queryForecastResponse.Items?.length !== 1)
             throw new Error(`Forecast ${gambleId} doesnt exist`)
         return queryForecastResponse.Items[0] as Forecast
@@ -32,7 +31,30 @@ export const createForecast = async (
             amount,
         }
         const createCommand = await ddbClient.add(gambleTable, dataPayload)
-        console.log(createCommand)
+        return createCommand.$metadata.httpStatusCode
+    } catch (e) {
+        console.log('error', e)
+        throw e
+    }
+}
+export const createPredictionFromForecast = async (
+    forecast: Forecast,
+    discordId: string,
+    multiplier: number,
+    gambleDecision: 'yes' | 'no'
+) => {
+    try {
+        const dataPayload: DecisionHistory = {
+            discordId,
+            gambleId: forecast.gambleId,
+            amountWagered: forecast.amount,
+            gambleDecision,
+            multiplier,
+        }
+        const createCommand = await ddbClient.add(
+            gambleHistoryTable,
+            dataPayload
+        )
         return createCommand.$metadata.httpStatusCode
     } catch (e) {
         console.log('error', e)

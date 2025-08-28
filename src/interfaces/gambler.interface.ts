@@ -12,3 +12,10 @@ export interface Forecast {
     yesOdds: number
     amount: number
 }
+export interface DecisionHistory {
+    discordId: string
+    gambleId: string
+    gambleDecision: 'yes' | 'no'
+    multiplier: number
+    amountWagered: number
+}

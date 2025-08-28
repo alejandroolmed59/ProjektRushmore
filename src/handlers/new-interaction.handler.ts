@@ -4,7 +4,11 @@ import {
     gamblingModalBuilder,
     selectEndDateMenu,
 } from '../modals/gambling.modal'
-import { createForecast, getForecast } from '../services/forecast.service'
+import {
+    createForecast,
+    getForecast,
+    createPredictionFromForecast,
+} from '../services/forecast.service'
 import { newGambleEmbedBuilder } from '../embeds/new-gamble.embed'
 
 export const newInteractionHandler = async (
@@ -71,6 +75,12 @@ export const newInteractionHandler = async (
             gambleDecision,
             interaction.user.displayName,
             multiplier
+        )
+        await createPredictionFromForecast(
+            forecastDdb,
+            interaction.user.id,
+            multiplier,
+            gambleDecision
         )
         await interaction.reply({
             embeds: [embedRes],
