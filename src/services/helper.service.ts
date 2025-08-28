@@ -2,10 +2,11 @@ import {
     GamblerResult,
     PredictionHistory,
 } from '../interfaces/gambler.interface'
-import { getForecast } from './forecast.service'
+import { endForecastStatus, getForecast } from './forecast.service'
 import { getMoney, editGambler } from './money.service'
 import {
     createPredictionFromForecast,
+    endPredictionStatus,
     getPrectionsFromAForecast,
 } from './prediction.service'
 
@@ -50,6 +51,10 @@ export const helperEndForecast = async (
     finalOutcome: 'yes' | 'no'
 ) => {
     const forecastDdb = await getForecast(gambleId)
+    if (forecastDdb.status === 'DONE')
+        throw new Error(
+            `Trying to end a forecast in status DONE, gambleId ${gambleId}`
+        )
     const gamblersDdb = await getMoney()
     const predictions: PredictionHistory[] =
         await getPrectionsFromAForecast(gambleId)
@@ -108,9 +113,24 @@ export const helperEndForecast = async (
             )
         }
     }
+    //End all predictions
+    for (const prediction of predictions) {
+        try {
+            await endPredictionStatus(prediction.predictionId, {
+                status: 'DONE',
+            })
+        } catch (e) {
+            console.log(
+                `Error updating prediction money ${prediction.predictionId} of gambler ${prediction.discordId}`
+            )
+        }
+    }
+    //End forecast
+    await endForecastStatus(gambleId, { status: 'DONE' })
     return {
         forecast: forecastDdb,
         predictions,
         arrayResults,
+        results,
     }
 }

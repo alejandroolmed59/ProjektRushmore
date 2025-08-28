@@ -20,6 +20,7 @@ export interface PredictionHistory {
     gambleDecision: 'yes' | 'no'
     multiplier: number
     amountWagered: number
+    status: 'ACTIVE' | 'DONE'
 }
 
 export type GamblerResult = {

@@ -70,3 +70,17 @@ export const editForecast = async (gambleId: string, yesOddsInput: number) => {
         throw e
     }
 }
+
+export const endForecastStatus = async (
+    gambleId: string,
+    body: Pick<Forecast, 'status'>
+) => {
+    const updateForecastCommand = await ddbClient.update<Forecast>(
+        gambleTable,
+        {
+            gambleId,
+        },
+        { ...body }
+    )
+    return updateForecastCommand
+}

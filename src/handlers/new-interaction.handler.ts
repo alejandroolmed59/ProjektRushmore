@@ -110,6 +110,7 @@ export const newInteractionHandler = async (
                         endForecastHelperResponse.forecast,
                         endForecastHelperResponse.predictions,
                         endForecastHelperResponse.arrayResults,
+                        endForecastHelperResponse.results,
                         endingOutcome
                     )
                     await interaction.reply({

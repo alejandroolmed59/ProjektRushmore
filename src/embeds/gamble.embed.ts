@@ -80,13 +80,14 @@ export const editForecastEmbedBuilder = (forecast: Forecast): EmbedBuilder => {
 export const endForecastEmbedBuilder = (
     forecast: Forecast,
     predictions: PredictionHistory[],
-    results: GamblerResult[],
+    arrayResults: GamblerResult[],
+    results: Record<string, GamblerResult>,
     endingOutcome: 'yes' | 'no'
 ): EmbedBuilder => {
     const predictionMessage = predictions
         .map(
             (prediction) =>
-                `Jugador ${prediction.discordId}, Apuesta ${prediction.amountWagered}, Decision ${prediction.gambleDecision}`
+                `Jugador ${results[prediction.discordId]!.profile.displayName}, Apuesta ${prediction.amountWagered}, Mult x${prediction.multiplier}, Decision ${prediction.gambleDecision}`
         )
         .join('\n')
     const embed = new EmbedBuilder()
@@ -96,7 +97,7 @@ export const endForecastEmbedBuilder = (
             ${predictionMessage}`
         )
         .addFields(
-            Object.values(results).map((gamblerResult) => {
+            arrayResults.map((gamblerResult) => {
                 return {
                     name: gamblerResult.profile.displayName,
                     value: `Resultado ${gamblerResult.totalWon - gamblerResult.totalLost}`,

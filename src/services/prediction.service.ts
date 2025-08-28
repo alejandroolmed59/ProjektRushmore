@@ -32,6 +32,7 @@ export const createPredictionFromForecast = async (
         amountWagered,
         gambleDecision,
         multiplier,
+        status: 'ACTIVE',
     }
     //Create forecast table
     const createPredictionCommand = await ddbClient.add(
@@ -63,4 +64,17 @@ export const getPrectionsFromAForecast = async (gambleId: string) => {
         'gambleId-index'
     )
     return getPredictionsCommand.Items as PredictionHistory[]
+}
+export const endPredictionStatus = async (
+    predictionId: string,
+    body: Pick<PredictionHistory, 'status'>
+) => {
+    const updatePredictionCommand = await ddbClient.update<PredictionHistory>(
+        predictionHistoryTable,
+        {
+            predictionId,
+        },
+        { ...body }
+    )
+    return updatePredictionCommand
 }
