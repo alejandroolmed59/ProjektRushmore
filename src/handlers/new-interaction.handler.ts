@@ -77,7 +77,7 @@ export const newInteractionHandler = async (
                     await interaction.reply('Error creando forecast')
                 }
                 break
-            case 'editarApuesta':
+            case 'editarapuesta':
                 const gambleidInput =
                     interaction.options.getString('gamble-id')!
                 const yesOddsInput = interaction.options.getInteger('yes-odds')!

@@ -61,7 +61,7 @@ function defineCommands() {
             .addIntegerOption((option) =>
                 option
                     .setName('yes-odds')
-                    .setDescription('A cuanto cambio la probabilidad de SI??')
+                    .setDescription('A cuanto cambio la probabilidad de SI?? Ejemplo 33')
                     .setRequired(true)
             ),
     ]
