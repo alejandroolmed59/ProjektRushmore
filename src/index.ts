@@ -1,5 +1,5 @@
-import dotenv from 'dotenv'
-dotenv.config()
+import 'dotenv/config'
+
 import { Client, GatewayIntentBits, Message, Interaction } from 'discord.js'
 import { newMessageInChannel } from './handlers/new-message.handler'
 import { newInteractionHandler } from './handlers/new-interaction.handler'
