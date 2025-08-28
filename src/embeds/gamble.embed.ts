@@ -43,6 +43,31 @@ export const allBetsEmbedBuilder = (
         .setColor(Colors.Purple)
     return embed
 }
+export const allGamblersEmbedBuilder = (gamblers: Gambler[]): EmbedBuilder => {
+    const gamblersOrdered = gamblers
+        .map((gambler) => ({
+            ...gambler,
+            totalMoney: gambler.money + gambler.moneyReserved,
+        }))
+        .sort((a, b) => b.totalMoney - a.totalMoney)
+    const embed = new EmbedBuilder()
+        .setTitle('Leaderboard 🔝')
+        .setDescription(`Mejores players`)
+        .setFields(
+            gamblersOrdered.map((gambler, index) => {
+                let medalla = ''
+                if (index === 0) medalla = '🥇'
+                if (index === 1) medalla = '🥈'
+                if (index === 2) medalla = '🥉'
+                return {
+                    name: `${gambler.displayName}${medalla}`,
+                    value: `Disponible ${gambler.money}. Reservado ${gambler.moneyReserved}. Total ${gambler.totalMoney}`,
+                }
+            })
+        )
+        .setColor(Colors.Gold)
+    return embed
+}
 export const editForecastEmbedBuilder = (forecast: Forecast): EmbedBuilder => {
     //Calcular los porcentajes
     const odds = calculateOdds(forecast.yesOdds)

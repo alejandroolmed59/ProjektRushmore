@@ -15,11 +15,13 @@ import {
     allBetsEmbedBuilder,
     editForecastEmbedBuilder,
     endForecastEmbedBuilder,
+    allGamblersEmbedBuilder,
 } from '../embeds/gamble.embed'
 import {
     helperCreatePrediction,
     helperEndForecast,
 } from '../services/helper.service'
+import { getMoney } from '../services/money.service'
 import { Gambler } from '../interfaces/gambler.interface'
 
 export const newInteractionHandler = async (
@@ -40,7 +42,15 @@ export const newInteractionHandler = async (
                     embeds: [embedPolymarket],
                 })
                 break
-            case 'prediccion':
+            case 'cool-club-coins-balance':
+                const gamblersBalance = await getMoney()
+                const leaderboardEmbed =
+                    allGamblersEmbedBuilder(gamblersBalance)
+                await interaction.reply({
+                    embeds: [leaderboardEmbed],
+                })
+                break
+            case 'crear-prediccion':
                 const gambleIdInput =
                     interaction.options.getString('gamble-id')!
                 const forecastInput = interaction.options.getString(

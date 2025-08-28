@@ -20,7 +20,7 @@ function defineCommands() {
             .setDescription('Lista de apuestas activas')
             .toJSON(),
         new SlashCommandBuilder()
-            .setName('prediccion')
+            .setName('crear-prediccion')
             .setDescription('Apuesta un monto a una apuesta activa')
             .addStringOption((option) =>
                 option
@@ -61,11 +61,13 @@ function defineCommands() {
             .addIntegerOption((option) =>
                 option
                     .setName('yes-odds')
-                    .setDescription('A cuanto cambio la probabilidad de SI?? Ejemplo 33')
+                    .setDescription(
+                        'A cuanto cambio la probabilidad de SI?? Ejemplo 33'
+                    )
                     .setRequired(true)
             )
             .toJSON(),
-            new SlashCommandBuilder()
+        new SlashCommandBuilder()
             .setName('finalizar-apuesta')
             .setDescription('Finalizar una apuesta activa')
             .addStringOption((option) =>
@@ -86,6 +88,10 @@ function defineCommands() {
                     ])
                     .setRequired(true)
             )
+            .toJSON(),
+        new SlashCommandBuilder()
+            .setName('cool-club-coins-balance')
+            .setDescription('Leaderboard de los mejores gamblers 😳')
             .toJSON(),
     ]
 }
