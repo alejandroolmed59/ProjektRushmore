@@ -36,7 +36,7 @@ export const allBetsEmbedBuilder = (
                 const odds = calculateOdds(forecast.yesOdds)
                 return {
                     name: forecast.descripcion,
-                    value: `SI ${odds.yesOdds * 100}%, NO ${odds.noOdds * 100}% , id ${forecast.gambleId}`,
+                    value: `SI ${odds.yesOdds * 100}%, NO ${odds.noOdds * 100}% , Apuesta ID "${forecast.gambleId}"`,
                 }
             })
         )
@@ -75,7 +75,7 @@ export const editForecastEmbedBuilder = (forecast: Forecast): EmbedBuilder => {
     const embed = new EmbedBuilder()
         .setTitle('Las probabilidades cambiaron!! 🍀')
         .setDescription(
-            `La apuesta de ${forecast.descripcion} cambiaron las probabilidades, Hora de APOSTAR!`
+            `La apuesta de "${forecast.descripcion}" cambiaron las probabilidades, Hora de APOSTAR!`
         )
         .addFields(
             {
@@ -118,14 +118,15 @@ export const endForecastEmbedBuilder = (
     const embed = new EmbedBuilder()
         .setTitle('SE ACABO!')
         .setDescription(
-            `La apuesta de ${forecast.descripcion} acabó, el resultado final fue ${endingOutcome === 'yes' ? 'SI' : 'NO'}, listado de todas las apuestas: \n
+            `La apuesta de "${forecast.descripcion}" acabó.\n
+            El resultado final fue ${endingOutcome === 'yes' ? 'SI' : 'NO'}, listado de todas las apuestas: \n
             ${predictionMessage}`
         )
         .addFields(
             arrayResults.map((gamblerResult) => {
                 return {
                     name: gamblerResult.profile.displayName,
-                    value: `Resultado ${gamblerResult.totalWon - gamblerResult.totalLost}`,
+                    value: `Resultado ${gamblerResult.totalWon - gamblerResult.totalLost} CCC`,
                 }
             })
         )

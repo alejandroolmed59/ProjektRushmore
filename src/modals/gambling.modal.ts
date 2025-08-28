@@ -26,7 +26,8 @@ interface ModalSubmissionReturn {
     }
 }
 export const gamblingModalSubmission = (
-    interaction: ModalSubmitInteraction
+    interaction: ModalSubmitInteraction,
+    customId: string
 ): ModalSubmissionReturn => {
     const descripcionApuesta =
         interaction.fields.getTextInputValue('descripcionApuesta')
@@ -71,12 +72,12 @@ export const gamblingModalSubmission = (
         .setTimestamp()
     // Create the buttons
     const siButton = new ButtonBuilder()
-        .setCustomId(`yes-gamble-${interaction.id}`)
+        .setCustomId(`yes-gamble-${customId}`)
         .setLabel(`SI x${multiplicadorSi} 🍀`)
         .setStyle(ButtonStyle.Primary)
 
     const noButton = new ButtonBuilder()
-        .setCustomId(`no-gamble-${interaction.id}`)
+        .setCustomId(`no-gamble-${customId}`)
         .setLabel(`NO x${multiplicadorNo} 🥀`)
         .setStyle(ButtonStyle.Danger)
 

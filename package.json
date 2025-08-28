@@ -35,6 +35,6 @@
     "dependencies": {
         "discord.js": "^14.22.1",
         "dotenv": "^17.2.1",
-        "uuid": "^11.1.0"
+        "nanoid": "3.3.4"
     }
 }

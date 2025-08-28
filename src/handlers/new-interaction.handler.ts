@@ -23,6 +23,7 @@ import {
 } from '../services/helper.service'
 import { getMoney } from '../services/money.service'
 import { Gambler } from '../interfaces/gambler.interface'
+import { GenerateId } from '../utils/id-generator'
 
 export const newInteractionHandler = async (
     interaction: Interaction
@@ -147,7 +148,8 @@ export const newInteractionHandler = async (
     if (interaction.isModalSubmit()) {
         console.log(`Interaccion del comando: ${interaction.customId}`)
         if (interaction.customId === 'modalApuesta') {
-            const respuesta = gamblingModalSubmission(interaction)
+            const customId = GenerateId()
+            const respuesta = gamblingModalSubmission(interaction, customId)
             // Send the message with embed and buttons
             await interaction.reply({
                 embeds: respuesta.modal.embed,
@@ -155,7 +157,7 @@ export const newInteractionHandler = async (
             })
             //create ddb record para el forecast
             const ddbResponseForecast = await createForecast(
-                interaction.id,
+                customId,
                 interaction.user.id,
                 respuesta.context.descripcion,
                 respuesta.context.yesOdds,
