@@ -1,4 +1,4 @@
-import { Message, EmbedBuilder } from 'discord.js'
+import { Message, EmbedBuilder, Colors } from 'discord.js'
 import { createNewGambler, getMoney } from '../services/money.service'
 import os from 'os'
 
@@ -27,9 +27,9 @@ export const newMessageInChannel = async (message: Message): Promise<void> => {
             })
             const embed = new EmbedBuilder()
                 .setTitle('Dineros')
-                .setDescription('Balance de teclennios')
+                .setDescription('Balance de gamblers 💸')
                 .addFields(moneyMapped)
-                .setColor(0x5865f2)
+                .setColor(Colors.DarkGreen)
 
             message.reply({ embeds: [embed] })
         } catch (e) {
@@ -40,7 +40,7 @@ export const newMessageInChannel = async (message: Message): Promise<void> => {
         try {
             const gamblerCreateResponse = await createNewGambler(
                 message.author.id,
-                message.author.username
+                message.author.displayName
             )
             console.log(gamblerCreateResponse)
             message.reply('Nuevo gambler creado!')

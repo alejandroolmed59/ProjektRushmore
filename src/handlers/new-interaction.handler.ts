@@ -4,7 +4,8 @@ import {
     gamblingModalBuilder,
     selectEndDateMenu,
 } from '../modals/gambling.modal'
-import { createForecast } from '../services/forecast.service'
+import { createForecast, getForecast } from '../services/forecast.service'
+import { newGambleEmbedBuilder } from '../embeds/new-gamble.embed'
 
 export const newInteractionHandler = async (
     interaction: Interaction
@@ -32,7 +33,8 @@ export const newInteractionHandler = async (
                 interaction.id,
                 interaction.user.id,
                 respuesta.context.descripcion,
-                respuesta.context.yesOdds
+                respuesta.context.yesOdds,
+                respuesta.context.amount
             )
             console.log(ddbResponseForecast)
         }
@@ -51,12 +53,27 @@ export const newInteractionHandler = async (
     }
     // button confirmado
     if (interaction.isButton()) {
-        console.log(
-            `Boton presionado: ${interaction.customId}, interactuo con user ${interaction.user.globalName} userId ${interaction.user.id}`
+        const interactionContext = interaction.customId.split('-')
+        const gambleDecision = interactionContext[0] as 'yes' | 'no'
+        const gambleId = interactionContext[2]
+        if (!gambleDecision || !gambleId)
+            throw new Error(
+                `Error when creating users bet, gambleId ${gambleId}, decision ${gambleDecision} `
+            )
+        const forecastDdb = await getForecast(gambleId)
+        const proba =
+            gambleDecision === 'yes'
+                ? forecastDdb.yesOdds
+                : 1 - forecastDdb.yesOdds
+        const multiplier = Number((1 / proba).toFixed(2))
+        const embedRes = newGambleEmbedBuilder(
+            forecastDdb,
+            gambleDecision,
+            interaction.user.displayName,
+            multiplier
         )
-        const gameId = interaction.customId.split('-')[2]
         await interaction.reply({
-            content: `🎰 <@${interaction.user.globalName}> Acaba de apostar ${gameId}`,
+            embeds: [embedRes],
         })
     }
 }

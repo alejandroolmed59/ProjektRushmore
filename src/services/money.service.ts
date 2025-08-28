@@ -17,7 +17,12 @@ export const createNewGambler = async (
     displayName: string
 ) => {
     try {
-        const dataPayload: Gambler = { discordId, displayName, money: 600 }
+        const dataPayload: Gambler = {
+            discordId,
+            displayName,
+            money: 600,
+            moneyReserved: 0,
+        }
         const createCommand = await ddbClient.add(moneyTable, dataPayload)
         console.log(createCommand)
         return createCommand.$metadata.httpStatusCode

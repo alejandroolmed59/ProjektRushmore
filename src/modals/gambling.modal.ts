@@ -22,6 +22,7 @@ interface ModalSubmissionReturn {
     context: {
         descripcion: string
         yesOdds: number
+        amount: number
     }
 }
 export const gamblingModalSubmission = (
@@ -29,6 +30,9 @@ export const gamblingModalSubmission = (
 ): ModalSubmissionReturn => {
     const descripcionApuesta =
         interaction.fields.getTextInputValue('descripcionApuesta')
+    const montoApuesta = Number(
+        interaction.fields.getTextInputValue('montoApuesta')
+    )
     const probabilidadApuestaInput =
         Number(interaction.fields.getTextInputValue('probabilidadApuesta')) /
         100
@@ -67,12 +71,12 @@ export const gamblingModalSubmission = (
         .setTimestamp()
     // Create the buttons
     const siButton = new ButtonBuilder()
-        .setCustomId(`si-apuesta-${interaction.id}`)
+        .setCustomId(`yes-gamble-${interaction.id}`)
         .setLabel(`SI x${multiplicadorSi} 🍀`)
         .setStyle(ButtonStyle.Primary)
 
     const noButton = new ButtonBuilder()
-        .setCustomId(`no-apuesta-${interaction.id}`)
+        .setCustomId(`no-gamble-${interaction.id}`)
         .setLabel(`NO x${multiplicadorNo} 🥀`)
         .setStyle(ButtonStyle.Danger)
 
@@ -86,6 +90,7 @@ export const gamblingModalSubmission = (
         context: {
             descripcion: descripcionApuesta,
             yesOdds: probabilidadSi,
+            amount: montoApuesta,
         },
     }
 }

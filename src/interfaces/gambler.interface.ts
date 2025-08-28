@@ -2,6 +2,7 @@ export interface Gambler {
     discordId: string
     displayName: string
     money: number //ccc
+    moneyReserved: number
 }
 
 export interface Forecast {
@@ -9,4 +10,5 @@ export interface Forecast {
     descripcion: string
     createdBy: string
     yesOdds: number
+    amount: number
 }
