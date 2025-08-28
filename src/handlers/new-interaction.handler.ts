@@ -14,8 +14,12 @@ import {
     newGambleEmbedBuilder,
     allBetsEmbedBuilder,
     editForecastEmbedBuilder,
+    endForecastEmbedBuilder,
 } from '../embeds/gamble.embed'
-import { helperCreateForecast } from '../services/helper.service'
+import {
+    helperCreatePrediction,
+    helperEndForecast,
+} from '../services/helper.service'
 import { Gambler } from '../interfaces/gambler.interface'
 
 export const newInteractionHandler = async (
@@ -24,7 +28,7 @@ export const newInteractionHandler = async (
     //COMANDOS
     if (interaction.isChatInputCommand()) {
         switch (interaction.commandName) {
-            case 'polymarket':
+            case 'create-polymarket':
                 // Select menu
                 const endDateSelected = selectEndDateMenu()
                 await interaction.reply(endDateSelected)
@@ -45,7 +49,7 @@ export const newInteractionHandler = async (
                 const amountInput =
                     interaction.options.getNumber('monto-apuesta')!
                 try {
-                    const helperResponse = await helperCreateForecast(
+                    const helperResponse = await helperCreatePrediction(
                         gambleIdInput,
                         interaction.user.id,
                         forecastInput,
@@ -77,7 +81,7 @@ export const newInteractionHandler = async (
                     await interaction.reply('Error creando forecast')
                 }
                 break
-            case 'editarapuesta':
+            case 'editar-apuesta':
                 const gambleidInput =
                     interaction.options.getString('gamble-id')!
                 const yesOddsInput = interaction.options.getInteger('yes-odds')!
@@ -90,6 +94,38 @@ export const newInteractionHandler = async (
                 await interaction.reply({
                     embeds: [editForecastEmbed],
                 })
+                break
+            case 'finalizar-apuesta':
+                const endingGambleIdInput =
+                    interaction.options.getString('gamble-id')!
+                const endingOutcome = interaction.options.getString(
+                    'outcome'
+                )! as 'yes' | 'no'
+                try {
+                    const endForecastHelperResponse = await helperEndForecast(
+                        endingGambleIdInput,
+                        endingOutcome
+                    )
+                    const endForecastEmbed = endForecastEmbedBuilder(
+                        endForecastHelperResponse.forecast,
+                        endForecastHelperResponse.predictions,
+                        endForecastHelperResponse.arrayResults,
+                        endingOutcome
+                    )
+                    await interaction.reply({
+                        embeds: [endForecastEmbed],
+                    })
+                } catch (e) {
+                    if (e instanceof Error) {
+                        const errorMessage = e.message
+                        const cause = e.cause
+                        await interaction.reply(
+                            `Error Finalizando Forecast. ${errorMessage}, ${String(cause)}`
+                        )
+                        return
+                    }
+                    await interaction.reply('Error finalizando forecast')
+                }
                 break
             default:
                 await interaction.reply('Comando desconocido')
@@ -139,7 +175,7 @@ export const newInteractionHandler = async (
                 `Error when creating users bet, gambleId ${gambleId}, decision ${gambleDecision} `
             )
         try {
-            const helperResponse = await helperCreateForecast(
+            const helperResponse = await helperCreatePrediction(
                 gambleId,
                 interaction.user.id,
                 gambleDecision

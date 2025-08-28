@@ -21,3 +21,11 @@ export interface PredictionHistory {
     multiplier: number
     amountWagered: number
 }
+
+export type GamblerResult = {
+    discordId: string
+    profile: Gambler
+    totalWon: number
+    totalLost: number
+    totalWageredForForecast: number
+}

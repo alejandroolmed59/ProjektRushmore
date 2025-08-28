@@ -12,7 +12,7 @@ const rest = new REST().setToken(token)
 function defineCommands() {
     return [
         new SlashCommandBuilder()
-            .setName('polymarket')
+            .setName('create-polymarket')
             .setDescription('❤️♠️♦️♣️ Hora de apostar ❤️♠️♦️♣️')
             .toJSON(),
         new SlashCommandBuilder()
@@ -48,7 +48,7 @@ function defineCommands() {
             )
             .toJSON(),
         new SlashCommandBuilder()
-            .setName('editarapuesta')
+            .setName('editar-apuesta')
             .setDescription('Edita una apuesta existente por su ID')
             .addStringOption((option) =>
                 option
@@ -63,7 +63,30 @@ function defineCommands() {
                     .setName('yes-odds')
                     .setDescription('A cuanto cambio la probabilidad de SI?? Ejemplo 33')
                     .setRequired(true)
-            ),
+            )
+            .toJSON(),
+            new SlashCommandBuilder()
+            .setName('finalizar-apuesta')
+            .setDescription('Finalizar una apuesta activa')
+            .addStringOption((option) =>
+                option
+                    .setName('gamble-id')
+                    .setDescription(
+                        'Id de la apuesta, usa /apuestas para ver todas'
+                    )
+                    .setRequired(true)
+            )
+            .addStringOption((option) =>
+                option
+                    .setName('outcome')
+                    .setDescription('Cual fue el resultado??')
+                    .addChoices([
+                        { name: 'SI', value: 'yes' },
+                        { name: 'NO', value: 'no' },
+                    ])
+                    .setRequired(true)
+            )
+            .toJSON(),
     ]
 }
 

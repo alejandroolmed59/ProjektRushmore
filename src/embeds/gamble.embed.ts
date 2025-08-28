@@ -1,5 +1,11 @@
 import { Colors, EmbedBuilder } from 'discord.js'
-import { Forecast, Gambler } from '../interfaces/gambler.interface'
+import {
+    Forecast,
+    Gambler,
+    GamblerResult,
+    PredictionHistory,
+} from '../interfaces/gambler.interface'
+import { calculateOdds } from '../utils/calculate-odds'
 
 export const newGambleEmbedBuilder = (
     forecast: Forecast,
@@ -27,9 +33,10 @@ export const allBetsEmbedBuilder = (
         .setDescription(`Total de apuestas activas ${forecastArray.length}`)
         .setFields(
             forecastArray.map((forecast) => {
+                const odds = calculateOdds(forecast.yesOdds)
                 return {
                     name: forecast.descripcion,
-                    value: `SI ${forecast.yesOdds * 100}%, NO ${(1 - forecast.yesOdds) * 100}% , id ${forecast.gambleId}`,
+                    value: `SI ${odds.yesOdds * 100}%, NO ${odds.noOdds * 100}% , id ${forecast.gambleId}`,
                 }
             })
         )
@@ -38,10 +45,7 @@ export const allBetsEmbedBuilder = (
 }
 export const editForecastEmbedBuilder = (forecast: Forecast): EmbedBuilder => {
     //Calcular los porcentajes
-    const probabilidadSi: number = Number(forecast.yesOdds.toFixed(2))
-    const probabilidadNo: number = Number((1 - probabilidadSi).toFixed(2))
-    const multiplicadorSi: number = Number((1 / probabilidadSi).toFixed(2))
-    const multiplicadorNo: number = Number((1 / probabilidadNo).toFixed(2))
+    const odds = calculateOdds(forecast.yesOdds)
 
     const embed = new EmbedBuilder()
         .setTitle('Las probabilidades cambiaron!! 🍀')
@@ -51,25 +55,57 @@ export const editForecastEmbedBuilder = (forecast: Forecast): EmbedBuilder => {
         .addFields(
             {
                 name: 'Probabilidad SI',
-                value: `${probabilidadSi}%`,
+                value: `${odds.yesOdds * 100}%`,
                 inline: true,
             },
             {
                 name: 'Probabilidad NO',
-                value: `${probabilidadNo}%`,
+                value: `${odds.noOdds * 100}%`,
                 inline: true,
             },
             {
                 name: 'Multiplicador SI',
-                value: `x${multiplicadorSi}`,
+                value: `x${odds.yesMultiplier}`,
                 inline: true,
             },
             {
                 name: 'Multiplicador NO',
-                value: `x${multiplicadorNo}`,
+                value: `x${odds.noMultiplier}`,
                 inline: true,
             }
         )
         .setColor(Colors.LuminousVividPink)
+    return embed
+}
+export const endForecastEmbedBuilder = (
+    forecast: Forecast,
+    predictions: PredictionHistory[],
+    results: GamblerResult[],
+    endingOutcome: 'yes' | 'no'
+): EmbedBuilder => {
+    const predictionMessage = predictions
+        .map(
+            (prediction) =>
+                `Jugador ${prediction.discordId}, Apuesta ${prediction.amountWagered}, Decision ${prediction.gambleDecision}`
+        )
+        .join('\n')
+    const embed = new EmbedBuilder()
+        .setTitle('SE ACABO!')
+        .setDescription(
+            `La apuesta de ${forecast.descripcion} acabó, el resultado final fue ${endingOutcome === 'yes' ? 'SI' : 'NO'}, listado de todas las apuestas: \n
+            ${predictionMessage}`
+        )
+        .addFields(
+            Object.values(results).map((gamblerResult) => {
+                return {
+                    name: gamblerResult.profile.displayName,
+                    value: `Resultado ${gamblerResult.totalWon - gamblerResult.totalLost}`,
+                }
+            })
+        )
+        .setFooter({
+            text: 'Las ganancias han sido repartidas. Gracias por jugar 😎',
+        })
+        .setColor(endingOutcome === 'yes' ? Colors.Green : Colors.DarkRed)
     return embed
 }

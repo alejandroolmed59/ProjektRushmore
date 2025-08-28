@@ -31,3 +31,21 @@ export const createNewGambler = async (
         throw e
     }
 }
+export const editGambler = async (
+    discordId: string,
+    payload: Partial<Pick<Gambler, 'displayName' | 'money' | 'moneyReserved'>>
+) => {
+    try {
+        const createCommand = await ddbClient.update<Gambler>(
+            moneyTable,
+            { discordId },
+            payload,
+            undefined,
+            'ALL_NEW'
+        )
+        return createCommand.$metadata.httpStatusCode
+    } catch (e) {
+        console.log('error', e)
+        throw e
+    }
+}
