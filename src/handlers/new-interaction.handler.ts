@@ -14,6 +14,7 @@ import {
     allBetsEmbedBuilder,
 } from '../embeds/gamble.embed'
 import { helperCreateForecast } from '../services/helper.service'
+import { Gambler } from '../interfaces/gambler.interface'
 
 export const newInteractionHandler = async (
     interaction: Interaction
@@ -41,24 +42,42 @@ export const newInteractionHandler = async (
                 ) as 'yes' | 'no'
                 const amountInput =
                     interaction.options.getNumber('monto-apuesta')!
-                const helperResponse = await helperCreateForecast(
-                    gambleIdInput,
-                    interaction.user.id,
-                    forecastInput,
-                    amountInput
-                )
-                const embedForecast = newGambleEmbedBuilder(
-                    helperResponse.forecast,
-                    forecastInput,
-                    interaction.user.displayName,
-                    helperResponse.multiplier
-                )
+                try {
+                    const helperResponse = await helperCreateForecast(
+                        gambleIdInput,
+                        interaction.user.id,
+                        forecastInput,
+                        amountInput
+                    )
+                    const gamblerData = helperResponse.ddbResponse?.ctx
+                        .updateGamblerCommand.Attributes as Gambler
+                    const forecastData = helperResponse.forecast
+                    const embedForecast = newGambleEmbedBuilder(
+                        forecastData,
+                        gamblerData,
+                        forecastInput,
+                        interaction.user.displayName,
+                        helperResponse.multiplier
+                    )
 
-                await interaction.reply({
-                    embeds: [embedForecast],
-                })
+                    await interaction.reply({
+                        embeds: [embedForecast],
+                    })
+                } catch (e) {
+                    if (e instanceof Error) {
+                        const errorMessage = e.message
+                        const cause = e.cause
+                        await interaction.reply(
+                            `Error creando forecast. ${errorMessage}, ${String(cause)}`
+                        )
+                        return
+                    }
+                    await interaction.reply('Error creando forecast')
+                }
+                break
             default:
-                0
+                await interaction.reply('Comando desconocido')
+                break
         }
     }
     // RESPUESTAS MODAL
@@ -103,24 +122,36 @@ export const newInteractionHandler = async (
             throw new Error(
                 `Error when creating users bet, gambleId ${gambleId}, decision ${gambleDecision} `
             )
-        const helperResponse = await helperCreateForecast(
-            gambleId,
-            interaction.user.id,
-            gambleDecision
-        )
-        if (helperResponse.status !== 0) {
-            await interaction.reply('Error desconocido')
-            return
-        }
-        const embedRes = newGambleEmbedBuilder(
-            helperResponse.forecast,
-            gambleDecision,
-            interaction.user.displayName,
-            helperResponse.multiplier
-        )
+        try {
+            const helperResponse = await helperCreateForecast(
+                gambleId,
+                interaction.user.id,
+                gambleDecision
+            )
 
-        await interaction.reply({
-            embeds: [embedRes],
-        })
+            const gamblerData = helperResponse.ddbResponse?.ctx
+                .updateGamblerCommand.Attributes as Gambler
+            const forecastData = helperResponse.forecast
+            const embedRes = newGambleEmbedBuilder(
+                forecastData,
+                gamblerData,
+                gambleDecision,
+                interaction.user.displayName,
+                helperResponse.multiplier
+            )
+
+            await interaction.reply({
+                embeds: [embedRes],
+            })
+        } catch (e) {
+            if (e instanceof Error) {
+                const errorMessage = e.message
+                const cause = e.cause
+                await interaction.reply(
+                    `Error creando forecast. ${errorMessage}, ${String(cause)}`
+                )
+            }
+            await interaction.reply('Error creando forecast')
+        }
     }
 }

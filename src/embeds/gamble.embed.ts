@@ -1,8 +1,9 @@
 import { Colors, EmbedBuilder } from 'discord.js'
-import { Forecast } from '../interfaces/gambler.interface'
+import { Forecast, Gambler } from '../interfaces/gambler.interface'
 
 export const newGambleEmbedBuilder = (
     forecast: Forecast,
+    gambler: Gambler,
     gambleDecision: 'yes' | 'no',
     discordDisplayName: string,
     multiplier: number
@@ -12,7 +13,7 @@ export const newGambleEmbedBuilder = (
         .setDescription(
             `${discordDisplayName} acaba de apostar ${forecast.amount} que ${gambleDecision === 'yes' ? 'SI' : 'NO'} se cumple a la apuesta de "${forecast.descripcion}"\n
             Con un multiplicador de x${multiplier}, para ganar ${(multiplier * forecast.amount).toFixed(2)} Cool Club Coins 🤑\n
-            Le quedan `
+            CCC dispomibles: ${gambler.money}, CCC lockeadas ${gambler.moneyReserved} `
         )
         .setColor(gambleDecision === 'yes' ? Colors.DarkGreen : Colors.DarkRed)
     return embed

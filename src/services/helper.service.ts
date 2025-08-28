@@ -14,7 +14,9 @@ export const helperCreateForecast = async (
               ? 1 - forecastDdb.yesOdds
               : 0
     if (proba === 0)
-        throw new Error(`Invalid zero odds value gambleId: ${gambleId}`)
+        throw new Error(`Invalid zero odds value gambleId: ${gambleId}`, {
+            cause: { status: 1 },
+        })
     const multiplier = Number((1 / proba).toFixed(2))
     const amountWagered = amount ?? forecastDdb.amount
     const response = await createPredictionFromForecast(
@@ -24,7 +26,6 @@ export const helperCreateForecast = async (
         multiplier,
         decision
     )
-    if (response.status !== 0) return { status: 1 }
     return {
         status: 0,
         ddbResponse: response,

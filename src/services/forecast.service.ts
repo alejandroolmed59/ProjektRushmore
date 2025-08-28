@@ -64,59 +64,42 @@ export const createPredictionFromForecast = async (
     multiplier: number,
     gambleDecision: 'yes' | 'no'
 ): Promise<{ status: number; message: string; ctx: Record<string, any> }> => {
-    try {
-        const getGamblerCommand = await ddbClient.query(moneyTable, {
-            discordId,
+    const getGamblerCommand = await ddbClient.query(moneyTable, {
+        discordId,
+    })
+    const gamblerItem = getGamblerCommand.Items?.at(0) as Gambler | undefined
+    if (!gamblerItem)
+        throw new Error('Gambler not found', { cause: { status: 2 } })
+    const remainingMoney = gamblerItem.money - amountWagered
+    const totalReserved = gamblerItem.moneyReserved + amountWagered
+    if (remainingMoney < 0)
+        throw new Error('Not enough ccc, negative remaining money', {
+            cause: { status: 3 },
         })
-        const gamblerItem = getGamblerCommand.Items?.at(0) as
-            | Gambler
-            | undefined
-        if (!gamblerItem)
-            return {
-                status: 1,
-                message: 'Gambler not found',
-                ctx: { discordId },
-            }
-        const remainingMoney = gamblerItem.money - amountWagered
-        const totalReserved = gamblerItem.moneyReserved + amountWagered
-        if (remainingMoney < 0)
-            return {
-                status: 1,
-                message: 'Not enough money',
-                ctx: {
-                    discordId,
-                    currentMoney: gamblerItem.money,
-                    remainingMoney,
-                },
-            }
-        const dataPayload: ForecastHistory = {
-            discordId,
-            forecastId: uuidv4(),
-            gambleId,
-            amountWagered,
-            gambleDecision,
-            multiplier,
-        }
-        //Create forecast table
-        const createForecastCommand = await ddbClient.add(
-            forecastHistoryTable,
-            dataPayload
-        )
-        const updateGamblerCommand = await ddbClient.update<Gambler>(
-            moneyTable,
-            { discordId },
-            { money: remainingMoney, moneyReserved: totalReserved },
-            undefined,
-            'ALL_NEW'
-        )
-        // Update gamblers table
-        return {
-            status: 0,
-            message: 'success',
-            ctx: { createForecastCommand, updateGamblerCommand },
-        }
-    } catch (e) {
-        console.log('error', e)
-        return { status: 1, message: String(e), ctx: {} }
+    const dataPayload: ForecastHistory = {
+        discordId,
+        forecastId: uuidv4(),
+        gambleId,
+        amountWagered,
+        gambleDecision,
+        multiplier,
+    }
+    //Create forecast table
+    const createForecastCommand = await ddbClient.add(
+        forecastHistoryTable,
+        dataPayload
+    )
+    const updateGamblerCommand = await ddbClient.update<Gambler>(
+        moneyTable,
+        { discordId },
+        { money: remainingMoney, moneyReserved: totalReserved },
+        undefined,
+        'ALL_NEW'
+    )
+    // Update gamblers table
+    return {
+        status: 0,
+        message: 'success',
+        ctx: { createForecastCommand, updateGamblerCommand },
     }
 }
