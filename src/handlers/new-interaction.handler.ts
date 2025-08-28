@@ -8,12 +8,12 @@ import {
     createForecast,
     getForecast,
     scanForecast,
-    createPredictionFromForecast,
 } from '../services/forecast.service'
 import {
     newGambleEmbedBuilder,
     allBetsEmbedBuilder,
 } from '../embeds/gamble.embed'
+import { helperCreateForecast } from '../services/helper.service'
 
 export const newInteractionHandler = async (
     interaction: Interaction
@@ -28,16 +28,40 @@ export const newInteractionHandler = async (
                 break
             case 'apuestas':
                 const allGambles = await scanForecast()
-                const embedRes = allBetsEmbedBuilder(allGambles)
+                const embedPolymarket = allBetsEmbedBuilder(allGambles)
                 await interaction.reply({
-                    embeds: [embedRes],
+                    embeds: [embedPolymarket],
                 })
                 break
+            case 'prediccion':
+                const gambleIdInput =
+                    interaction.options.getString('gamble-id')!
+                const forecastInput = interaction.options.getString(
+                    'forecast-decision'
+                ) as 'yes' | 'no'
+                const amountInput =
+                    interaction.options.getNumber('monto-apuesta')!
+                const helperResponse = await helperCreateForecast(
+                    gambleIdInput,
+                    interaction.user.id,
+                    forecastInput,
+                    amountInput
+                )
+                const embedForecast = newGambleEmbedBuilder(
+                    helperResponse.forecast,
+                    forecastInput,
+                    interaction.user.displayName,
+                    helperResponse.multiplier
+                )
+
+                await interaction.reply({
+                    embeds: [embedForecast],
+                })
             default:
                 0
         }
     }
-    // RESPUESTAS
+    // RESPUESTAS MODAL
     if (interaction.isModalSubmit()) {
         console.log(`Interaccion del comando: ${interaction.customId}`)
         if (interaction.customId === 'modalApuesta') {
@@ -47,7 +71,7 @@ export const newInteractionHandler = async (
                 embeds: respuesta.modal.embed,
                 components: respuesta.modal.component,
             })
-            //create ddb record
+            //create ddb record para el forecast
             const ddbResponseForecast = await createForecast(
                 interaction.id,
                 interaction.user.id,
@@ -58,7 +82,7 @@ export const newInteractionHandler = async (
             console.log(ddbResponseForecast)
         }
     }
-
+    // DESPUES DEL SLASH COMMAND
     if (interaction.isStringSelectMenu()) {
         if (interaction.customId === 'endDateApuesta') {
             const endDateResponse = interaction.values[0]
@@ -70,7 +94,7 @@ export const newInteractionHandler = async (
             await interaction.showModal(gamblingModal)
         }
     }
-    // button confirmado
+    // BUTTON PRESSED
     if (interaction.isButton()) {
         const interactionContext = interaction.customId.split('-')
         const gambleDecision = interactionContext[0] as 'yes' | 'no'
@@ -79,24 +103,18 @@ export const newInteractionHandler = async (
             throw new Error(
                 `Error when creating users bet, gambleId ${gambleId}, decision ${gambleDecision} `
             )
-        const forecastDdb = await getForecast(gambleId)
-        const proba =
-            gambleDecision === 'yes'
-                ? forecastDdb.yesOdds
-                : 1 - forecastDdb.yesOdds
-        const multiplier = Number((1 / proba).toFixed(2))
-        const embedRes = newGambleEmbedBuilder(
-            forecastDdb,
-            gambleDecision,
-            interaction.user.displayName,
-            multiplier
-        )
-        await createPredictionFromForecast(
-            forecastDdb,
+        const helperResponse = await helperCreateForecast(
+            gambleId,
             interaction.user.id,
-            multiplier,
             gambleDecision
         )
+        const embedRes = newGambleEmbedBuilder(
+            helperResponse.forecast,
+            gambleDecision,
+            interaction.user.displayName,
+            helperResponse.multiplier
+        )
+
         await interaction.reply({
             embeds: [embedRes],
         })

@@ -1,0 +1,13 @@
+{
+    "version": "0.2.0",
+    "configurations": [
+        {
+            "name": "Attach to Nodemon",
+            "type": "node",
+            "request": "attach",
+            "restart": true,
+            "port": 9229,
+            "skipFiles": ["<node_internals>/**"]
+        }
+    ]
+}
