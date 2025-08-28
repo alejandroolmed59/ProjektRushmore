@@ -15,12 +15,14 @@ export const getMoney = async (): Promise<yesOdds[]> => {
 export const createForecast = async (
     gambleId: string,
     createdByDiscordId: string,
+    descripcion: string,
     yesOdds: number
 ) => {
     try {
         const dataPayload: Forecast = {
             gambleId,
             createdBy: createdByDiscordId,
+            descripcion,
             yesOdds,
         }
         const createCommand = await ddbClient.add(gambleTable, dataPayload)

@@ -6,6 +6,7 @@ export interface Gambler {
 
 export interface Forecast {
     gambleId: string
+    descripcion: string
     createdBy: string
     yesOdds: number
 }

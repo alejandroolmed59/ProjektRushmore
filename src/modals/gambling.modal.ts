@@ -14,13 +14,19 @@ import {
     TextInputBuilder,
     TextInputStyle,
 } from 'discord.js'
-
+interface ModalSubmissionReturn {
+    modal: {
+        embed: EmbedBuilder[]
+        component: ActionRowData<AnyComponentBuilder>[]
+    }
+    context: {
+        descripcion: string
+        yesOdds: number
+    }
+}
 export const gamblingModalSubmission = (
     interaction: ModalSubmitInteraction
-): {
-    embed: EmbedBuilder[]
-    component: ActionRowData<AnyComponentBuilder>[]
-} => {
+): ModalSubmissionReturn => {
     const descripcionApuesta =
         interaction.fields.getTextInputValue('descripcionApuesta')
     const probabilidadApuestaInput =
@@ -73,8 +79,14 @@ export const gamblingModalSubmission = (
     // Create action row with buttons
     const buttonRow = new ActionRowBuilder().addComponents(siButton, noButton)
     return {
-        embed: [gameMatchEmbed],
-        component: [buttonRow] as any,
+        modal: {
+            embed: [gameMatchEmbed],
+            component: [buttonRow] as any,
+        },
+        context: {
+            descripcion: descripcionApuesta,
+            yesOdds: probabilidadSi,
+        },
     }
 }
 

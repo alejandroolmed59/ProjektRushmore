@@ -1,16 +1,10 @@
-import {
-    ActionRowBuilder,
-    Interaction,
-    ModalBuilder,
-    StringSelectMenuBuilder,
-    TextInputBuilder,
-    TextInputStyle,
-} from 'discord.js'
+import { Interaction } from 'discord.js'
 import {
     gamblingModalSubmission,
     gamblingModalBuilder,
     selectEndDateMenu,
 } from '../modals/gambling.modal'
+import { createForecast } from '../services/forecast.service'
 
 export const newInteractionHandler = async (
     interaction: Interaction
@@ -30,9 +24,17 @@ export const newInteractionHandler = async (
             const respuesta = gamblingModalSubmission(interaction)
             // Send the message with embed and buttons
             await interaction.reply({
-                embeds: respuesta.embed,
-                components: respuesta.component,
+                embeds: respuesta.modal.embed,
+                components: respuesta.modal.component,
             })
+            //create ddb record
+            const ddbResponseForecast = await createForecast(
+                interaction.id,
+                interaction.user.id,
+                respuesta.context.descripcion,
+                respuesta.context.yesOdds
+            )
+            console.log(ddbResponseForecast)
         }
     }
 

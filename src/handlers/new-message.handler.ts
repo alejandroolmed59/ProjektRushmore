@@ -22,7 +22,7 @@ export const newMessageInChannel = async (message: Message): Promise<void> => {
                 return {
                     name: gambler.displayName,
                     value: Number(gambler.money).toFixed(2),
-                    inline: true,
+                    inline: false,
                 }
             })
             const embed = new EmbedBuilder()
