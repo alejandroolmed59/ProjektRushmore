@@ -14,6 +14,7 @@ import {
     TextInputBuilder,
     TextInputStyle,
 } from 'discord.js'
+import { calculateOdds } from '../utils/calculate-odds'
 interface ModalSubmissionReturn {
     modal: {
         embed: EmbedBuilder[]
@@ -34,19 +35,23 @@ export const gamblingModalSubmission = (
     const montoApuesta = Number(
         interaction.fields.getTextInputValue('montoApuesta')
     )
+    if (!montoApuesta || isNaN(montoApuesta) || montoApuesta < 0)
+        throw new Error(`Monto de apuesta ${montoApuesta} invalido`)
     const probabilidadApuestaInput =
         Number(interaction.fields.getTextInputValue('probabilidadApuesta')) /
         100
-    if (!probabilidadApuestaInput)
+    if (
+        !probabilidadApuestaInput ||
+        isNaN(probabilidadApuestaInput) ||
+        probabilidadApuestaInput < 0.01 ||
+        probabilidadApuestaInput > 0.99
+    )
         throw new Error(
-            'Formato de numero no valido en probabilidad de apuesta input'
+            `Numero no valido ${probabilidadApuestaInput} en probabilidad de apuesta`
         )
     const endDate = interaction.fields.getTextInputValue('endDateApuesta')
     //Calcular los porcentajes
-    const probabilidadSi: number = Number(probabilidadApuestaInput.toFixed(2))
-    const probabilidadNo: number = 1 - probabilidadSi
-    const multiplicadorSi: number = Number((1 / probabilidadSi).toFixed(2))
-    const multiplicadorNo: number = Number((1 / probabilidadNo).toFixed(2))
+    const odds = calculateOdds(probabilidadApuestaInput)
     // Create the embed
     const gameMatchEmbed = new EmbedBuilder()
         .setColor(Colors.Purple) // Discord blurple color
@@ -55,12 +60,12 @@ export const gamblingModalSubmission = (
         .addFields(
             {
                 name: 'Probabilidad SI',
-                value: `${probabilidadSi}%`,
+                value: `${odds.yesOdds * 100}%`,
                 inline: true,
             },
             {
                 name: 'Probabilidad NO',
-                value: `${probabilidadNo}%`,
+                value: `${odds.noOdds * 100}%`,
                 inline: true,
             },
             {
@@ -73,12 +78,12 @@ export const gamblingModalSubmission = (
     // Create the buttons
     const siButton = new ButtonBuilder()
         .setCustomId(`yes-gamble-${customId}`)
-        .setLabel(`SI x${multiplicadorSi} 🍀`)
+        .setLabel(`SI x${odds.yesMultiplier} 🍀`)
         .setStyle(ButtonStyle.Primary)
 
     const noButton = new ButtonBuilder()
         .setCustomId(`no-gamble-${customId}`)
-        .setLabel(`NO x${multiplicadorNo} 🥀`)
+        .setLabel(`NO x${odds.noMultiplier} 🥀`)
         .setStyle(ButtonStyle.Danger)
 
     // Create action row with buttons
@@ -90,7 +95,7 @@ export const gamblingModalSubmission = (
         },
         context: {
             descripcion: descripcionApuesta,
-            yesOdds: probabilidadSi,
+            yesOdds: odds.yesOdds,
             amount: montoApuesta,
         },
     }

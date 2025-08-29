@@ -148,22 +148,33 @@ export const newInteractionHandler = async (
     if (interaction.isModalSubmit()) {
         console.log(`Interaccion del comando: ${interaction.customId}`)
         if (interaction.customId === 'modalApuesta') {
-            const customId = GenerateId()
-            const respuesta = gamblingModalSubmission(interaction, customId)
-            // Send the message with embed and buttons
-            await interaction.reply({
-                embeds: respuesta.modal.embed,
-                components: respuesta.modal.component,
-            })
-            //create ddb record para el forecast
-            const ddbResponseForecast = await createForecast(
-                customId,
-                interaction.user.id,
-                respuesta.context.descripcion,
-                respuesta.context.yesOdds,
-                respuesta.context.amount
-            )
-            console.log(ddbResponseForecast)
+            try {
+                const customId = GenerateId()
+                const respuesta = gamblingModalSubmission(interaction, customId)
+                // Send the message with embed and buttons
+                await interaction.reply({
+                    embeds: respuesta.modal.embed,
+                    components: respuesta.modal.component,
+                })
+                //create ddb record para el forecast
+                await createForecast(
+                    customId,
+                    interaction.user.id,
+                    respuesta.context.descripcion,
+                    respuesta.context.yesOdds,
+                    respuesta.context.amount
+                )
+            } catch (e) {
+                if (e instanceof Error) {
+                    const errorMessage = e.message
+                    await interaction.reply(
+                        `Error creando apuesta. ${errorMessage}`
+                    )
+                    return
+                } else {
+                    await interaction.reply('Error creando apuesta')
+                }
+            }
         }
     }
     // DESPUES DEL SLASH COMMAND
@@ -215,6 +226,7 @@ export const newInteractionHandler = async (
                 await interaction.reply(
                     `Error creando forecast. ${errorMessage}, ${String(cause)}`
                 )
+                return
             }
             await interaction.reply('Error creando forecast')
         }
