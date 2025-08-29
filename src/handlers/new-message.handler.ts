@@ -42,8 +42,7 @@ export const newMessageInChannel = async (message: Message): Promise<void> => {
                 message.author.id,
                 message.author.displayName
             )
-            console.log(gamblerCreateResponse)
-            message.reply('Nuevo gambler creado!')
+            message.reply(gamblerCreateResponse.action)
         } catch (e) {
             message.reply(String(e))
         }

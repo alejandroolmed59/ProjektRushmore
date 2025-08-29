@@ -16,15 +16,40 @@ export const createNewGambler = async (
     displayName: string
 ) => {
     try {
+        const readGamblerCommand = await ddbClient.query(moneyTable, {
+            discordId,
+        })
+        const existingUser = readGamblerCommand.Items?.at(0) as
+            | Gambler
+            | undefined
+        if (existingUser) {
+            if (existingUser.money + existingUser.moneyReserved > 100) {
+                return {
+                    action: 'Gambler tiene mas de 100 CCC, nada por hacer',
+                }
+            } else {
+                await ddbClient.update<Gambler>(
+                    moneyTable,
+                    { discordId },
+                    {
+                        money: 250,
+                    }
+                )
+                return {
+                    action: 'Sacando 250$ CCC de la cuenta del banco para las apuestas 🤑',
+                }
+            }
+        }
         const dataPayload: Gambler = {
             discordId,
             displayName,
-            money: 600,
+            money: 1000,
             moneyReserved: 0,
         }
         const createCommand = await ddbClient.add(moneyTable, dataPayload)
-        console.log(createCommand)
-        return createCommand.$metadata.httpStatusCode
+        return {
+            action: 'Hoy nacio un apostador exitoso 🤠, ten tus primeros 1000 CCC, aprovechalos y multiplicalos',
+        }
     } catch (e) {
         console.log('error', e)
         throw e
