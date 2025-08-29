@@ -12,13 +12,14 @@ export const newGambleEmbedBuilder = (
     gambler: Gambler,
     gambleDecision: 'yes' | 'no',
     discordDisplayName: string,
-    multiplier: number
+    multiplier: number,
+    amountWagered: number
 ): EmbedBuilder => {
     const embed = new EmbedBuilder()
         .setTitle('Nuevo pronostico!')
         .setDescription(
-            `${discordDisplayName} acaba de apostar ${forecast.amount} que ${gambleDecision === 'yes' ? 'SI' : 'NO'} se cumple a la apuesta de "${forecast.descripcion}"\n
-            Con un multiplicador de x${multiplier}, para ganar ${(multiplier * forecast.amount).toFixed(2)} Cool Club Coins 🤑\n
+            `${discordDisplayName} acaba de apostar ${amountWagered} que ${gambleDecision === 'yes' ? 'SI' : 'NO'} se cumple a la apuesta de "${forecast.descripcion}"\n
+            Con un multiplicador de x${multiplier}, para ganar ${(multiplier * amountWagered).toFixed(2)} Cool Club Coins 🤑\n
             CCC dispomibles: ${gambler.money}, CCC lockeadas ${gambler.moneyReserved} `
         )
         .setColor(gambleDecision === 'yes' ? Colors.DarkGreen : Colors.DarkRed)

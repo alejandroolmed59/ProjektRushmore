@@ -74,7 +74,8 @@ export const newInteractionHandler = async (
                         gamblerData,
                         forecastInput,
                         interaction.user.displayName,
-                        helperResponse.multiplier
+                        helperResponse.multiplier,
+                        helperResponse.amountWagered
                     )
 
                     await interaction.reply({
@@ -213,7 +214,8 @@ export const newInteractionHandler = async (
                 gamblerData,
                 gambleDecision,
                 interaction.user.displayName,
-                helperResponse.multiplier
+                helperResponse.multiplier,
+                helperResponse.amountWagered
             )
 
             await interaction.reply({
