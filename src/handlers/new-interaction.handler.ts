@@ -85,11 +85,11 @@ export const newInteractionHandler = async (
                         const errorMessage = e.message
                         const cause = e.cause
                         await interaction.reply(
-                            `Error creando forecast. ${errorMessage}, ${String(cause)}`
+                            `Error creando prediccion. ${errorMessage}, ${(cause && JSON.stringify(cause)) || ''}`
                         )
                         return
                     }
-                    await interaction.reply('Error creando forecast')
+                    await interaction.reply('Error creando prediccion')
                 }
                 break
             case 'editar-apuesta':

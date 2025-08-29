@@ -17,6 +17,14 @@ export const helperCreatePrediction = async (
     amount?: number
 ) => {
     const forecastDdb = await getForecast(gambleId)
+    const amountWagered = amount ?? forecastDdb.amount
+    if (forecastDdb.status !== 'ACTIVE')
+        throw new Error(`gambleId: ${gambleId} not active`, {
+            cause: { forecastStatus: forecastDdb.status },
+        })
+    if (amountWagered < 0) {
+        throw new Error(`Invalid wagered amount ${amountWagered}`)
+    }
     const proba =
         decision === 'yes'
             ? forecastDdb.yesOdds
@@ -28,7 +36,7 @@ export const helperCreatePrediction = async (
             cause: { status: 1 },
         })
     const multiplier = Number((1 / proba).toFixed(2))
-    const amountWagered = amount ?? forecastDdb.amount
+
     const response = await createPredictionFromForecast(
         gambleId,
         amountWagered,
