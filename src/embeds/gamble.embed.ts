@@ -20,7 +20,7 @@ export const newGambleEmbedBuilder = (
         .setDescription(
             `${discordDisplayName} acaba de apostar ${amountWagered} que ${gambleDecision === 'yes' ? 'SI' : 'NO'} se cumple a la apuesta de "${forecast.descripcion}"\n
             Con un multiplicador de x${multiplier}, para ganar ${(multiplier * amountWagered).toFixed(2)} Cool Club Coins 🤑\n
-            CCC dispomibles: ${gambler.money}, CCC lockeadas ${gambler.moneyReserved} `
+            CCC disponibles: ${gambler.money}, CCC lockeadas ${gambler.moneyReserved} `
         )
         .setColor(gambleDecision === 'yes' ? Colors.DarkGreen : Colors.DarkRed)
     return embed
