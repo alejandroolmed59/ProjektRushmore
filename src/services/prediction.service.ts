@@ -1,6 +1,6 @@
 import ddbClient from '../database/ddbclient.singleton'
 import { PredictionHistory, Gambler } from '../interfaces/gambler.interface'
-import { GenerateId } from '../utils/id-generator'
+import { GenerateLongerId } from '../utils/id-generator'
 
 const predictionHistoryTable: string =
     process.env.PREDICTION_HISTORY_TABLE_NAME!
@@ -27,7 +27,7 @@ export const createPredictionFromForecast = async (
         })
     const dataPayload: PredictionHistory = {
         discordId,
-        predictionId: GenerateId(),
+        predictionId: GenerateLongerId(),
         gambleId,
         amountWagered,
         gambleDecision,
