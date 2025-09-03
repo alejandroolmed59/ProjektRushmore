@@ -69,6 +69,16 @@ export const gamblingModalSubmission = (
                 inline: true,
             },
             {
+                name: 'Apuesta inicial',
+                value: `${montoApuesta} CCC`,
+                inline: true,
+            },
+            {
+                name: 'GambleId',
+                value: customId,
+                inline: true,
+            },
+            {
                 name: 'Fecha limite',
                 value: endDate,
                 inline: true,
