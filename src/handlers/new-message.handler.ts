@@ -11,31 +11,6 @@ export const newMessageInChannel = async (message: Message): Promise<void> => {
             }, memoria libre: ${os.freemem() / 1024 / 1024} MB`
         )
     }
-    if (message.content === '!money') {
-        try {
-            const getMoneyResponse = await getMoney()
-            const moneyMapped: {
-                name: string
-                value: string
-                inline: boolean
-            }[] = getMoneyResponse?.map((gambler) => {
-                return {
-                    name: gambler.displayName,
-                    value: Number(gambler.money).toFixed(2),
-                    inline: false,
-                }
-            })
-            const embed = new EmbedBuilder()
-                .setTitle('Dineros')
-                .setDescription('Balance de gamblers 💸')
-                .addFields(moneyMapped)
-                .setColor(Colors.DarkGreen)
-
-            message.reply({ embeds: [embed] })
-        } catch (e) {
-            message.reply(String(e))
-        }
-    }
     if (message.content === '!cajero') {
         try {
             const gamblerCreateResponse = await createNewGambler(
