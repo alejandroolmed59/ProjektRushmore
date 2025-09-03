@@ -37,7 +37,7 @@ export const allBetsEmbedBuilder = (
                 const odds = calculateOdds(forecast.yesOdds)
                 return {
                     name: forecast.descripcion,
-                    value: `SI ${(odds.yesOdds * 100).toFixed(2)}%, NO ${(odds.noOdds * 100).toFixed(2)}% , Apuesta ID "${forecast.gambleId}"`,
+                    value: `SI ${(odds.yesOdds * 100).toFixed(2)}%, NO ${(odds.noOdds * 100).toFixed(2)}% , Gamble ID "${forecast.gambleId}"`,
                 }
             })
         )
