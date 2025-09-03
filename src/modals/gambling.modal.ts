@@ -60,12 +60,12 @@ export const gamblingModalSubmission = (
         .addFields(
             {
                 name: 'Probabilidad SI',
-                value: `${odds.yesOdds * 100}%`,
+                value: `${(odds.yesOdds * 100).toFixed(2)}%`,
                 inline: true,
             },
             {
                 name: 'Probabilidad NO',
-                value: `${odds.noOdds * 100}%`,
+                value: `${(odds.noOdds * 100).toFixed(2)}%`,
                 inline: true,
             },
             {

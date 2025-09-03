@@ -23,7 +23,7 @@ export const createPredictionFromForecast = async (
     const totalReserved = gamblerItem.moneyReserved + amountWagered
     if (remainingMoney < 0)
         throw new Error('Not enough ccc, negative remaining money', {
-            cause: { status: 3 },
+            cause: { status: 3, gambler: gamblerItem },
         })
     const dataPayload: PredictionHistory = {
         discordId,
