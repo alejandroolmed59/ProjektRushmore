@@ -54,7 +54,7 @@ export const gamblingModalSubmission = (
     const odds = calculateOdds(probabilidadApuestaInput)
     // Create the embed
     const gameMatchEmbed = new EmbedBuilder()
-        .setColor(Colors.Purple) // Discord blurple color
+        .setColor(Colors.Purple)
         .setTitle(`@${interaction.user.username} creó una nueva apuesta 🤑`)
         .setDescription(descripcionApuesta)
         .addFields(

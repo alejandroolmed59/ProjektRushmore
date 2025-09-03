@@ -41,7 +41,7 @@ export const allBetsEmbedBuilder = (
                 }
             })
         )
-        .setColor(Colors.Purple)
+        .setColor(Colors.DarkOrange)
     return embed
 }
 export const allGamblersEmbedBuilder = (gamblers: Gambler[]): EmbedBuilder => {
@@ -134,6 +134,6 @@ export const endForecastEmbedBuilder = (
         .setFooter({
             text: 'Las ganancias han sido repartidas. Gracias por jugar 😎',
         })
-        .setColor(endingOutcome === 'yes' ? Colors.Green : Colors.DarkRed)
+        .setColor(endingOutcome === 'yes' ? Colors.Green : Colors.Red)
     return embed
 }
