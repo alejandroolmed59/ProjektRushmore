@@ -152,11 +152,6 @@ export const newInteractionHandler = async (
             try {
                 const customId = GenerateId()
                 const respuesta = gamblingModalSubmission(interaction, customId)
-                // Send the message with embed and buttons
-                await interaction.reply({
-                    embeds: respuesta.modal.embed,
-                    components: respuesta.modal.component,
-                })
                 //create ddb record para el forecast
                 await createForecast(
                     customId,
@@ -165,6 +160,11 @@ export const newInteractionHandler = async (
                     respuesta.context.yesOdds,
                     respuesta.context.amount
                 )
+                // Send the message with embed and buttons
+                await interaction.reply({
+                    embeds: respuesta.modal.embed,
+                    components: respuesta.modal.component,
+                })
             } catch (e) {
                 if (e instanceof Error) {
                     const errorMessage = e.message
