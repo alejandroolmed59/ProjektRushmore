@@ -24,12 +24,20 @@ import {
 import { getMoney } from '../services/money.service'
 import { Gambler } from '../interfaces/gambler.interface'
 import { GenerateId } from '../utils/id-generator'
+import { guardRoleGambler } from '../utils/role-guard'
 
 export const newInteractionHandler = async (
     interaction: Interaction
 ): Promise<void> => {
     //COMANDOS
     if (interaction.isChatInputCommand()) {
+        // Make sure it's a guild interaction (not a DM)
+        if (!interaction.inCachedGuild()) {
+            interaction.reply({
+                content: 'Los comandos solo funcionan en server',
+            })
+            return
+        }
         switch (interaction.commandName) {
             case 'create-polymarket':
                 // Select menu
@@ -94,26 +102,44 @@ export const newInteractionHandler = async (
                 }
                 break
             case 'editar-apuesta':
-                const gambleidInput =
-                    interaction.options.getString('gamble-id')!
-                const yesOddsInput = interaction.options.getInteger('yes-odds')!
-                const editForecastResponse = await editForecast(
-                    gambleidInput,
-                    yesOddsInput
-                )
-                const editForecastEmbed =
-                    editForecastEmbedBuilder(editForecastResponse)
-                await interaction.reply({
-                    embeds: [editForecastEmbed],
-                })
+                try {
+                    // Check role guard
+                    guardRoleGambler(interaction.member)
+                    const gambleidInput =
+                        interaction.options.getString('gamble-id')!
+                    const yesOddsInput =
+                        interaction.options.getInteger('yes-odds')!
+                    const editForecastResponse = await editForecast(
+                        gambleidInput,
+                        yesOddsInput
+                    )
+                    const editForecastEmbed =
+                        editForecastEmbedBuilder(editForecastResponse)
+                    await interaction.reply({
+                        embeds: [editForecastEmbed],
+                    })
+                } catch (e) {
+                    if (e instanceof Error) {
+                        const errorMessage = e.message
+                        const cause = e.cause
+                        await interaction.reply(
+                            `Error Editando Forecast. ${errorMessage}, ${(cause && JSON.stringify(cause)) || ''}`
+                        )
+                        return
+                    }
+                    await interaction.reply('Error Editando forecast')
+                    return
+                }
                 break
             case 'finalizar-apuesta':
-                const endingGambleIdInput =
-                    interaction.options.getString('gamble-id')!
-                const endingOutcome = interaction.options.getString(
-                    'outcome'
-                )! as 'yes' | 'no'
                 try {
+                    // Check role guard
+                    guardRoleGambler(interaction.member)
+                    const endingGambleIdInput =
+                        interaction.options.getString('gamble-id')!
+                    const endingOutcome = interaction.options.getString(
+                        'outcome'
+                    )! as 'yes' | 'no'
                     const endForecastHelperResponse = await helperEndForecast(
                         endingGambleIdInput,
                         endingOutcome
@@ -133,11 +159,12 @@ export const newInteractionHandler = async (
                         const errorMessage = e.message
                         const cause = e.cause
                         await interaction.reply(
-                            `Error Finalizando Forecast. ${errorMessage}, ${String(cause)}`
+                            `Error Finalizando Forecast. ${errorMessage}, ${(cause && JSON.stringify(cause)) || ''}`
                         )
                         return
                     }
                     await interaction.reply('Error finalizando forecast')
+                    return
                 }
                 break
             default:
