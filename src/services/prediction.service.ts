@@ -80,3 +80,15 @@ export const endPredictionStatus = async (
     )
     return updatePredictionCommand
 }
+
+export const getActivePredictionsByUser = async (discordId: string) => {
+    const getPredictionsCommand = await ddbClient.query(
+        predictionHistoryTable,
+        {
+            discordId,
+        }
+    )
+    const allPredictions = getPredictionsCommand.Items as PredictionHistory[]
+    // Filter only active predictions
+    return allPredictions.filter(prediction => prediction.status === 'ACTIVE')
+}

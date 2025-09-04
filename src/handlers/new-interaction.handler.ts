@@ -16,12 +16,14 @@ import {
     editForecastEmbedBuilder,
     endForecastEmbedBuilder,
     allGamblersEmbedBuilder,
+    userActivePredictionsEmbedBuilder,
 } from '../embeds/gamble.embed'
 import {
     helperCreatePrediction,
     helperEndForecast,
 } from '../services/helper.service'
 import { getMoney } from '../services/money.service'
+import { getActivePredictionsByUser } from '../services/prediction.service'
 import { Gambler } from '../interfaces/gambler.interface'
 import { GenerateId } from '../utils/id-generator'
 import { guardRoleGambler } from '../utils/role-guard'
@@ -167,8 +169,27 @@ export const newInteractionHandler = async (
                     return
                 }
                 break
-            default:
-                await interaction.reply('Comando desconocido')
+            case 'mis-predicciones':
+                try {
+                    const userActivePredictions = await getActivePredictionsByUser(interaction.user.id)
+                    const userPredictionsEmbed = userActivePredictionsEmbedBuilder(
+                        userActivePredictions,
+                        interaction.user.displayName
+                    )
+                    await interaction.reply({
+                        embeds: [userPredictionsEmbed],
+                    })
+                } catch (e) {
+                    if (e instanceof Error) {
+                        const errorMessage = e.message
+                        await interaction.reply(
+                            `Error obteniendo predicciones. ${errorMessage}`
+                        )
+                        return
+                    }
+                    await interaction.reply('Error obteniendo predicciones')
+                    return
+                }
                 break
         }
     }

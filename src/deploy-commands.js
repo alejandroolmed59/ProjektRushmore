@@ -93,6 +93,10 @@ function defineCommands() {
             .setName('cool-club-coins-balance')
             .setDescription('Leaderboard de los mejores gamblers 😳')
             .toJSON(),
+        new SlashCommandBuilder()
+            .setName('mis-predicciones')
+            .setDescription('Ver tus predicciones activas 📊')
+            .toJSON(),
     ]
 }
 

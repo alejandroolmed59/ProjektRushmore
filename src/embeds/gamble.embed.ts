@@ -137,3 +137,35 @@ export const endForecastEmbedBuilder = (
         .setColor(endingOutcome === 'yes' ? Colors.Green : Colors.Red)
     return embed
 }
+
+export const userActivePredictionsEmbedBuilder = (
+    predictions: PredictionHistory[],
+    displayName: string
+): EmbedBuilder => {
+    if (predictions.length === 0) {
+        const embed = new EmbedBuilder()
+            .setTitle('📊 Mis Predicciones Activas')
+            .setDescription(`${displayName}, no tienes predicciones activas en este momento.`)
+            .setColor(Colors.Grey)
+        return embed
+    }
+
+    const embed = new EmbedBuilder()
+        .setTitle('📊 Mis Predicciones Activas')
+        .setDescription(`${displayName}, aquí están tus predicciones activas:`)
+        .setFields(
+            predictions.map((prediction, index) => {
+                const decision = prediction.gambleDecision === 'yes' ? 'SI' : 'NO'
+                const potentialWin = (prediction.multiplier * prediction.amountWagered).toFixed(2)
+                return {
+                    name: `Predicción ${index + 1} - ${decision}`,
+                    value: `**Gamble ID:** ${prediction.gambleId}\n**Apuesta:** ${prediction.amountWagered} CCC\n**Multiplicador:** x${prediction.multiplier}\n**Ganancia potencial:** ${potentialWin} CCC`,
+                    inline: false,
+                }
+            })
+        )
+        .setColor(Colors.Aqua)
+        .setFooter({ text: `Total de predicciones activas: ${predictions.length}` })
+
+    return embed
+}
