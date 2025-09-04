@@ -159,7 +159,7 @@ export const userActivePredictionsEmbedBuilder = (
                 const potentialWin = (prediction.multiplier * prediction.amountWagered).toFixed(2)
                 return {
                     name: `Predicción ${index + 1} - ${decision}`,
-                    value: `**Gamble ID:** ${prediction.gambleId}\n**Apuesta:** ${prediction.amountWagered} CCC\n**Multiplicador:** x${prediction.multiplier}\n**Ganancia potencial:** ${potentialWin} CCC`,
+                    value: `**Gamble ID:** ${prediction.gambleId}\n**Apuesta:** ${prediction.amountWagered} CCC\n**Mult:** x${prediction.multiplier}\n**Ganancia Potencial:** ${potentialWin} CCC`,
                     inline: false,
                 }
             })
