@@ -195,9 +195,10 @@ export const newInteractionHandler = async (
             case 'detalles-apuesta':
                 try {
                     const gambleIdInput = interaction.options.getString('gamble-id')!
+                    const gamblers = await getMoney()
                     const forecast = await getForecast(gambleIdInput)
                     const predictions = await getPrectionsFromAForecast(gambleIdInput)
-                    const detailsEmbed = gambleDetailsEmbedBuilder(forecast, predictions)
+                    const detailsEmbed = gambleDetailsEmbedBuilder(forecast, predictions, gamblers)
                     await interaction.reply({
                         embeds: [detailsEmbed],
                     })

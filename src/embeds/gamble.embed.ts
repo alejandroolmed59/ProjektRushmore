@@ -172,7 +172,8 @@ export const userActivePredictionsEmbedBuilder = (
 
 export const gambleDetailsEmbedBuilder = (
     forecast: Forecast,
-    predictions: PredictionHistory[]
+    predictions: PredictionHistory[],
+    gamblers: Gambler[]
 ): EmbedBuilder => {
     if (predictions.length === 0) {
         const embed = new EmbedBuilder()
@@ -217,11 +218,13 @@ export const gambleDetailsEmbedBuilder = (
         .setColor(Colors.Blue)
 
     // Add individual predictions if there are not too many
-    if (predictions.length <= 10) {
+    if (predictions.length <= 15) {
+        const discordIdToDisplayName = new Map(gamblers.map(gambler => [gambler.discordId, gambler.displayName]))
         const predictionsList = predictions.map((prediction) => {
+            const displayName = discordIdToDisplayName.get(prediction.discordId) || "unknown"
             const decision = prediction.gambleDecision === 'yes' ? '✅ SÍ' : '❌ NO'
             const potentialWin = (prediction.multiplier * prediction.amountWagered).toFixed(2)
-            return `Gambler ${prediction.discordId} ${decision} - ${prediction.amountWagered} CCC (x${prediction.multiplier}) → ${potentialWin} CCC`
+            return `${displayName} - ${decision} - ${prediction.amountWagered} CCC (x${prediction.multiplier}) → ${potentialWin} CCC`
         }).join('\n')
 
         embed.addFields({
