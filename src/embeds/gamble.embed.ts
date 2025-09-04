@@ -140,19 +140,30 @@ export const endForecastEmbedBuilder = (
 
 export const userActivePredictionsEmbedBuilder = (
     predictions: PredictionHistory[],
-    displayName: string
+    displayName: string,
+    isOwnPredictions: boolean = true
 ): EmbedBuilder => {
     if (predictions.length === 0) {
+        const title = isOwnPredictions ? '📊 Mis Predicciones Activas' : '📊 Predicciones del Usuario'
+        const description = isOwnPredictions 
+            ? `${displayName}, no tienes predicciones activas en este momento.`
+            : `${displayName} no tiene predicciones activas en este momento.`
+        
         const embed = new EmbedBuilder()
-            .setTitle('📊 Mis Predicciones Activas')
-            .setDescription(`${displayName}, no tienes predicciones activas en este momento.`)
+            .setTitle(title)
+            .setDescription(description)
             .setColor(Colors.Grey)
         return embed
     }
 
+    const title = isOwnPredictions ? '📊 Mis Predicciones Activas' : '📊 Predicciones del Usuario'
+    const description = isOwnPredictions 
+        ? `${displayName}, aquí están tus predicciones activas:`
+        : `Aquí están las predicciones activas de ${displayName}:`
+
     const embed = new EmbedBuilder()
-        .setTitle('📊 Mis Predicciones Activas')
-        .setDescription(`${displayName}, aquí están tus predicciones activas:`)
+        .setTitle(title)
+        .setDescription(description)
         .setFields(
             predictions.map((prediction, index) => {
                 const decision = prediction.gambleDecision === 'yes' ? 'SI' : 'NO'

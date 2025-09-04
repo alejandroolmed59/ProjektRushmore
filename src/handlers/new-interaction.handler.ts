@@ -170,12 +170,17 @@ export const newInteractionHandler = async (
                     return
                 }
                 break
-            case 'mis-predicciones':
+            case 'ver-predicciones':
                 try {
-                    const userActivePredictions = await getActivePredictionsByUser(interaction.user.id)
+                    const targetUser = interaction.options.getUser('usuario') || interaction.user
+                    const targetUserId = targetUser.id
+                    const targetDisplayName = targetUser.displayName || targetUser.username
+                    const userActivePredictions = await getActivePredictionsByUser(targetUserId)
+                    const isOwnPredictions = targetUserId === interaction.user.id
                     const userPredictionsEmbed = userActivePredictionsEmbedBuilder(
                         userActivePredictions,
-                        interaction.user.displayName
+                        targetDisplayName,
+                        isOwnPredictions
                     )
                     await interaction.reply({
                         embeds: [userPredictionsEmbed],

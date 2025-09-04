@@ -94,8 +94,14 @@ function defineCommands() {
             .setDescription('Leaderboard de los mejores gamblers 😳')
             .toJSON(),
         new SlashCommandBuilder()
-            .setName('mis-predicciones')
-            .setDescription('Ver tus predicciones activas 📊')
+            .setName('ver-predicciones')
+            .setDescription('Ver predicciones activas (tuyas o de otro usuario) 📊')
+            .addUserOption((option) =>
+                option
+                    .setName('usuario')
+                    .setDescription('Usuario del cual quieres ver las predicciones (opcional)')
+                    .setRequired(false)
+            )
             .toJSON(),
         new SlashCommandBuilder()
             .setName('detalles-apuesta')
