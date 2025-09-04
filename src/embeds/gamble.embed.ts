@@ -195,7 +195,7 @@ export const gambleDetailsEmbedBuilder = (
         .setDescription(`**${forecast.descripcion}**`)
         .addFields(
             {
-                name: '📈 Estadísticas Generales',
+                name: '📈 Estadísticas',
                 value: `**Total de predicciones:** ${predictions.length}\n**Total apostado:** ${totalAmountWagered} CCC\n**Estado:** ${forecast.status === 'ACTIVE' ? '🟢 Activa' : '🔴 Finalizada'}`,
                 inline: false,
             },
@@ -210,12 +210,12 @@ export const gambleDetailsEmbedBuilder = (
                 inline: true,
             },
             {
-                name: '🎯 Probabilidades Actuales',
+                name: '🎯 Probabilidades',
                 value: `**SÍ:** ${(forecast.yesOdds * 100).toFixed(2)}%\n**NO:** ${((1 - forecast.yesOdds) * 100).toFixed(2)}%`,
                 inline: true,
             }
         )
-        .setColor(Colors.Blue)
+        .setColor(Colors.Orange)
 
     // Add individual predictions if there are not too many
     if (predictions.length <= 15) {

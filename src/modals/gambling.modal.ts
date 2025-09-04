@@ -89,7 +89,7 @@ export const gamblingModalSubmission = (
     const siButton = new ButtonBuilder()
         .setCustomId(`yes-gamble-${customId}`)
         .setLabel(`SI x${odds.yesMultiplier} 🍀`)
-        .setStyle(ButtonStyle.Primary)
+        .setStyle(ButtonStyle.Success)
 
     const noButton = new ButtonBuilder()
         .setCustomId(`no-gamble-${customId}`)
