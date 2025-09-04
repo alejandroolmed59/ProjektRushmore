@@ -16,9 +16,9 @@ export const newPredictionEmbedBuilder = (
     amountWagered: number
 ): EmbedBuilder => {
     const embed = new EmbedBuilder()
-        .setTitle('Nueva prediccion!')
+        .setTitle('Nueva predicción!')
         .setDescription(
-            `${discordDisplayName} acaba de apostar ${amountWagered} que ${gambleDecision === 'yes' ? 'SI' : 'NO'} se cumple a la apuesta de "${forecast.descripcion}"\n
+            `${discordDisplayName} acaba de apostar ${amountWagered} que ${gambleDecision === 'yes' ? 'SÍ' : 'NO'} se cumple a la apuesta de "${forecast.descripcion}"\n
             Con un multiplicador de x${multiplier}, para ganar ${(multiplier * amountWagered).toFixed(2)} Cool Club Coins 🤑\n
             CCC disponibles: ${gambler.money}, CCC lockeadas ${gambler.moneyReserved} `
         )
@@ -31,7 +31,7 @@ export const allBetsEmbedBuilder = (
 ): EmbedBuilder => {
     const embed = new EmbedBuilder()
         .setTitle('🎰Apuestas apuestas 🎰')
-        .setDescription(`Total de apuestas activas ${forecastArray.length}`)
+        .setDescription(`Total de apuestas activas: ${forecastArray.length}`)
         .setFields(
             forecastArray.map((forecast) => {
                 const odds = calculateOdds(forecast.yesOdds)
@@ -74,9 +74,9 @@ export const editForecastEmbedBuilder = (forecast: Forecast): EmbedBuilder => {
     const odds = calculateOdds(forecast.yesOdds)
 
     const embed = new EmbedBuilder()
-        .setTitle('Las probabilidades cambiaron!! 🍀')
+        .setTitle('Las probabilidades han cambiado! 🍀')
         .setDescription(
-            `La apuesta de "${forecast.descripcion}" cambiaron las probabilidades, Hora de APOSTAR!`
+            `La apuesta de "${forecast.descripcion}" ha cambiado las probabilidades, ¡Hora de apostar!`
         )
         .addFields(
             {
@@ -113,14 +113,14 @@ export const endForecastEmbedBuilder = (
     const predictionMessage = predictions
         .map(
             (prediction) =>
-                `Gambler ${results[prediction.discordId]!.profile.displayName}, Apuesta ${prediction.amountWagered}, Mult x${prediction.multiplier}, Decision ${prediction.gambleDecision}`
+                `Gambler ${results[prediction.discordId]!.profile.displayName}, Apuesta ${prediction.amountWagered}, Mult x${prediction.multiplier}, Decisión ${prediction.gambleDecision}`
         )
         .join('\n')
     const embed = new EmbedBuilder()
         .setTitle('SE ACABÓ!')
         .setDescription(
-            `La apuesta de "${forecast.descripcion}" acabó.\n
-            El resultado final fue ${endingOutcome === 'yes' ? 'SI' : 'NO'}, listado de todas las apuestas: \n
+            `La apuesta de "${forecast.descripcion}" ha terminado.\n
+            El resultado final fue ${endingOutcome === 'yes' ? 'SÍ' : 'NO'}, listado de todas las apuestas: \n
             ${predictionMessage}`
         )
         .addFields(
