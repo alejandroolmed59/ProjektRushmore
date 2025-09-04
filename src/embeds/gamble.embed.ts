@@ -169,3 +169,75 @@ export const userActivePredictionsEmbedBuilder = (
 
     return embed
 }
+
+export const gambleDetailsEmbedBuilder = (
+    forecast: Forecast,
+    predictions: PredictionHistory[]
+): EmbedBuilder => {
+    if (predictions.length === 0) {
+        const embed = new EmbedBuilder()
+            .setTitle('📊 Detalles de la Apuesta')
+            .setDescription(`La apuesta "${forecast.descripcion}" no tiene predicciones aún.`)
+            .setColor(Colors.Grey)
+        return embed
+    }
+
+    // Calculate totals
+    const totalYesBets = predictions.filter(p => p.gambleDecision === 'yes')
+    const totalNoBets = predictions.filter(p => p.gambleDecision === 'no')
+    const totalAmountWagered = predictions.reduce((sum, p) => sum + p.amountWagered, 0)
+    const totalYesAmount = totalYesBets.reduce((sum, p) => sum + p.amountWagered, 0)
+    const totalNoAmount = totalNoBets.reduce((sum, p) => sum + p.amountWagered, 0)
+
+    const embed = new EmbedBuilder()
+        .setTitle('📊 Detalles de la Apuesta')
+        .setDescription(`**${forecast.descripcion}**`)
+        .addFields(
+            {
+                name: '📈 Estadísticas Generales',
+                value: `**Total de predicciones:** ${predictions.length}\n**Total apostado:** ${totalAmountWagered} CCC\n**Estado:** ${forecast.status === 'ACTIVE' ? '🟢 Activa' : '🔴 Finalizada'}`,
+                inline: false,
+            },
+            {
+                name: '✅ Apuestas por SÍ',
+                value: `**Cantidad:** ${totalYesBets.length}\n**Total:** ${totalYesAmount} CCC`,
+                inline: true,
+            },
+            {
+                name: '❌ Apuestas por NO',
+                value: `**Cantidad:** ${totalNoBets.length}\n**Total:** ${totalNoAmount} CCC`,
+                inline: true,
+            },
+            {
+                name: '🎯 Probabilidades Actuales',
+                value: `**SÍ:** ${(forecast.yesOdds * 100).toFixed(2)}%\n**NO:** ${((1 - forecast.yesOdds) * 100).toFixed(2)}%`,
+                inline: true,
+            }
+        )
+        .setColor(Colors.Blue)
+
+    // Add individual predictions if there are not too many
+    if (predictions.length <= 10) {
+        const predictionsList = predictions.map((prediction) => {
+            const decision = prediction.gambleDecision === 'yes' ? '✅ SÍ' : '❌ NO'
+            const potentialWin = (prediction.multiplier * prediction.amountWagered).toFixed(2)
+            return `Gambler ${prediction.discordId} ${decision} - ${prediction.amountWagered} CCC (x${prediction.multiplier}) → ${potentialWin} CCC`
+        }).join('\n')
+
+        embed.addFields({
+            name: '📝 Lista de Predicciones',
+            value: predictionsList,
+            inline: false,
+        })
+    // limite execido
+    } else {
+        embed.addFields({
+            name: '📝 Predicciones',
+            value: `Hay ${predictions.length} predicciones en total`,
+            inline: false,
+        })
+    }
+
+    embed.setFooter({ text: `Gamble ID: ${forecast.gambleId}` })
+    return embed
+}

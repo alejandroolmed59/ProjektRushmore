@@ -17,13 +17,14 @@ import {
     endForecastEmbedBuilder,
     allGamblersEmbedBuilder,
     userActivePredictionsEmbedBuilder,
+    gambleDetailsEmbedBuilder,
 } from '../embeds/gamble.embed'
 import {
     helperCreatePrediction,
     helperEndForecast,
 } from '../services/helper.service'
 import { getMoney } from '../services/money.service'
-import { getActivePredictionsByUser } from '../services/prediction.service'
+import { getActivePredictionsByUser, getPrectionsFromAForecast } from '../services/prediction.service'
 import { Gambler } from '../interfaces/gambler.interface'
 import { GenerateId } from '../utils/id-generator'
 import { guardRoleGambler } from '../utils/role-guard'
@@ -188,6 +189,27 @@ export const newInteractionHandler = async (
                         return
                     }
                     await interaction.reply('Error obteniendo predicciones')
+                    return
+                }
+                break
+            case 'detalles-apuesta':
+                try {
+                    const gambleIdInput = interaction.options.getString('gamble-id')!
+                    const forecast = await getForecast(gambleIdInput)
+                    const predictions = await getPrectionsFromAForecast(gambleIdInput)
+                    const detailsEmbed = gambleDetailsEmbedBuilder(forecast, predictions)
+                    await interaction.reply({
+                        embeds: [detailsEmbed],
+                    })
+                } catch (e) {
+                    if (e instanceof Error) {
+                        const errorMessage = e.message
+                        await interaction.reply(
+                            `Error obteniendo detalles de la apuesta. ${errorMessage}`
+                        )
+                        return
+                    }
+                    await interaction.reply('Error obteniendo detalles de la apuesta')
                     return
                 }
                 break

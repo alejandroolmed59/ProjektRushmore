@@ -97,6 +97,16 @@ function defineCommands() {
             .setName('mis-predicciones')
             .setDescription('Ver tus predicciones activas 📊')
             .toJSON(),
+        new SlashCommandBuilder()
+            .setName('detalles-apuesta')
+            .setDescription('Ver detalles de una apuesta específica 📊')
+            .addStringOption((option) =>
+                option
+                    .setName('gamble-id')
+                    .setDescription('ID de la apuesta que quieres ver')
+                    .setRequired(true)
+            )
+            .toJSON(),
     ]
 }
 
