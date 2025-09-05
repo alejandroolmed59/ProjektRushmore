@@ -255,3 +255,43 @@ export const gambleDetailsEmbedBuilder = (
     embed.setFooter({ text: `Gamble ID: ${forecast.gambleId}` })
     return embed
 }
+
+export const predictionMarketEmbedBuilder = (
+    forecasts: Forecast[],
+    currentPage: number = 1,
+    totalPages: number = 1,
+    filter: 'all' | 'active' | 'finished' = 'all'
+): EmbedBuilder => {
+    const embed = new EmbedBuilder()
+        .setTitle('🎰 Mercado de Predicciones')
+        .setDescription(`[Cómo apostar parcialmente ↗](https://example.com)`)
+        .setColor(Colors.DarkBlue)
+
+    // Add market orders (forecasts)
+    if (forecasts.length === 0) {
+        embed.addFields({
+            name: '📊 Sin Apuestas Disponibles',
+            value: 'No hay apuestas activas en este momento.',
+            inline: false,
+        })
+    } else {
+        forecasts.forEach((forecast, index) => {
+            const odds = calculateOdds(forecast.yesOdds)
+            const statusEmoji = forecast.status === 'ACTIVE' ? '🟢' : '🔴'
+            const statusText = forecast.status === 'ACTIVE' ? 'Activa' : 'Finalizada'
+            
+            embed.addFields({
+                name: `${statusEmoji} ${forecast.descripcion}`,
+                value: `**Probabilidades:** SÍ ${(odds.yesOdds * 100).toFixed(2)}% | NO ${(odds.noOdds * 100).toFixed(2)}%\n**Multiplicadores:** SÍ x${odds.yesMultiplier} | NO x${odds.noMultiplier}\n**Estado:** ${statusText}\n**ID:** ${forecast.gambleId}`,
+                inline: false,
+            })
+        })
+    }
+
+    // Add pagination info
+    embed.setFooter({ 
+        text: `Página ${currentPage} de ${totalPages} • Filtro: ${filter === 'all' ? 'Todas' : filter === 'active' ? 'Activas' : 'Finalizadas'}`
+    })
+
+    return embed
+}
