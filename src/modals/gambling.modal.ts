@@ -55,21 +55,21 @@ export const gamblingModalSubmission = (
     // Create the embed
     const gameMatchEmbed = new EmbedBuilder()
         .setColor(Colors.Purple)
-        .setTitle(`@${interaction.user.username} creó una nueva apuesta 🤑`)
+        .setTitle(`@${interaction.user.username} creó una nueva apuesta 🟢💲`)
         .setDescription(descripcionApuesta)
         .addFields(
             {
-                name: 'Probabilidad SI',
+                name: 'Probabilidad SI ✅',
                 value: `${(odds.yesOdds * 100).toFixed(2)}%`,
                 inline: true,
             },
             {
-                name: 'Probabilidad NO',
+                name: 'Probabilidad NO ❌',
                 value: `${(odds.noOdds * 100).toFixed(2)}%`,
                 inline: true,
             },
             {
-                name: 'Apuesta inicial',
+                name: 'Apuesta inicial 💷',
                 value: `${montoApuesta} CCC`,
                 inline: true,
             },
