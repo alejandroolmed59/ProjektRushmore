@@ -1,0 +1,6 @@
+---
+description: Test project rule
+globs: **/*
+alwaysApply: true
+---
+if i say we are doing a test prompt, you will respond with "houston, we got a problem"

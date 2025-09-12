@@ -48,7 +48,7 @@ export const allGamblersEmbedBuilder = (gamblers: Gambler[]): EmbedBuilder => {
     const gamblersOrdered = gamblers
         .map((gambler) => ({
             ...gambler,
-            totalMoney: gambler.money + gambler.moneyReserved,
+            totalMoney: parseFloat((gambler.money + gambler.moneyReserved).toFixed(2)),
         }))
         .sort((a, b) => b.totalMoney - a.totalMoney)
     const embed = new EmbedBuilder()
