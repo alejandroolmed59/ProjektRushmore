@@ -18,7 +18,8 @@ export const newPredictionEmbedBuilder = (
     const embed = new EmbedBuilder()
         .setTitle('Nueva predicción!')
         .setDescription(
-            `${discordDisplayName} acaba de apostar ${amountWagered} que ${gambleDecision === 'yes' ? 'SÍ ✅' : 'NO ❌'} se cumple a la apuesta de "${forecast.descripcion}"\n
+            `${discordDisplayName} acaba de apostar ${amountWagered} que ${gambleDecision === 'yes' ? 'SÍ ✅' : 'NO ❌'} se cumple a la apuesta de\n
+             "${forecast.descripcion}"\n
             Con un multiplicador de x${multiplier}, para ganar ${(multiplier * amountWagered).toFixed(2)} Cool Club Coins 🤑\n
             CCC disponibles: ${gambler.money}, CCC lockeadas ${gambler.moneyReserved} `
         )

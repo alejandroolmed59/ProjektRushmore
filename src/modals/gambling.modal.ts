@@ -71,11 +71,6 @@ export const gamblingModalSubmission = (
                 name: 'Apuesta inicial 💷',
                 value: `${montoApuesta} CCC`,
                 inline: true,
-            },
-            {
-                name: 'GambleId',
-                value: customId,
-                inline: true,
             }
         )
         .setTimestamp()
@@ -83,7 +78,7 @@ export const gamblingModalSubmission = (
     // Create the buttons
     const siButton = new ButtonBuilder()
         .setCustomId(`yes-gamble-${customId}`)
-        .setLabel(`SI x${odds.yesMultiplier} 🟢`)
+        .setLabel(`SI x${odds.yesMultiplier} ✅`)
         .setStyle(ButtonStyle.Success)
 
     const noButton = new ButtonBuilder()
@@ -96,11 +91,12 @@ export const gamblingModalSubmission = (
         .setStyle(ButtonStyle.Primary)
 
     // Create action row with buttons
-    const buttonRow = new ActionRowBuilder().addComponents(siButton, noButton, customPredictionButton)
+    const buttonRow = new ActionRowBuilder().addComponents(siButton, noButton)
+    const buttonRow2 = new ActionRowBuilder().addComponents(customPredictionButton)
     return {
         modal: {
             embed: [gameMatchEmbed],
-            component: [buttonRow] as any,
+            component: [buttonRow, buttonRow2] as any,
         },
         context: {
             descripcion: descripcionApuesta,
@@ -157,12 +153,12 @@ export const gamblingModalBuilder = (): ModalBuilder => {
 export const customPredictionModalBuilder = (gambleId: string): ModalBuilder => {
     const modal = new ModalBuilder()
         .setCustomId(`custom-prediction-${gambleId}`)
-        .setTitle('🍀 Feeling Lucky - Custom Prediction')
+        .setTitle('🍀 Feeling Lucky')
 
     const forecastDecision = new TextInputBuilder()
         .setCustomId('forecastDecision')
         .setLabel('¿Cuál es tu predicción?')
-        .setPlaceholder('SÍ o NO')
+        .setPlaceholder('SI o NO')
         .setStyle(TextInputStyle.Short)
         .setRequired(true)
         .setMinLength(2)

@@ -260,7 +260,7 @@ export const newInteractionHandler = async (
                 console.log(`Amount input: ${amountInput}`)
                 // Validate forecast decision
                 if (forecastDecisionInput !== 'sí' && forecastDecisionInput !== 'si' && forecastDecisionInput !== 'no') {
-                    await interaction.reply('Error: La predicción debe ser "SÍ" o "NO" 0t')
+                    await interaction.reply('Error: La predicción debe ser "SI" o "NO" 0t')
                     return
                 }
                 
