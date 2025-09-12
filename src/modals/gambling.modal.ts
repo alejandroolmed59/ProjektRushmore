@@ -83,16 +83,20 @@ export const gamblingModalSubmission = (
     // Create the buttons
     const siButton = new ButtonBuilder()
         .setCustomId(`yes-gamble-${customId}`)
-        .setLabel(`SI x${odds.yesMultiplier} 🍀`)
+        .setLabel(`SI x${odds.yesMultiplier} 🟢`)
         .setStyle(ButtonStyle.Success)
 
     const noButton = new ButtonBuilder()
         .setCustomId(`no-gamble-${customId}`)
         .setLabel(`NO x${odds.noMultiplier} 🥀`)
         .setStyle(ButtonStyle.Danger)
+    const customPredictionButton = new ButtonBuilder()
+        .setCustomId(`custom-gamble-${customId}`)
+        .setLabel('Feeling lucky 🍀')
+        .setStyle(ButtonStyle.Primary)
 
     // Create action row with buttons
-    const buttonRow = new ActionRowBuilder().addComponents(siButton, noButton)
+    const buttonRow = new ActionRowBuilder().addComponents(siButton, noButton, customPredictionButton)
     return {
         modal: {
             embed: [gameMatchEmbed],
@@ -149,6 +153,38 @@ export const gamblingModalBuilder = (): ModalBuilder => {
     )
     return modal
 }
+
+export const customPredictionModalBuilder = (gambleId: string): ModalBuilder => {
+    const modal = new ModalBuilder()
+        .setCustomId(`custom-prediction-${gambleId}`)
+        .setTitle('🍀 Feeling Lucky - Custom Prediction')
+
+    const forecastDecision = new TextInputBuilder()
+        .setCustomId('forecastDecision')
+        .setLabel('¿Cuál es tu predicción?')
+        .setPlaceholder('SÍ o NO')
+        .setStyle(TextInputStyle.Short)
+        .setRequired(true)
+        .setMinLength(2)
+        .setMaxLength(3)
+
+    const amountWagered = new TextInputBuilder()
+        .setCustomId('amountWagered')
+        .setLabel('¿Cuántas CCC quieres apostar?')
+        .setPlaceholder('100')
+        .setStyle(TextInputStyle.Short)
+        .setRequired(true)
+
+    const firstActionRow = new ActionRowBuilder().addComponents(forecastDecision)
+    const secondActionRow = new ActionRowBuilder().addComponents(amountWagered)
+    
+    modal.addComponents(
+        firstActionRow as any,
+        secondActionRow as any,
+    )
+    return modal
+}
+
 /* DEPRECADO: MENU SELECT FECHA LIMITE
 export const selectEndDateMenu = (): InteractionReplyOptions => {
     const endDateMenu = new StringSelectMenuBuilder()

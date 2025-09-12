@@ -2,7 +2,7 @@ import { Interaction } from 'discord.js'
 import {
     gamblingModalSubmission,
     gamblingModalBuilder,
-    selectEndDateMenu,
+    customPredictionModalBuilder,
 } from '../modals/gambling.modal'
 import {
     createForecast,
@@ -251,6 +251,60 @@ export const newInteractionHandler = async (
                     await interaction.reply('Error creando apuesta')
                 }
             }
+        } else if (interaction.customId.startsWith('custom-prediction-')) {
+            // Handle custom prediction modal submission
+            try {
+                const gambleId = interaction.customId.replace('custom-prediction-', '')
+                const forecastDecisionInput = interaction.fields.getTextInputValue('forecastDecision').toLowerCase()
+                const amountInput = parseFloat(Number(interaction.fields.getTextInputValue('amountWagered')).toFixed(2))
+                console.log(`Amount input: ${amountInput}`)
+                // Validate forecast decision
+                if (forecastDecisionInput !== 'sí' && forecastDecisionInput !== 'si' && forecastDecisionInput !== 'no') {
+                    await interaction.reply('Error: La predicción debe ser "SÍ" o "NO" 0t')
+                    return
+                }
+                
+                const forecastDecision = (forecastDecisionInput === 'sí' || forecastDecisionInput === 'si') ? 'yes' : 'no'
+                
+                // Validate amount
+                if (!amountInput || isNaN(amountInput) || amountInput <= 0) {
+                    await interaction.reply('Error: La apuesta debe ser mayor a 0')
+                    return
+                }
+                
+                const helperResponse = await helperCreatePrediction(
+                    gambleId,
+                    interaction.user.id,
+                    forecastDecision,
+                    amountInput
+                )
+                
+                const gamblerData = helperResponse.ddbResponse?.ctx
+                    .updateGamblerCommand.Attributes as Gambler
+                const forecastData = helperResponse.forecast
+                const embedForecast = newPredictionEmbedBuilder(
+                    forecastData,
+                    gamblerData,
+                    forecastDecision,
+                    interaction.user.displayName,
+                    helperResponse.multiplier,
+                    helperResponse.amountWagered
+                )
+
+                await interaction.reply({
+                    embeds: [embedForecast],
+                })
+            } catch (e) {
+                if (e instanceof Error) {
+                    const errorMessage = e.message
+                    const cause = e.cause
+                    await interaction.reply(
+                        `Error creando predicción personalizada. ${errorMessage}, ${(cause && JSON.stringify(cause)) || ''}`
+                    )
+                    return
+                }
+                await interaction.reply('Error creando predicción personalizada')
+            }
         }
     }
     // DESPUES DEL SLASH COMMAND
@@ -269,8 +323,29 @@ export const newInteractionHandler = async (
     // BUTTON PRESSED
     if (interaction.isButton()) {
         const interactionContext = interaction.customId.split('-')
-        const gambleDecision = interactionContext[0] as 'yes' | 'no'
+        const action = interactionContext[0]
         const gambleId = interactionContext[2]
+        
+        // Handle custom prediction button
+        if (action === 'custom') {
+            if (!gambleId) {
+                await interaction.reply('Error: No se pudo obtener el ID de la apuesta')
+                return
+            }
+            try {
+                const customModal = customPredictionModalBuilder(gambleId)
+                await interaction.showModal(customModal)
+            } catch (e) {
+                if (e instanceof Error) {
+                    await interaction.reply(`Error mostrando modal: ${e.message}`)
+                    return
+                }
+                await interaction.reply('Error mostrando modal')
+            }
+            return
+        }
+        // Handle yes or no button
+        const gambleDecision = action as 'yes' | 'no'
         if (!gambleDecision || !gambleId)
             throw new Error(
                 `Error when creating users bet, gambleId ${gambleId}, decision ${gambleDecision} `
