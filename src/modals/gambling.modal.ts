@@ -49,7 +49,6 @@ export const gamblingModalSubmission = (
         throw new Error(
             `Numero no valido ${probabilidadApuestaInput} en probabilidad de apuesta`
         )
-    const endDate = interaction.fields.getTextInputValue('endDateApuesta')
     //Calcular los porcentajes
     const odds = calculateOdds(probabilidadApuestaInput)
     // Create the embed
@@ -77,14 +76,10 @@ export const gamblingModalSubmission = (
                 name: 'GambleId',
                 value: customId,
                 inline: true,
-            },
-            {
-                name: 'Fecha limite',
-                value: endDate,
-                inline: true,
             }
         )
         .setTimestamp()
+        .setFooter({ text: `Gamble ID: ${customId}` })
     // Create the buttons
     const siButton = new ButtonBuilder()
         .setCustomId(`yes-gamble-${customId}`)
@@ -111,7 +106,7 @@ export const gamblingModalSubmission = (
     }
 }
 
-export const gamblingModalBuilder = (endDate: string): ModalBuilder => {
+export const gamblingModalBuilder = (): ModalBuilder => {
     const modal = new ModalBuilder()
         .setCustomId('modalApuesta')
         .setTitle('❤️♠️♦️♣️ Hora de apostar ')
@@ -139,12 +134,6 @@ export const gamblingModalBuilder = (endDate: string): ModalBuilder => {
         .setPlaceholder('200')
         .setRequired(true)
 
-    const endDateApuesta = new TextInputBuilder()
-        .setCustomId('endDateApuesta')
-        .setLabel('Finalizacion')
-        .setStyle(TextInputStyle.Short)
-        .setValue(endDate)
-        .setRequired(true)
 
     const firstActionRow = new ActionRowBuilder().addComponents(
         descripcionApuesta
@@ -153,16 +142,14 @@ export const gamblingModalBuilder = (endDate: string): ModalBuilder => {
         probabilidadApuesta
     )
     const thirdActionRow = new ActionRowBuilder().addComponents(montoApuesta)
-    const fourthActionRow = new ActionRowBuilder().addComponents(endDateApuesta)
     modal.addComponents(
         firstActionRow as any,
         secondActionRow as any,
         thirdActionRow as any,
-        fourthActionRow as any
     )
     return modal
 }
-
+/* DEPRECADO: MENU SELECT FECHA LIMITE
 export const selectEndDateMenu = (): InteractionReplyOptions => {
     const endDateMenu = new StringSelectMenuBuilder()
         .setCustomId('endDateApuesta')
@@ -196,4 +183,4 @@ export const selectEndDateMenu = (): InteractionReplyOptions => {
         components: [row as any],
         flags: 'Ephemeral',
     }
-}
+}*/

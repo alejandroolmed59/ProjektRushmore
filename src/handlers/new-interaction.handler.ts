@@ -43,9 +43,8 @@ export const newInteractionHandler = async (
         }
         switch (interaction.commandName) {
             case 'create-polymarket':
-                // Select menu
-                const endDateSelected = selectEndDateMenu()
-                await interaction.reply(endDateSelected)
+                const gamblingModal = gamblingModalBuilder()
+                await interaction.showModal(gamblingModal)
                 break
             case 'apuestas':
                 const allGambles = await scanForecast()
@@ -255,6 +254,7 @@ export const newInteractionHandler = async (
         }
     }
     // DESPUES DEL SLASH COMMAND
+    /* DEPRECADO: MENU SELECT FECHA LIMITE 
     if (interaction.isStringSelectMenu()) {
         if (interaction.customId === 'endDateApuesta') {
             const endDateResponse = interaction.values[0]
@@ -265,7 +265,7 @@ export const newInteractionHandler = async (
             const gamblingModal = gamblingModalBuilder(endDateResponse)
             await interaction.showModal(gamblingModal)
         }
-    }
+    }*/
     // BUTTON PRESSED
     if (interaction.isButton()) {
         const interactionContext = interaction.customId.split('-')
