@@ -49,59 +49,54 @@ export const gamblingModalSubmission = (
         throw new Error(
             `Numero no valido ${probabilidadApuestaInput} en probabilidad de apuesta`
         )
-    const endDate = interaction.fields.getTextInputValue('endDateApuesta')
     //Calcular los porcentajes
     const odds = calculateOdds(probabilidadApuestaInput)
     // Create the embed
     const gameMatchEmbed = new EmbedBuilder()
         .setColor(Colors.Purple)
-        .setTitle(`@${interaction.user.username} creó una nueva apuesta 🤑`)
+        .setTitle(`@${interaction.user.username} creó una nueva apuesta 🟢💲`)
         .setDescription(descripcionApuesta)
         .addFields(
             {
-                name: 'Probabilidad SI',
+                name: 'Probabilidad SI ✅',
                 value: `${(odds.yesOdds * 100).toFixed(2)}%`,
                 inline: true,
             },
             {
-                name: 'Probabilidad NO',
+                name: 'Probabilidad NO ❌',
                 value: `${(odds.noOdds * 100).toFixed(2)}%`,
                 inline: true,
             },
             {
-                name: 'Apuesta inicial',
+                name: 'Apuesta inicial 💷',
                 value: `${montoApuesta} CCC`,
-                inline: true,
-            },
-            {
-                name: 'GambleId',
-                value: customId,
-                inline: true,
-            },
-            {
-                name: 'Fecha limite',
-                value: endDate,
                 inline: true,
             }
         )
         .setTimestamp()
+        .setFooter({ text: `Gamble ID: ${customId}` })
     // Create the buttons
     const siButton = new ButtonBuilder()
         .setCustomId(`yes-gamble-${customId}`)
-        .setLabel(`SI x${odds.yesMultiplier} 🍀`)
+        .setLabel(`SI x${odds.yesMultiplier} ✅`)
         .setStyle(ButtonStyle.Success)
 
     const noButton = new ButtonBuilder()
         .setCustomId(`no-gamble-${customId}`)
         .setLabel(`NO x${odds.noMultiplier} 🥀`)
         .setStyle(ButtonStyle.Danger)
+    const customPredictionButton = new ButtonBuilder()
+        .setCustomId(`custom-gamble-${customId}`)
+        .setLabel('Feeling lucky 🍀')
+        .setStyle(ButtonStyle.Primary)
 
     // Create action row with buttons
     const buttonRow = new ActionRowBuilder().addComponents(siButton, noButton)
+    const buttonRow2 = new ActionRowBuilder().addComponents(customPredictionButton)
     return {
         modal: {
             embed: [gameMatchEmbed],
-            component: [buttonRow] as any,
+            component: [buttonRow, buttonRow2] as any,
         },
         context: {
             descripcion: descripcionApuesta,
@@ -111,7 +106,7 @@ export const gamblingModalSubmission = (
     }
 }
 
-export const gamblingModalBuilder = (endDate: string): ModalBuilder => {
+export const gamblingModalBuilder = (): ModalBuilder => {
     const modal = new ModalBuilder()
         .setCustomId('modalApuesta')
         .setTitle('❤️♠️♦️♣️ Hora de apostar ')
@@ -139,12 +134,6 @@ export const gamblingModalBuilder = (endDate: string): ModalBuilder => {
         .setPlaceholder('200')
         .setRequired(true)
 
-    const endDateApuesta = new TextInputBuilder()
-        .setCustomId('endDateApuesta')
-        .setLabel('Finalizacion')
-        .setStyle(TextInputStyle.Short)
-        .setValue(endDate)
-        .setRequired(true)
 
     const firstActionRow = new ActionRowBuilder().addComponents(
         descripcionApuesta
@@ -153,16 +142,46 @@ export const gamblingModalBuilder = (endDate: string): ModalBuilder => {
         probabilidadApuesta
     )
     const thirdActionRow = new ActionRowBuilder().addComponents(montoApuesta)
-    const fourthActionRow = new ActionRowBuilder().addComponents(endDateApuesta)
     modal.addComponents(
         firstActionRow as any,
         secondActionRow as any,
         thirdActionRow as any,
-        fourthActionRow as any
     )
     return modal
 }
 
+export const customPredictionModalBuilder = (gambleId: string): ModalBuilder => {
+    const modal = new ModalBuilder()
+        .setCustomId(`custom-prediction-${gambleId}`)
+        .setTitle('🍀 Feeling Lucky')
+
+    const forecastDecision = new TextInputBuilder()
+        .setCustomId('forecastDecision')
+        .setLabel('¿Cuál es tu predicción?')
+        .setPlaceholder('SI o NO')
+        .setStyle(TextInputStyle.Short)
+        .setRequired(true)
+        .setMinLength(2)
+        .setMaxLength(3)
+
+    const amountWagered = new TextInputBuilder()
+        .setCustomId('amountWagered')
+        .setLabel('¿Cuántas CCC quieres apostar?')
+        .setPlaceholder('100')
+        .setStyle(TextInputStyle.Short)
+        .setRequired(true)
+
+    const firstActionRow = new ActionRowBuilder().addComponents(forecastDecision)
+    const secondActionRow = new ActionRowBuilder().addComponents(amountWagered)
+    
+    modal.addComponents(
+        firstActionRow as any,
+        secondActionRow as any,
+    )
+    return modal
+}
+
+/* DEPRECADO: MENU SELECT FECHA LIMITE
 export const selectEndDateMenu = (): InteractionReplyOptions => {
     const endDateMenu = new StringSelectMenuBuilder()
         .setCustomId('endDateApuesta')
@@ -196,4 +215,4 @@ export const selectEndDateMenu = (): InteractionReplyOptions => {
         components: [row as any],
         flags: 'Ephemeral',
     }
-}
+}*/

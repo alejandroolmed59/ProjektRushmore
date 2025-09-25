@@ -52,6 +52,9 @@ export const createForecast = async (
 }
 export const editForecast = async (gambleId: string, yesOddsInput: number) => {
     try {
+        // Check if forecast exists first
+        await getForecast(gambleId)
+        
         const probabilidadApuestaInput = Number(yesOddsInput) / 100
         const yesOdds: number = Number(probabilidadApuestaInput.toFixed(2))
         const dataPayload: Pick<Forecast, 'yesOdds'> = {
