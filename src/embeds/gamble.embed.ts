@@ -114,7 +114,7 @@ export const endForecastEmbedBuilder = (
     const predictionMessage = predictions
         .map(
             (prediction) =>
-                `Gambler ${results[prediction.discordId]!.profile.displayName}, Apuesta ${prediction.amountWagered}, Mult x${prediction.multiplier}, Decisión ${prediction.gambleDecision}`
+                `Gambler ${results[prediction.discordId]!.profile.displayName}, Apuesta ${prediction.amountWagered}, Mult x${prediction.multiplier}, Decisión ${prediction.gambleDecision === 'yes' ? '🟢' : '🔴'} ${prediction.gambleDecision}`
         )
         .join('\n')
     const embed = new EmbedBuilder()
