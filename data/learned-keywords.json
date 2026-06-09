@@ -1,0 +1,38 @@
+{
+  "generatedAt": "2026-06-09T04:02:12.741Z",
+  "model": "gemini-flash-latest",
+  "messagesAnalyzed": 464,
+  "strong": [
+    "quiniela del mundial",
+    "quiniela",
+    "racing",
+    "primera",
+    "soccerslop",
+    "porra del mundial",
+    "bernabeu",
+    "nico williams",
+    "athletic de bilbao",
+    "san mames",
+    "memes soccer",
+    "jugador de futbol"
+  ],
+  "ambiguous": [
+    "clasifico",
+    "apuesta",
+    "partidos",
+    "partidos buenos",
+    "mvp",
+    "porra",
+    "ganar",
+    "españa",
+    "mejico",
+    "madrid",
+    "camisa",
+    "playoffs",
+    "tots",
+    "monedas",
+    "el patetico",
+    "vende humos",
+    "bilbao"
+  ]
+}

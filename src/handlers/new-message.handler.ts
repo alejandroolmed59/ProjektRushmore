@@ -1,9 +1,14 @@
 import { Message, EmbedBuilder, Colors } from 'discord.js'
 import { createNewGambler, getMoney } from '../services/money.service'
+import { maybeRelocateFootballMessage } from '../services/message-relocator.service'
 import os from 'os'
 
 export const newMessageInChannel = async (message: Message): Promise<void> => {
     if (message.author.bot) return // ignore bots
+
+    // Relocate the watched user's football/soccer posts out of the channel.
+    if (await maybeRelocateFootballMessage(message)) return
+
     if (message.content === '!ping') {
         message.reply(
             `Pong!, estoy corriendo en ${os.release()} , ${
