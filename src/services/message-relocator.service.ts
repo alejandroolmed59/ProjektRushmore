@@ -1,11 +1,13 @@
 import {
     Message,
+    MessageReaction,
+    PartialMessageReaction,
     Webhook,
     WebhookType,
     TextChannel,
     NewsChannel,
 } from 'discord.js'
-import { isFootballMessage } from './football-detector.service'
+import { isFootballMessage, geminiIsFootball } from './football-detector.service'
 
 const WEBHOOK_NAME = 'shitpost-relocator'
 
@@ -79,6 +81,20 @@ export const relocateMessage = async (
 }
 
 /**
+ * Shared guard for both relocator entry points: the message is from the watched
+ * user, isn't already in the target channel, and has text to forward. Kept in
+ * one place so the two callers can't drift apart.
+ */
+const isRelocatableMessage = (
+    message: Message,
+    watchedUserId: string,
+    targetChannelId: string
+): boolean =>
+    message.author.id === watchedUserId &&
+    message.channelId !== targetChannelId &&
+    message.content.trim().length > 0
+
+/**
  * Feature entry point for the message handler: if this message is a football
  * post from the watched user (and the feature is configured), relocate it.
  * Returns true when the message was handled so the caller can stop processing.
@@ -94,9 +110,7 @@ export const maybeRelocateFootballMessage = async (
     if (
         !watchedUserId ||
         !targetChannelId ||
-        message.author.id !== watchedUserId ||
-        message.channelId === targetChannelId ||
-        message.content.trim().length === 0
+        !isRelocatableMessage(message, watchedUserId, targetChannelId)
     ) {
         return false
     }
@@ -105,4 +119,56 @@ export const maybeRelocateFootballMessage = async (
 
     await relocateMessage(message, targetChannelId)
     return true
+}
+
+/**
+ * Manual fallback for posts the auto-detector missed: when 2 users react with
+ * the configured trigger emoji to one of the watched user's messages, force the
+ * Gemini analysis (skipping the keyword shortcut, which already let this message
+ * through on create) and relocate it if Gemini agrees it's football.
+ *
+ * Returns true when the message was relocated. Best-effort: any failure is
+ * logged and leaves the original in place.
+ */
+export const maybeRelocateFootballByReaction = async (
+    reactionInput: MessageReaction | PartialMessageReaction
+): Promise<boolean> => {
+    const watchedUserId = process.env.SHITPOST_USER_ID
+    const targetChannelId = process.env.SHITPOST_TARGET_CHANNEL_ID
+    const triggerEmoji = process.env.SHITPOST_TRIGGER_EMOJI // custom emoji ID
+    if (!watchedUserId || !targetChannelId || !triggerEmoji) return false
+
+    // Cheapest check first, against the partial: the emoji is always populated,
+    // so we reject the overwhelming majority of reactions (wrong emoji) before
+    // paying for any network fetch. Match by ID (custom emoji) or name (unicode).
+    if (
+        reactionInput.emoji.id !== triggerEmoji &&
+        reactionInput.emoji.name !== triggerEmoji
+    )
+        return false
+
+    try {
+        // Resolve partials (reactions on uncached/old messages arrive partial).
+        const reaction = reactionInput.partial
+            ? await reactionInput.fetch()
+            : reactionInput
+
+        if (reaction.count < 2) return false
+
+        const message = reaction.message.partial
+            ? await reaction.message.fetch()
+            : reaction.message
+
+        if (!isRelocatableMessage(message, watchedUserId, targetChannelId))
+            return false
+
+        // Force the LLM — the keyword path already let this through on create.
+        if (!(await geminiIsFootball(message.content))) return false
+
+        await relocateMessage(message, targetChannelId)
+        return true
+    } catch (e) {
+        console.log('[relocator] reaction trigger failed:', e)
+        return false
+    }
 }
