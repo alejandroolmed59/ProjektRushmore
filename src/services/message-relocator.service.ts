@@ -167,7 +167,7 @@ export const maybeRespondFatigueByReaction = async (
 
         if (!(await geminiIsWorkRelated(message.content))) return false
 
-        await message.react(responseEmoji)
+        await message.reply(`Si Justin <:custom_name:${responseEmoji}>`)
         return true
     } catch (e) {
         console.log('[relocator] fatigue reaction failed:', e)
