@@ -7,7 +7,10 @@ import {
     TextChannel,
     NewsChannel,
 } from 'discord.js'
-import { isFootballMessage, geminiIsFootball } from './football-detector.service'
+import {
+    isFootballMessage,
+    geminiIsFootball,
+} from './football-detector.service'
 
 const WEBHOOK_NAME = 'shitpost-relocator'
 
@@ -154,7 +157,7 @@ export const maybeRelocateFootballByReaction = async (
             : reactionInput
 
         if (reaction.count < 2) return false
-
+        console.log('Reaccion es mayor a 2')
         const message = reaction.message.partial
             ? await reaction.message.fetch()
             : reaction.message
@@ -164,7 +167,7 @@ export const maybeRelocateFootballByReaction = async (
 
         // Force the LLM — the keyword path already let this through on create.
         if (!(await geminiIsFootball(message.content))) return false
-
+        console.log('mensaje a relocar')
         await relocateMessage(message, targetChannelId)
         return true
     } catch (e) {

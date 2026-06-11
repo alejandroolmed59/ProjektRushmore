@@ -23,7 +23,7 @@ const client = new Client({
     partials: [Partials.Message, Partials.Reaction],
 })
 client.once('clientReady', () => {
-    console.log(`✅ Logged in as ${client.user?.tag}`)
+    console.log(`✅ Logged in as ${client.user?.tag} !`)
 })
 
 client.on('messageCreate', (message: Message) => {

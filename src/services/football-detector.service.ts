@@ -157,6 +157,7 @@ export const geminiIsFootball = async (content: string): Promise<boolean> => {
         })
 
         const answer = (response.text ?? '').trim().toLowerCase()
+        console.log(`geminiIsFootball answer ${answer}`)
         return (
             answer.startsWith('si') ||
             answer.startsWith('sí') ||
