@@ -101,13 +101,14 @@ export const geminiIsWorkRelated = async (
 
     try {
         const prompt = `El siguiente mensaje de Discord está escrito en español (puede mezclar inglés). ¿Habla de trabajo, de ponerse a trabajar, de ir a trabajar, de estar trabajando, de jugar videojuegos en horario normal o de cansancio/agotamiento relacionado con el trabajo? Responde ÚNICAMENTE con la palabra SI o NO.\n\nMensaje: """${content}"""`
-
+        console.log(`geminiIsWorkRelated prompt: ${prompt}`)
         const response = await getClient().models.generateContent({
             model: GEMINI_MODEL,
             contents: prompt,
         })
 
         const answer = (response.text ?? '').trim().toLowerCase()
+        console.log(`geminiIsWorkRelated answer ${answer}`)
         return (
             answer.startsWith('si') ||
             answer.startsWith('sí') ||
