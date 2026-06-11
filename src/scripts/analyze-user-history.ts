@@ -38,7 +38,7 @@ const userId = process.env.SHITPOST_USER_ID
 const channelId =
     process.env.ANALYZE_CHANNEL_ID ?? process.env.SHITPOST_TARGET_CHANNEL_ID
 const maxMessages = Number(process.env.ANALYZE_MAX_MESSAGES ?? '1000')
-const model = process.env.GEMINI_MODEL ?? 'gemini-flash-latest'
+const model = process.env.GEMINI_MODEL ?? ''
 
 async function main() {
     console.log('=== Football keyword bootstrap ===')

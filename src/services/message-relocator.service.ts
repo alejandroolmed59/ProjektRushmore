@@ -142,8 +142,8 @@ export const maybeRespondFatigueByReaction = async (
     reactionInput: MessageReaction | PartialMessageReaction
 ): Promise<boolean> => {
     const watchedUserIds = getWatchedUserIds()
-    const triggerEmoji = process.env.SHITPOST_TRIGGER_EMOJI
-    const responseEmoji = process.env.JB_FATIGUE_RESPONSE_EMOJI
+    const triggerEmoji = process.env.JB_FATIGUE_EMOJI
+    const responseEmoji = process.env.JB_FATIGUE_EMOJI
     if (!watchedUserIds.length || !triggerEmoji || !responseEmoji) return false
 
     if (

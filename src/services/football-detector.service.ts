@@ -129,7 +129,7 @@ export const keywordHasFootball = (content: string): 'yes' | 'no' | 'maybe' => {
     if (AMBIGUOUS_MATCHERS.some((m) => matches(text, m))) return 'maybe'
     return 'no'
 }
-const GEMINI_MODEL = process.env.GEMINI_MODEL ?? 'gemini-flash-latest'
+const GEMINI_MODEL = process.env.GEMINI_MODEL ?? ''
 /**
  * Ask Gemini Flash whether a (Spanish) message is about football/soccer.
  * Fails open: any error returns false so we never delete a message we're

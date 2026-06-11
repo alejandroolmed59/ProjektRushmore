@@ -1,6 +1,6 @@
 import { getClient } from '../components/geminiClient'
 
-const GEMINI_MODEL = process.env.GEMINI_MODEL ?? 'gemini-flash-latest'
+const GEMINI_MODEL = process.env.GEMINI_MODEL ?? ''
 
 const COMBINING_MARKS = /[̀-ͯ]/g
 const normalizeText = (text: string): string =>
