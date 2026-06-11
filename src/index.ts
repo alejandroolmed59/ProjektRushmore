@@ -9,7 +9,10 @@ import {
 } from 'discord.js'
 import { newMessageInChannel } from './handlers/new-message.handler'
 import { newInteractionHandler } from './handlers/new-interaction.handler'
-import { maybeRelocateFootballByReaction } from './services/message-relocator.service'
+import {
+    maybeRelocateFootballByReaction,
+    maybeRespondFatigueByReaction,
+} from './services/message-relocator.service'
 
 const client = new Client({
     intents: [
@@ -33,7 +36,8 @@ client.on('interactionCreate', (interaction: Interaction) => {
     newInteractionHandler(interaction)
 })
 client.on('messageReactionAdd', (reaction) => {
-    maybeRelocateFootballByReaction(reaction)
+    void maybeRelocateFootballByReaction(reaction)
+    void maybeRespondFatigueByReaction(reaction)
 })
 
 client.login(process.env.TOKEN)

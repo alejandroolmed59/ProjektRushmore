@@ -1,5 +1,5 @@
-import { GoogleGenAI } from '@google/genai'
 import { loadLearnedKeywords } from './learned-keywords.service'
+import { getClient } from '../components/geminiClient'
 
 // Strong football/soccer signals. The watched user posts in Spanish, so the
 // list is Spanish-first with a few code-switched English terms mixed in.
@@ -129,19 +129,7 @@ export const keywordHasFootball = (content: string): 'yes' | 'no' | 'maybe' => {
     if (AMBIGUOUS_MATCHERS.some((m) => matches(text, m))) return 'maybe'
     return 'no'
 }
-
 const GEMINI_MODEL = process.env.GEMINI_MODEL ?? 'gemini-flash-latest'
-
-let genaiClient: GoogleGenAI | null = null
-const getClient = (): GoogleGenAI => {
-    if (!genaiClient) {
-        genaiClient = new GoogleGenAI({
-            apiKey: process.env.GEMINI_API_KEY ?? '',
-        })
-    }
-    return genaiClient
-}
-
 /**
  * Ask Gemini Flash whether a (Spanish) message is about football/soccer.
  * Fails open: any error returns false so we never delete a message we're

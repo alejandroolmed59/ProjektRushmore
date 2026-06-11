@@ -11,8 +11,18 @@ import {
     isFootballMessage,
     geminiIsFootball,
 } from './football-detector.service'
+import { geminiIsWorkRelated } from './work-detector.service'
 
 const WEBHOOK_NAME = 'shitpost-relocator'
+
+export const getWatchedUserIds = (): string[] =>
+    (process.env.SHITPOST_USER_ID ?? '')
+        .split(',')
+        .map((id) => id.trim())
+        .filter((id) => id.length > 0)
+
+const isWatchedUser = (userId: string, watchedUserIds: string[]): boolean =>
+    watchedUserIds.includes(userId)
 
 type WebhookCapableChannel = TextChannel | NewsChannel
 
@@ -90,10 +100,10 @@ export const relocateMessage = async (
  */
 const isRelocatableMessage = (
     message: Message,
-    watchedUserId: string,
+    watchedUserIds: string[],
     targetChannelId: string
 ): boolean =>
-    message.author.id === watchedUserId &&
+    isWatchedUser(message.author.id, watchedUserIds) &&
     message.channelId !== targetChannelId &&
     message.content.trim().length > 0
 
@@ -108,12 +118,12 @@ const isRelocatableMessage = (
 export const maybeRelocateFootballMessage = async (
     message: Message
 ): Promise<boolean> => {
-    const watchedUserId = process.env.SHITPOST_USER_ID
+    const watchedUserIds = getWatchedUserIds()
     const targetChannelId = process.env.SHITPOST_TARGET_CHANNEL_ID
     if (
-        !watchedUserId ||
+        watchedUserIds.length === 0 ||
         !targetChannelId ||
-        !isRelocatableMessage(message, watchedUserId, targetChannelId)
+        !isRelocatableMessage(message, watchedUserIds, targetChannelId)
     ) {
         return false
     }
@@ -122,6 +132,47 @@ export const maybeRelocateFootballMessage = async (
 
     await relocateMessage(message, targetChannelId)
     return true
+}
+
+/**
+ * If the watched user posts about work/fatigue and someone reacts with the
+ * configured trigger emoji, answer by reacting with the configured fatigue emoji.
+ */
+export const maybeRespondFatigueByReaction = async (
+    reactionInput: MessageReaction | PartialMessageReaction
+): Promise<boolean> => {
+    const watchedUserIds = getWatchedUserIds()
+    const triggerEmoji = process.env.SHITPOST_TRIGGER_EMOJI
+    const responseEmoji = process.env.JB_FATIGUE_RESPONSE_EMOJI
+    if (!watchedUserIds.length || !triggerEmoji || !responseEmoji) return false
+
+    if (
+        reactionInput.emoji.id !== triggerEmoji &&
+        reactionInput.emoji.name !== triggerEmoji
+    ) {
+        return false
+    }
+
+    try {
+        const reaction = reactionInput.partial
+            ? await reactionInput.fetch()
+            : reactionInput
+        const message = reaction.message.partial
+            ? await reaction.message.fetch()
+            : reaction.message
+
+        if (!isWatchedUser(message.author.id, watchedUserIds)) {
+            return false
+        }
+
+        if (!(await geminiIsWorkRelated(message.content))) return false
+
+        await message.react(responseEmoji)
+        return true
+    } catch (e) {
+        console.log('[relocator] fatigue reaction failed:', e)
+        return false
+    }
 }
 
 /**
@@ -136,10 +187,11 @@ export const maybeRelocateFootballMessage = async (
 export const maybeRelocateFootballByReaction = async (
     reactionInput: MessageReaction | PartialMessageReaction
 ): Promise<boolean> => {
-    const watchedUserId = process.env.SHITPOST_USER_ID
+    const watchedUserIds = getWatchedUserIds()
     const targetChannelId = process.env.SHITPOST_TARGET_CHANNEL_ID
     const triggerEmoji = process.env.SHITPOST_TRIGGER_EMOJI // custom emoji ID
-    if (!watchedUserId || !targetChannelId || !triggerEmoji) return false
+    if (!watchedUserIds.length || !targetChannelId || !triggerEmoji)
+        return false
 
     // Cheapest check first, against the partial: the emoji is always populated,
     // so we reject the overwhelming majority of reactions (wrong emoji) before
@@ -162,7 +214,7 @@ export const maybeRelocateFootballByReaction = async (
             ? await reaction.message.fetch()
             : reaction.message
 
-        if (!isRelocatableMessage(message, watchedUserId, targetChannelId))
+        if (!isRelocatableMessage(message, watchedUserIds, targetChannelId))
             return false
 
         // Force the LLM — the keyword path already let this through on create.
