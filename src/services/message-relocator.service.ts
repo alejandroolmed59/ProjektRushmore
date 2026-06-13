@@ -15,11 +15,19 @@ import { geminiIsWorkRelated } from './work-detector.service'
 
 const WEBHOOK_NAME = 'shitpost-relocator'
 
-export const getWatchedUserIds = (): string[] =>
-    (process.env.SHITPOST_USER_ID ?? '')
+const parseUserIds = (raw: string | undefined): string[] =>
+    (raw ?? '')
         .split(',')
         .map((id) => id.trim())
         .filter((id) => id.length > 0)
+
+// Watched user for the football relocator.
+export const getWatchedUserIds = (): string[] =>
+    parseUserIds(process.env.SHITPOST_USER_ID)
+
+// Watched user for the work/fatigue detector.
+export const getFatigueUserIds = (): string[] =>
+    parseUserIds(process.env.FATIGUE_USER_ID)
 
 const isWatchedUser = (userId: string, watchedUserIds: string[]): boolean =>
     watchedUserIds.includes(userId)
@@ -141,7 +149,7 @@ export const maybeRelocateFootballMessage = async (
 export const maybeRespondFatigueByReaction = async (
     reactionInput: MessageReaction | PartialMessageReaction
 ): Promise<boolean> => {
-    const watchedUserIds = getWatchedUserIds()
+    const watchedUserIds = getFatigueUserIds()
     const triggerEmoji = process.env.JB_FATIGUE_EMOJI
     const responseEmoji = process.env.JB_FATIGUE_EMOJI
     if (!watchedUserIds.length || !triggerEmoji || !responseEmoji) return false
