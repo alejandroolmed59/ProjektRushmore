@@ -165,6 +165,10 @@ export const maybeRespondFatigueByReaction = async (
             return false
         }
 
+        // Only the first reactor triggers a reply; later reactors on the same
+        // message see count > 1 and are ignored, so we answer at most once.
+        if (reaction.count > 1) return false
+
         if (!(await geminiIsWorkRelated(message.content))) return false
 
         await message.reply(`Si Justin <:custom_name:${responseEmoji}>`)
