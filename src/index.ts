@@ -13,6 +13,7 @@ import {
     maybeRelocateFootballByReaction,
     maybeRespondFatigueByReaction,
 } from './services/message-relocator.service'
+import { startReminderScheduler } from './services/reminder-scheduler.service'
 
 const client = new Client({
     intents: [
@@ -27,6 +28,7 @@ const client = new Client({
 })
 client.once('clientReady', () => {
     console.log(`✅ Logged in as ${client.user?.tag} !`)
+    startReminderScheduler(client)
 })
 
 client.on('messageCreate', (message: Message) => {
