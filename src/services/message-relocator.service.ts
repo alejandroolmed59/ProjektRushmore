@@ -9,9 +9,9 @@ import {
 } from 'discord.js'
 import {
     isFootballMessage,
-    geminiIsFootball,
+    jevIsFootball,
 } from './football-detector.service'
-import { geminiIsWorkRelated } from './work-detector.service'
+import { isWorkRelated } from './work-detector.service'
 
 const WEBHOOK_NAME = 'shitpost-relocator'
 
@@ -177,7 +177,7 @@ export const maybeRespondFatigueByReaction = async (
         // message see count different than 2 and are ignored, so we answer at most once.
         if (reaction.count !== 2) return false
 
-        if (!(await geminiIsWorkRelated(message.content))) return false
+        if (!(await isWorkRelated(message.content))) return false
 
         await message.reply(`Si Justin <:custom_name:${responseEmoji}>`)
         return true
@@ -190,8 +190,8 @@ export const maybeRespondFatigueByReaction = async (
 /**
  * Manual fallback for posts the auto-detector missed: when 2 users react with
  * the configured trigger emoji to one of the watched user's messages, force the
- * Gemini analysis (skipping the keyword shortcut, which already let this message
- * through on create) and relocate it if Gemini agrees it's football.
+ * Jev analysis (skipping the keyword shortcut, which already let this message
+ * through on create) and relocate it if Jev agrees it's football.
  *
  * Returns true when the message was relocated. Best-effort: any failure is
  * logged and leaves the original in place.
@@ -229,8 +229,8 @@ export const maybeRelocateFootballByReaction = async (
         if (!isRelocatableMessage(message, watchedUserIds, targetChannelId))
             return false
 
-        // Force the LLM — the keyword path already let this through on create.
-        if (!(await geminiIsFootball(message.content))) return false
+        // Force the classifier — the keyword path already let this through on create.
+        if (!(await jevIsFootball(message.content))) return false
         console.log('mensaje a relocar')
         await relocateMessage(message, targetChannelId)
         return true

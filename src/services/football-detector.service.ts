@@ -1,5 +1,6 @@
 import { loadLearnedKeywords } from './learned-keywords.service'
 import { getClient } from '../components/geminiClient'
+import { jevSaysYes } from '../components/typesafeClient'
 
 // Strong football/soccer signals. The watched user posts in Spanish, so the
 // list is Spanish-first with a few code-switched English terms mixed in.
@@ -120,7 +121,7 @@ if (learned) {
  * Cheap, synchronous pre-check.
  * - 'yes'   -> definitely football, no LLM needed
  * - 'no'    -> no football signal at all
- * - 'maybe' -> ambiguous, escalate to Gemini
+ * - 'maybe' -> ambiguous, escalate to Jev
  */
 export const keywordHasFootball = (content: string): 'yes' | 'no' | 'maybe' => {
     const text = normalize(content)
@@ -129,36 +130,22 @@ export const keywordHasFootball = (content: string): 'yes' | 'no' | 'maybe' => {
     if (AMBIGUOUS_MATCHERS.some((m) => matches(text, m))) return 'maybe'
     return 'no'
 }
-const GEMINI_MODEL = process.env.GEMINI_MODEL ?? ''
+const FOOTBALL_QUESTION =
+    'This is a Discord message written in Spanish (it may mix in English). ' +
+    'Is it about football/soccer? Counts as football: the sport, players, ' +
+    'matches, leagues, teams, results, transfers or football memes. Other ' +
+    'sports and general chatter do NOT count.'
+
 /**
- * Ask Gemini Flash whether a (Spanish) message is about football/soccer.
- * Fails open: any error returns false so we never delete a message we're
- * unsure about.
+ * Ask Jev whether a (Spanish) message is about football/soccer. Fails open so
+ * we never delete a message we're unsure about.
  */
-export const geminiIsFootball = async (content: string): Promise<boolean> => {
-    try {
-        const prompt = `El siguiente mensaje de Discord está escrito en español (puede mezclar inglés). ¿Habla de fútbol/soccer? Cuenta como fútbol: el deporte, jugadores, partidos, ligas, equipos, resultados, fichajes o memes futboleros. NO cuenta otro deporte ni charla general. Responde ÚNICAMENTE con la palabra SI o NO.\n\nMensaje: """${content}"""`
+export const jevIsFootball = (content: string): Promise<boolean> =>
+    jevSaysYes('football-detector', FOOTBALL_QUESTION, content)
 
-        const response = await getClient().models.generateContent({
-            model: GEMINI_MODEL,
-            contents: prompt,
-        })
-
-        const answer = (response.text ?? '').trim().toLowerCase()
-        console.log(`geminiIsFootball answer ${answer}`)
-        return (
-            answer.startsWith('si') ||
-            answer.startsWith('sí') ||
-            answer.startsWith('yes')
-        )
-    } catch (e) {
-        console.log(
-            '[football-detector] Gemini error, failing open (no match):',
-            e
-        )
-        return false
-    }
-}
+// Gemini is only used by the offline keyword-extraction bootstrap below; Jev
+// returns typed decisions and can't generate keyword lists.
+const GEMINI_MODEL = process.env.GEMINI_MODEL || 'gemini-flash-latest'
 
 // Cap how much text we send Gemini in one extraction call to stay well within
 // the model's context and keep the request cheap.
@@ -282,11 +269,11 @@ export const extractKeywordsFromHistory = async (
 }
 
 /**
- * Two-stage detection: keyword pre-check first, Gemini only for ambiguous cases.
+ * Two-stage detection: keyword pre-check first, Jev only for ambiguous cases.
  */
 export const isFootballMessage = async (content: string): Promise<boolean> => {
     const verdict = keywordHasFootball(content)
     if (verdict === 'yes') return true
     if (verdict === 'no') return false
-    return geminiIsFootball(content)
+    return jevIsFootball(content)
 }
