@@ -34,21 +34,27 @@ const MAX_MESSAGE_LENGTH = 1900
 export const handleDebtsInteraction = async (
     interaction: Interaction
 ): Promise<boolean> => {
-    if (
+    const isDebtCommand =
         interaction.isChatInputCommand() &&
         DEBT_COMMANDS.includes(interaction.commandName)
-    ) {
-        await runSafely(interaction, () => handleCommand(interaction))
+    const isDebtButton =
+        interaction.isButton() && interaction.customId.startsWith(BUTTON_PREFIX)
+    if (!isDebtCommand && !isDebtButton) return false
+
+    // Same rule as the other commands: server only, never DMs.
+    if (!interaction.inCachedGuild()) {
+        await replyEphemeral(
+            interaction,
+            'Los comandos solo funcionan en server'
+        )
         return true
     }
-    if (
-        interaction.isButton() &&
-        interaction.customId.startsWith(BUTTON_PREFIX)
-    ) {
-        await runSafely(interaction, () => handleButton(interaction))
-        return true
-    }
-    return false
+    await runSafely(interaction, () =>
+        interaction.isChatInputCommand()
+            ? handleCommand(interaction)
+            : handleButton(interaction)
+    )
+    return true
 }
 
 const runSafely = async (
