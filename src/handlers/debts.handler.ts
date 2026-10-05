@@ -90,6 +90,19 @@ const parseMentions = (raw: string, excludeId: string): string[] => [
     ),
 ]
 
+/** Bots can't press "Ya pagué", so a debt assigned to one never settles. */
+const hasBotMention = async (
+    interaction: ChatInputCommandInteraction,
+    userIds: string[]
+): Promise<boolean> => {
+    const users = await Promise.all(
+        userIds.map((id) =>
+            interaction.client.users.fetch(id).catch(() => null)
+        )
+    )
+    return users.some((user) => user?.bot)
+}
+
 const mention = (userId: string): string => `<@${userId}>`
 const periodLabel = (period: string): string =>
     period === ONE_OFF_PERIOD ? '' : ` (${period})`
@@ -142,6 +155,11 @@ const createMonthly = async (
         return void (await replyEphemeral(
             interaction,
             'Menciona al menos a un usuario (@usuario)'
+        ))
+    if (await hasBotMention(interaction, users))
+        return void (await replyEphemeral(
+            interaction,
+            'No puedes cobrarle a un bot 🤖'
         ))
 
     const charge = createMonthlyCharge({
@@ -214,6 +232,11 @@ const createBill = async (
             interaction,
             'Menciona al menos a un usuario (@usuario)'
         ))
+    if (await hasBotMention(interaction, users))
+        return void (await replyEphemeral(
+            interaction,
+            'No puedes cobrarle a un bot 🤖'
+        ))
 
     let members: Member[]
     if (amountsRaw) {
@@ -243,6 +266,11 @@ const createBill = async (
             userId,
             amountCents: shares[i]!,
         }))
+        if (members.some((m) => m.amountCents === 0))
+            return void (await replyEphemeral(
+                interaction,
+                'El total es muy pequeño para dividirlo entre tantas personas'
+            ))
     }
 
     const batch = createOneOffCharge({
