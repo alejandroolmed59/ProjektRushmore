@@ -1,94 +1,109 @@
-import ddbClient from '../database/ddbclient.singleton'
-import { PredictionHistory, Gambler } from '../interfaces/gambler.interface'
+import { getDb, transaction } from '../database/sqlite'
+import { Gambler, PredictionHistory } from '../interfaces/gambler.interface'
 import { GenerateLongerId } from '../utils/id-generator'
+import { formatCcc } from '../utils/money'
+import { getGambler } from './money.service'
 
-const predictionHistoryTable: string =
-    process.env.PREDICTION_HISTORY_TABLE_NAME!
-const moneyTable: string = process.env.GAMBLERS_MONEY_TABLE_NAME!
+type PredictionRow = {
+    id: string
+    forecast_id: string
+    discord_id: string
+    decision: 'yes' | 'no'
+    multiplier: number
+    amount_cents: number
+    status: 'ACTIVE' | 'DONE'
+}
 
-export const createPredictionFromForecast = async (
+const rowToPrediction = (row: PredictionRow): PredictionHistory => ({
+    predictionId: row.id,
+    gambleId: row.forecast_id,
+    discordId: row.discord_id,
+    gambleDecision: row.decision,
+    multiplier: row.multiplier,
+    amountCents: row.amount_cents,
+    status: row.status,
+})
+
+/**
+ * Place a bet: move the stake from the gambler's spendable money to reserved
+ * and record the prediction, atomically. Returns the updated gambler.
+ */
+export const createPredictionFromForecast = (
     gambleId: string,
-    amountWagered: number,
+    amountCents: number,
     discordId: string,
     multiplier: number,
-    gambleDecision: 'yes' | 'no'
-): Promise<{ status: number; message: string; ctx: Record<string, any> }> => {
-    const getGamblerCommand = await ddbClient.query(moneyTable, {
-        discordId,
+    gambleDecision: 'yes' | 'no',
+    now: number = Date.now()
+): Gambler =>
+    transaction(() => {
+        // Checked here too: a stake on a DONE forecast would stay reserved forever.
+        const forecast = getDb()
+            .prepare('SELECT status FROM forecasts WHERE id = ?')
+            .get(gambleId) as { status: string } | undefined
+        if (forecast?.status !== 'ACTIVE')
+            throw new Error(`gambleId: ${gambleId} not active`)
+        const gambler = getGambler(discordId)
+        if (!gambler)
+            throw new Error('Gambler not found', { cause: { status: 2 } })
+        if (gambler.moneyCents < amountCents)
+            throw new Error('Not enough ccc, negative remaining money', {
+                cause: {
+                    status: 3,
+                    disponible: formatCcc(gambler.moneyCents),
+                },
+            })
+        getDb()
+            .prepare(
+                `INSERT INTO predictions (id, forecast_id, discord_id, decision, multiplier, amount_cents, status, created_at)
+                VALUES (?, ?, ?, ?, ?, ?, 'ACTIVE', ?)`
+            )
+            .run(
+                GenerateLongerId(),
+                gambleId,
+                discordId,
+                gambleDecision,
+                multiplier,
+                amountCents,
+                now
+            )
+        getDb()
+            .prepare(
+                `UPDATE gamblers SET money_cents = money_cents - ?, reserved_cents = reserved_cents + ?
+                WHERE discord_id = ?`
+            )
+            .run(amountCents, amountCents, discordId)
+        return {
+            ...gambler,
+            moneyCents: gambler.moneyCents - amountCents,
+            reservedCents: gambler.reservedCents + amountCents,
+        }
     })
-    const gamblerItem = getGamblerCommand.Items?.at(0) as Gambler | undefined
-    if (!gamblerItem)
-        throw new Error('Gambler not found', { cause: { status: 2 } })
-    const remainingMoney = gamblerItem.money - amountWagered
-    const totalReserved = gamblerItem.moneyReserved + amountWagered
-    if (remainingMoney < 0)
-        throw new Error('Not enough ccc, negative remaining money', {
-            cause: { status: 3, gambler: gamblerItem },
-        })
-    const dataPayload: PredictionHistory = {
-        discordId,
-        predictionId: GenerateLongerId(),
-        gambleId,
-        amountWagered,
-        gambleDecision,
-        multiplier,
-        status: 'ACTIVE',
-    }
-    //Create forecast table
-    const createPredictionCommand = await ddbClient.add(
-        predictionHistoryTable,
-        dataPayload
-    )
-    const updateGamblerCommand = await ddbClient.update<Gambler>(
-        moneyTable,
-        { discordId },
-        { money: remainingMoney, moneyReserved: totalReserved },
-        undefined,
-        'ALL_NEW'
-    )
-    // Update gamblers table
-    return {
-        status: 0,
-        message: 'success',
-        ctx: { createPredictionCommand, updateGamblerCommand },
-    }
-}
-export const getPrectionsFromAForecast = async (gambleId: string) => {
-    const getPredictionsCommand = await ddbClient.query(
-        predictionHistoryTable,
-        {
-            gambleId,
-        },
-        undefined,
-        undefined,
-        'gambleId-index'
-    )
-    return getPredictionsCommand.Items as PredictionHistory[]
-}
-export const endPredictionStatus = async (
-    discordId: string,
-    predictionId: string,
-    body: Pick<PredictionHistory, 'status'>
-) => {
-    const updatePredictionCommand = await ddbClient.update<PredictionHistory>(
-        predictionHistoryTable,
-        {
-            discordId,
-            predictionId,
-        },
-        { ...body }
-    )
-    return updatePredictionCommand
+
+export const getPredictionsForForecast = (
+    gambleId: string
+): PredictionHistory[] =>
+    (
+        getDb()
+            .prepare(
+                'SELECT * FROM predictions WHERE forecast_id = ? ORDER BY created_at'
+            )
+            .all(gambleId) as PredictionRow[]
+    ).map(rowToPrediction)
+
+export const endPredictionsForForecast = (gambleId: string): void => {
+    getDb()
+        .prepare("UPDATE predictions SET status = 'DONE' WHERE forecast_id = ?")
+        .run(gambleId)
 }
 
-export const getActivePredictionsByUser = async (discordId: string) => {
-    const getPredictionsCommand = await ddbClient.query(
-        predictionHistoryTable,
-        {
-            discordId,
-        }
-    )
-    const allPredictions = getPredictionsCommand.Items as PredictionHistory[]
-    // Filter only active predictions
-    return allPredictions.filter(prediction => prediction.status === 'ACTIVE')
-}
+export const getActivePredictionsByUser = (
+    discordId: string
+): PredictionHistory[] =>
+    (
+        getDb()
+            .prepare(
+                "SELECT * FROM predictions WHERE discord_id = ? AND status = 'ACTIVE' ORDER BY created_at"
+            )
+            .all(discordId) as PredictionRow[]
+    ).map(rowToPrediction)

@@ -52,21 +52,6 @@ export type DebtBatch = { charge: Charge; period: string; debts: Debt[] }
 
 // ---------- money ----------
 
-/** "3.5", "3.50", "$3.50" -> 350. Returns null for anything not a positive amount. */
-export const parseAmountToCents = (raw: string): number | null => {
-    const match = raw
-        .trim()
-        .replace(/^\$/, '')
-        .match(/^(\d+)(?:\.(\d{1,2}))?$/)
-    if (!match) return null
-    const cents =
-        Number(match[1]) * 100 + Number((match[2] ?? '').padEnd(2, '0'))
-    return cents > 0 ? cents : null
-}
-
-export const formatCents = (cents: number): string =>
-    `$${(cents / 100).toFixed(2)}`
-
 /** Split evenly; leftover cents go to the first shares so the sum is exact. */
 export const splitEvenly = (totalCents: number, parts: number): number[] => {
     const base = Math.floor(totalCents / parts)

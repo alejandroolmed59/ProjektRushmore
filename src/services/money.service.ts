@@ -1,75 +1,63 @@
-import ddbClient from '../database/ddbclient.singleton'
+import { getDb } from '../database/sqlite'
 import { Gambler } from '../interfaces/gambler.interface'
-const moneyTable: string = process.env.GAMBLERS_MONEY_TABLE_NAME!
 
-export const getMoney = async (): Promise<Gambler[]> => {
-    try {
-        const fetchUsersMoneyCommand = await ddbClient.scan(moneyTable)
-        return fetchUsersMoneyCommand.Items as Gambler[]
-    } catch (e) {
-        console.log('error')
-        throw e
-    }
+const STARTING_CENTS = 100000
+const REFILL_CENTS = 25000
+// A gambler whose total (spendable + reserved) is at or below this can refill.
+const REFILL_LIMIT_CENTS = 10000
+
+type GamblerRow = {
+    discord_id: string
+    display_name: string
+    money_cents: number
+    reserved_cents: number
 }
-export const createNewGambler = async (
+
+export const rowToGambler = (row: GamblerRow): Gambler => ({
+    discordId: row.discord_id,
+    displayName: row.display_name,
+    moneyCents: row.money_cents,
+    reservedCents: row.reserved_cents,
+})
+
+export const getGambler = (discordId: string): Gambler | undefined => {
+    const row = getDb()
+        .prepare('SELECT * FROM gamblers WHERE discord_id = ?')
+        .get(discordId) as GamblerRow | undefined
+    return row && rowToGambler(row)
+}
+
+export const getMoney = (): Gambler[] =>
+    (getDb().prepare('SELECT * FROM gamblers').all() as GamblerRow[]).map(
+        rowToGambler
+    )
+
+/** !cajero: register a new gambler, or refill one who is nearly broke. */
+export const createNewGambler = (
     discordId: string,
-    displayName: string
-) => {
-    try {
-        const readGamblerCommand = await ddbClient.query(moneyTable, {
-            discordId,
-        })
-        const existingUser = readGamblerCommand.Items?.at(0) as
-            | Gambler
-            | undefined
-        if (existingUser) {
-            if (existingUser.money + existingUser.moneyReserved > 100) {
-                return {
-                    action: 'Gambler tiene mas de 100 CCC, nada por hacer',
-                }
-            } else {
-                await ddbClient.update<Gambler>(
-                    moneyTable,
-                    { discordId },
-                    {
-                        money: 250,
-                    }
-                )
-                return {
-                    action: 'Sacando 250$ CCC de la cuenta del banco para las apuestas 🤑',
-                }
-            }
-        }
-        const dataPayload: Gambler = {
-            discordId,
-            displayName,
-            money: 1000,
-            moneyReserved: 0,
-        }
-        const createCommand = await ddbClient.add(moneyTable, dataPayload)
+    displayName: string,
+    now: number = Date.now()
+): { action: string } => {
+    const existing = getGambler(discordId)
+    if (existing) {
+        if (existing.moneyCents + existing.reservedCents > REFILL_LIMIT_CENTS)
+            return { action: 'Gambler tiene mas de 100 CCC, nada por hacer' }
+        getDb()
+            .prepare(
+                'UPDATE gamblers SET money_cents = ?, display_name = ? WHERE discord_id = ?'
+            )
+            .run(REFILL_CENTS, displayName, discordId)
         return {
-            action: 'Hoy nacio un apostador exitoso 🤠, ten tus primeros 1000 CCC, aprovechalos y multiplicalos',
+            action: 'Sacando 250$ CCC de la cuenta del banco para las apuestas 🤑',
         }
-    } catch (e) {
-        console.log('error', e)
-        throw e
     }
-}
-export const editGambler = async (
-    discordId: string,
-    payload: Partial<Pick<Gambler, 'displayName' | 'money' | 'moneyReserved'>>
-) => {
-    try {
-        const createCommand = await ddbClient.update<Gambler>(
-            moneyTable,
-            { discordId },
-            payload,
-            undefined,
-            'ALL_NEW'
+    getDb()
+        .prepare(
+            `INSERT INTO gamblers (discord_id, display_name, money_cents, reserved_cents, created_at)
+            VALUES (?, ?, ?, 0, ?)`
         )
-        return createCommand.$metadata.httpStatusCode
-    } catch (e) {
-        console.log('error', e)
-        throw e
+        .run(discordId, displayName, STARTING_CENTS, now)
+    return {
+        action: 'Hoy nacio un apostador exitoso 🤠, ten tus primeros 1000 CCC, aprovechalos y multiplicalos',
     }
 }

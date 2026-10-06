@@ -15,6 +15,7 @@ import {
     TextInputStyle,
 } from 'discord.js'
 import { calculateOdds } from '../utils/calculate-odds'
+import { formatCcc, parseAmountToCents } from '../utils/money'
 interface ModalSubmissionReturn {
     modal: {
         embed: EmbedBuilder[]
@@ -23,7 +24,7 @@ interface ModalSubmissionReturn {
     context: {
         descripcion: string
         yesOdds: number
-        amount: number
+        amountCents: number
     }
 }
 export const gamblingModalSubmission = (
@@ -32,11 +33,10 @@ export const gamblingModalSubmission = (
 ): ModalSubmissionReturn => {
     const descripcionApuesta =
         interaction.fields.getTextInputValue('descripcionApuesta')
-    const montoApuesta = Number(
-        interaction.fields.getTextInputValue('montoApuesta')
-    )
-    if (!montoApuesta || isNaN(montoApuesta) || montoApuesta < 0)
-        throw new Error(`Monto de apuesta ${montoApuesta} invalido`)
+    const montoInput = interaction.fields.getTextInputValue('montoApuesta')
+    const amountCents = parseAmountToCents(montoInput)
+    if (amountCents === null)
+        throw new Error(`Monto de apuesta ${montoInput} invalido`)
     const probabilidadApuestaInput =
         Number(interaction.fields.getTextInputValue('probabilidadApuesta')) /
         100
@@ -69,7 +69,7 @@ export const gamblingModalSubmission = (
             },
             {
                 name: 'Apuesta inicial 💷',
-                value: `${montoApuesta} CCC`,
+                value: `${formatCcc(amountCents)} CCC`,
                 inline: true,
             }
         )
@@ -101,7 +101,7 @@ export const gamblingModalSubmission = (
         context: {
             descripcion: descripcionApuesta,
             yesOdds: odds.yesOdds,
-            amount: montoApuesta,
+            amountCents,
         },
     }
 }

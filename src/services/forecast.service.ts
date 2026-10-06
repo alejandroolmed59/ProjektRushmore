@@ -1,89 +1,90 @@
-import ddbClient from '../database/ddbclient.singleton'
+import { getDb } from '../database/sqlite'
 import { Forecast } from '../interfaces/gambler.interface'
-const gambleTable: string = process.env.GAMBLE_TABLE_NAME!
-export const getForecast = async (gambleId: string): Promise<Forecast> => {
-    try {
-        const queryForecastResponse = await ddbClient.query(gambleTable, {
-            gambleId,
-        })
-        if (queryForecastResponse.Items?.length !== 1)
-            throw new Error(`Forecast ${gambleId} doesnt exist`)
-        return queryForecastResponse.Items[0] as Forecast
-    } catch (e) {
-        console.log('error')
-        throw e
-    }
+
+type ForecastRow = {
+    id: string
+    created_by: string
+    description: string
+    yes_odds: number
+    amount_cents: number
+    status: 'ACTIVE' | 'DONE'
 }
-export const scanForecast = async (): Promise<Forecast[]> => {
-    try {
-        const queryForecastResponse = await ddbClient.scan(
-            gambleTable,
-            undefined,
-            { status: 'ACTIVE' }
-        )
-        return queryForecastResponse.Items as Forecast[]
-    } catch (e) {
-        console.log('error')
-        throw e
-    }
+
+const rowToForecast = (row: ForecastRow): Forecast => ({
+    gambleId: row.id,
+    createdBy: row.created_by,
+    descripcion: row.description,
+    yesOdds: row.yes_odds,
+    amountCents: row.amount_cents,
+    status: row.status,
+})
+
+export const getForecast = (gambleId: string): Forecast => {
+    const row = getDb()
+        .prepare('SELECT * FROM forecasts WHERE id = ?')
+        .get(gambleId) as ForecastRow | undefined
+    if (!row) throw new Error(`Forecast ${gambleId} doesnt exist`)
+    return rowToForecast(row)
 }
-export const createForecast = async (
+
+export const scanForecast = (): Forecast[] =>
+    (
+        getDb()
+            .prepare(
+                "SELECT * FROM forecasts WHERE status = 'ACTIVE' ORDER BY created_at"
+            )
+            .all() as ForecastRow[]
+    ).map(rowToForecast)
+
+export const createForecast = (
     gambleId: string,
     createdByDiscordId: string,
     descripcion: string,
     yesOdds: number,
-    amount: number
-) => {
-    try {
-        const dataPayload: Forecast = {
+    amountCents: number,
+    now: number = Date.now()
+): void => {
+    getDb()
+        .prepare(
+            `INSERT INTO forecasts (id, created_by, description, yes_odds, amount_cents, status, created_at)
+            VALUES (?, ?, ?, ?, ?, 'ACTIVE', ?)`
+        )
+        .run(
             gambleId,
-            createdBy: createdByDiscordId,
+            createdByDiscordId,
             descripcion,
             yesOdds,
-            amount,
-            status: 'ACTIVE',
-        }
-        const createCommand = await ddbClient.add(gambleTable, dataPayload)
-        return createCommand.$metadata.httpStatusCode
-    } catch (e) {
-        console.log('error', e)
-        throw e
-    }
-}
-export const editForecast = async (gambleId: string, yesOddsInput: number) => {
-    try {
-        // Check if forecast exists first
-        await getForecast(gambleId)
-        
-        const probabilidadApuestaInput = Number(yesOddsInput) / 100
-        const yesOdds: number = Number(probabilidadApuestaInput.toFixed(2))
-        const dataPayload: Pick<Forecast, 'yesOdds'> = {
-            yesOdds,
-        }
-        const createCommand = await ddbClient.update<Forecast>(
-            gambleTable,
-            { gambleId },
-            dataPayload,
-            undefined,
-            'ALL_NEW'
+            amountCents,
+            now
         )
-        return createCommand.Attributes as Forecast
-    } catch (e) {
-        console.log('Edit forecast error', e)
-        throw e
-    }
 }
 
-export const endForecastStatus = async (
+/** yesOddsInput is a percentage, 1-99. */
+export const editForecast = (
     gambleId: string,
-    body: Pick<Forecast, 'status'>
-) => {
-    const updateForecastCommand = await ddbClient.update<Forecast>(
-        gambleTable,
-        {
-            gambleId,
-        },
-        { ...body }
+    yesOddsInput: number
+): Forecast => {
+    if (
+        !Number.isInteger(yesOddsInput) ||
+        yesOddsInput < 1 ||
+        yesOddsInput > 99
     )
-    return updateForecastCommand
+        throw new Error('La probabilidad debe estar entre 1 y 99')
+    getForecast(gambleId)
+    getDb()
+        .prepare('UPDATE forecasts SET yes_odds = ? WHERE id = ?')
+        .run(Number((yesOddsInput / 100).toFixed(2)), gambleId)
+    return getForecast(gambleId)
+}
+
+export const endForecastStatus = (
+    gambleId: string,
+    outcome: 'yes' | 'no',
+    now: number = Date.now()
+): void => {
+    getDb()
+        .prepare(
+            "UPDATE forecasts SET status = 'DONE', outcome = ?, ended_at = ? WHERE id = ?"
+        )
+        .run(outcome, now, gambleId)
 }

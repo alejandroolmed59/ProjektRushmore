@@ -21,7 +21,7 @@ There are no tests. `npm run build` is the check: run it before calling a change
 - `src/handlers/`: entry points per Discord event. `new-interaction.handler.ts` tries feature handlers first (`handleDebtsInteraction`, `handleEmojiInteraction`); each returns `true` if it handled the interaction. Add new features the same way instead of growing the big switch.
 - `src/services/`: feature logic. `src/embeds/`, `src/modals/`: Discord UI builders.
 - `src/components/`: API clients (`typesafeClient.ts`, the Jev classifier used by the football and work detectors).
-- `src/database/`: two stores. DynamoDB holds the betting data (forecasts, predictions, money). SQLite (`node:sqlite`, `data/rushmore.db`) holds debts, reminders and emoji usage. Put new local features in SQLite and extend `SCHEMA` in `sqlite.ts` with `CREATE ... IF NOT EXISTS`.
+- `src/database/sqlite.ts`: the only store. SQLite (`node:sqlite`, `data/rushmore.db`) holds betting (gamblers, forecasts, predictions), debts, reminders, emoji usage and the game library. Add new features by extending `SCHEMA` with `CREATE ... IF NOT EXISTS`.
 - `src/scripts/`: one-off tools. `backfill-emojis.ts` is bundled and run on the phone; it resumes from a per-channel cursor.
 - `src/deploy-commands.js`: the slash command definitions. Keep it in sync with the handlers.
 

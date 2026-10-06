@@ -24,8 +24,11 @@ import {
     helperEndForecast,
 } from '../services/helper.service'
 import { getMoney } from '../services/money.service'
-import { getActivePredictionsByUser, getPrectionsFromAForecast } from '../services/prediction.service'
-import { Gambler } from '../interfaces/gambler.interface'
+import {
+    getActivePredictionsByUser,
+    getPredictionsForForecast,
+} from '../services/prediction.service'
+import { parseAmountToCents } from '../utils/money'
 import { GenerateId } from '../utils/id-generator'
 import { guardRoleGambler } from '../utils/role-guard'
 import { handleDebtsInteraction } from './debts.handler'
@@ -53,14 +56,14 @@ export const newInteractionHandler = async (
                 await interaction.showModal(gamblingModal)
                 break
             case 'apuestas':
-                const allGambles = await scanForecast()
+                const allGambles = scanForecast()
                 const embedPolymarket = allBetsEmbedBuilder(allGambles)
                 await interaction.reply({
                     embeds: [embedPolymarket],
                 })
                 break
             case 'cool-club-coins-balance':
-                const gamblersBalance = await getMoney()
+                const gamblersBalance = getMoney()
                 const leaderboardEmbed =
                     allGamblersEmbedBuilder(gamblersBalance)
                 await interaction.reply({
@@ -73,25 +76,29 @@ export const newInteractionHandler = async (
                 const forecastInput = interaction.options.getString(
                     'forecast-decision'
                 ) as 'yes' | 'no'
-                const amountInput =
-                    interaction.options.getNumber('monto-apuesta')!
+                const amountCents = Math.round(
+                    interaction.options.getNumber('monto-apuesta', true) * 100
+                )
+                if (amountCents <= 0) {
+                    await interaction.reply(
+                        'Error: La apuesta debe ser mayor a 0'
+                    )
+                    return
+                }
                 try {
-                    const helperResponse = await helperCreatePrediction(
+                    const helperResponse = helperCreatePrediction(
                         gambleIdInput,
                         interaction.user.id,
                         forecastInput,
-                        amountInput
+                        amountCents
                     )
-                    const gamblerData = helperResponse.ddbResponse?.ctx
-                        .updateGamblerCommand.Attributes as Gambler
-                    const forecastData = helperResponse.forecast
                     const embedForecast = newPredictionEmbedBuilder(
-                        forecastData,
-                        gamblerData,
+                        helperResponse.forecast,
+                        helperResponse.gambler,
                         forecastInput,
                         interaction.user.displayName,
                         helperResponse.multiplier,
-                        helperResponse.amountWagered
+                        helperResponse.amountCents
                     )
 
                     await interaction.reply({
@@ -117,7 +124,7 @@ export const newInteractionHandler = async (
                         interaction.options.getString('gamble-id')!
                     const yesOddsInput =
                         interaction.options.getInteger('yes-odds')!
-                    const editForecastResponse = await editForecast(
+                    const editForecastResponse = editForecast(
                         gambleidInput,
                         yesOddsInput
                     )
@@ -148,7 +155,7 @@ export const newInteractionHandler = async (
                     const endingOutcome = interaction.options.getString(
                         'outcome'
                     )! as 'yes' | 'no'
-                    const endForecastHelperResponse = await helperEndForecast(
+                    const endForecastHelperResponse = helperEndForecast(
                         endingGambleIdInput,
                         endingOutcome
                     )
@@ -180,7 +187,7 @@ export const newInteractionHandler = async (
                     const targetUser = interaction.options.getUser('usuario') || interaction.user
                     const targetUserId = targetUser.id
                     const targetDisplayName = targetUser.displayName || targetUser.username
-                    const userActivePredictions = await getActivePredictionsByUser(targetUserId)
+                    const userActivePredictions = getActivePredictionsByUser(targetUserId)
                     const isOwnPredictions = targetUserId === interaction.user.id
                     const userPredictionsEmbed = userActivePredictionsEmbedBuilder(
                         userActivePredictions,
@@ -205,9 +212,9 @@ export const newInteractionHandler = async (
             case 'detalles-apuesta':
                 try {
                     const gambleIdInput = interaction.options.getString('gamble-id')!
-                    const gamblers = await getMoney()
-                    const forecast = await getForecast(gambleIdInput)
-                    const predictions = await getPrectionsFromAForecast(gambleIdInput)
+                    const gamblers = getMoney()
+                    const forecast = getForecast(gambleIdInput)
+                    const predictions = getPredictionsForForecast(gambleIdInput)
                     const detailsEmbed = gambleDetailsEmbedBuilder(forecast, predictions, gamblers)
                     await interaction.reply({
                         embeds: [detailsEmbed],
@@ -233,13 +240,12 @@ export const newInteractionHandler = async (
             try {
                 const customId = GenerateId()
                 const respuesta = gamblingModalSubmission(interaction, customId)
-                //create ddb record para el forecast
-                await createForecast(
+                createForecast(
                     customId,
                     interaction.user.id,
                     respuesta.context.descripcion,
                     respuesta.context.yesOdds,
-                    respuesta.context.amount
+                    respuesta.context.amountCents
                 )
                 // Send the message with embed and buttons
                 await interaction.reply({
@@ -262,8 +268,9 @@ export const newInteractionHandler = async (
             try {
                 const gambleId = interaction.customId.replace('custom-prediction-', '')
                 const forecastDecisionInput = interaction.fields.getTextInputValue('forecastDecision').toLowerCase()
-                const amountInput = parseFloat(Number(interaction.fields.getTextInputValue('amountWagered')).toFixed(2))
-                console.log(`Amount input: ${amountInput}`)
+                const amountCents = parseAmountToCents(
+                    interaction.fields.getTextInputValue('amountWagered')
+                )
                 // Validate forecast decision
                 if (forecastDecisionInput !== 'sí' && forecastDecisionInput !== 'si' && forecastDecisionInput !== 'no') {
                     await interaction.reply('Error: La predicción debe ser "SI" o "NO" 0t')
@@ -273,28 +280,24 @@ export const newInteractionHandler = async (
                 const forecastDecision = (forecastDecisionInput === 'sí' || forecastDecisionInput === 'si') ? 'yes' : 'no'
                 
                 // Validate amount
-                if (!amountInput || isNaN(amountInput) || amountInput <= 0) {
+                if (amountCents === null) {
                     await interaction.reply('Error: La apuesta debe ser mayor a 0')
                     return
                 }
                 
-                const helperResponse = await helperCreatePrediction(
+                const helperResponse = helperCreatePrediction(
                     gambleId,
                     interaction.user.id,
                     forecastDecision,
-                    amountInput
+                    amountCents
                 )
-                
-                const gamblerData = helperResponse.ddbResponse?.ctx
-                    .updateGamblerCommand.Attributes as Gambler
-                const forecastData = helperResponse.forecast
                 const embedForecast = newPredictionEmbedBuilder(
-                    forecastData,
-                    gamblerData,
+                    helperResponse.forecast,
+                    helperResponse.gambler,
                     forecastDecision,
                     interaction.user.displayName,
                     helperResponse.multiplier,
-                    helperResponse.amountWagered
+                    helperResponse.amountCents
                 )
 
                 await interaction.reply({
@@ -357,22 +360,18 @@ export const newInteractionHandler = async (
                 `Error when creating users bet, gambleId ${gambleId}, decision ${gambleDecision} `
             )
         try {
-            const helperResponse = await helperCreatePrediction(
+            const helperResponse = helperCreatePrediction(
                 gambleId,
                 interaction.user.id,
                 gambleDecision
             )
-
-            const gamblerData = helperResponse.ddbResponse?.ctx
-                .updateGamblerCommand.Attributes as Gambler
-            const forecastData = helperResponse.forecast
             const embedRes = newPredictionEmbedBuilder(
-                forecastData,
-                gamblerData,
+                helperResponse.forecast,
+                helperResponse.gambler,
                 gambleDecision,
                 interaction.user.displayName,
                 helperResponse.multiplier,
-                helperResponse.amountWagered
+                helperResponse.amountCents
             )
 
             await interaction.reply({

@@ -15,15 +15,14 @@ import {
     createMonthlyCharge,
     createOneOffCharge,
     DebtBatch,
-    formatCents,
     listActiveMonthlyCharges,
     Member,
     ONE_OFF_PERIOD,
-    parseAmountToCents,
     resolveClaim,
     splitEvenly,
     UnpaidDebt,
 } from '../services/debts.service'
+import { formatCents, parseAmountToCents } from '../utils/money'
 
 export const DEBT_COMMANDS = ['cobro-mensual', 'cuenta', 'deudas']
 const BUTTON_PREFIX = 'rem:'
