@@ -64,6 +64,19 @@ ssh -i ~/.ssh/rushmore_pixel -p 8022 <phone-tailscale-ip> 'SVDIR=$PREFIX/var/ser
 
 App layout on the phone: `~/rushmore/{dist/index.js, data/, .env, logs/}`. Copy `.env` by hand; it's not in git.
 
+### Seeding the game library
+
+`/juegos` reads from the same SQLite DB. To load the catalog, aliases and loans from `data/games-seed.json` (gitignored, it has Discord IDs; format in `src/scripts/seed-games.ts`):
+
+```sh
+npm run build:seed
+scp -i ~/.ssh/rushmore_pixel -P 8022 dist/seed-games.js <phone-tailscale-ip>:~/rushmore/dist/seed-games.js
+scp -i ~/.ssh/rushmore_pixel -P 8022 data/games-seed.json <phone-tailscale-ip>:~/rushmore/data/games-seed.json
+ssh -i ~/.ssh/rushmore_pixel -p 8022 <phone-tailscale-ip> 'cd ~/rushmore && $PREFIX/bin/node dist/seed-games.js'
+```
+
+It skips anything already there, so rerunning it is safe.
+
 ## Keeping it alive (battery settings)
 
 Applied 2026-10-05 over adb so Android doesn't kill the bot or drop the VPN:

@@ -10,6 +10,7 @@ npm run build      # tsc --noEmit (typecheck) + esbuild bundle → dist/index.js
 npm run prettier   # format src/
 node src/deploy-commands.js deploy   # re-register slash commands after changing them
 npm run build:backfill        # bundle the emoji history backfill → dist/backfill-emojis.js
+npm run build:seed            # bundle the game library seed → dist/seed-games.js (reads data/games-seed.json)
 ```
 
 There are no tests. `npm run build` is the check: run it before calling a change done.
@@ -33,7 +34,7 @@ There are no tests. `npm run build` is the check: run it before calling a change
 - Config comes from env vars. Document every new one in `.env.example` with a comment, and give optional ones a default in code.
 - Classifiers fail open: on API errors, do nothing to the message.
 - Guard commands and buttons to guild interactions (`inCachedGuild()`).
-- Never commit `.env`, `data/*.db`, or exported message history (all gitignored). They contain real server data.
+- Never commit `.env`, `data/*.db`, `data/games-seed.json`, or exported message history (all gitignored). They contain real server data.
 
 ## Runtime and deploy
 

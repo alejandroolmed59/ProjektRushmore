@@ -3,3 +3,4 @@ dist
 node_modules
 data/*.db*
 data/backups
+data/games-seed.json

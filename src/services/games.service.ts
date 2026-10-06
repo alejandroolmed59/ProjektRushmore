@@ -1,3 +1,4 @@
+import { jevChoose } from '../components/typesafeClient'
 import { getDb, transaction } from '../database/sqlite'
 import { GenerateLongerId } from '../utils/id-generator'
 
@@ -24,6 +25,14 @@ export type TitleMatch =
     | { kind: 'match'; entry: TitleEntry }
     | { kind: 'ambiguous'; candidates: TitleEntry[] }
     | { kind: 'none' }
+
+// Jev's confidence needed to accept its pick when deterministic matching fails.
+const parsedThreshold = Number(process.env.GAMES_MATCH_THRESHOLD)
+const MATCH_THRESHOLD =
+    Number.isFinite(parsedThreshold) && parsedThreshold > 0
+        ? parsedThreshold
+        : 0.6
+const NO_MATCH_LABEL = 'Ninguno de estos'
 
 // Filler words people add or drop when naming a game ("zelda de echoes").
 // A query token in this list never has to match.
@@ -422,4 +431,32 @@ export const searchTitles = (query: string, limit = 25): TitleEntry[] => {
               [e.titleKey, ...e.aliases].some((k) => k.includes(key))
           )
     return results.slice(0, limit)
+}
+
+/**
+ * Ask Jev which title the query means, among `entries`. Used when
+ * matchTitle finds nothing or several. Returns null when Jev is unsure,
+ * picks none, or errors (fail open).
+ */
+export const jevMatchTitle = async (
+    query: string,
+    entries: TitleEntry[]
+): Promise<TitleEntry | null> => {
+    if (entries.length === 0) return null
+    const criteria: Record<string, string> = {
+        [NO_MATCH_LABEL]: 'The text names a game that is not in this list',
+    }
+    entries.forEach((e) => {
+        criteria[e.title] = e.aliases.length
+            ? `Also called: ${e.aliases.join(', ')}`
+            : e.title
+    })
+    const result = await jevChoose(
+        'games',
+        'Which video game is this text referring to? It may be an abbreviation, a nickname, a Spanish name or a typo.',
+        query,
+        criteria
+    )
+    if (!result || result.confidence < MATCH_THRESHOLD) return null
+    return entries.find((e) => e.title === result.label) ?? null
 }

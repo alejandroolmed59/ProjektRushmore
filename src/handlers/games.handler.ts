@@ -8,10 +8,12 @@ import {
     addGame,
     Game,
     GameFormat,
+    jevMatchTitle,
     lendGame,
     listCatalog,
     listCopies,
     listLoans,
+    listTitles,
     LoanWithGame,
     matchTitle,
     openLoan,
@@ -111,15 +113,24 @@ const formatLabel = (format: GameFormat): string =>
 const date = (ms: number): string => `<t:${Math.floor(ms / 1000)}:D>`
 
 /**
- * Turn what the user typed into a library title. Replies and returns null
- * when it's unknown or ambiguous.
+ * Turn what the user typed into a library title: exact or token match first,
+ * then Jev for nicknames and typos. Replies and returns null when it's
+ * unknown or still ambiguous.
  */
 const resolveTitle = async (
     interaction: ChatInputCommandInteraction,
     query: string
 ): Promise<TitleEntry | null> => {
-    const match = matchTitle(query)
+    const entries = listTitles()
+    const match = matchTitle(query, entries)
     if (match.kind === 'match') return match.entry
+
+    // Jev can take longer than Discord's 3s reply window.
+    if (!interaction.deferred) await interaction.deferReply()
+    const candidates = match.kind === 'ambiguous' ? match.candidates : entries
+    const picked = await jevMatchTitle(query, candidates)
+    if (picked) return picked
+
     if (match.kind === 'ambiguous') {
         const options = match.candidates.map((c) => `• ${c.title}`).join('\n')
         await send(interaction, `¿Cuál de estos?\n${options}`, true)

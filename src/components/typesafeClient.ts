@@ -1,4 +1,4 @@
-import { noul, TypeSafeClient } from '@typesafe-ai/sdk'
+import { choice, ChoiceCriteria, noul, TypeSafeClient } from '@typesafe-ai/sdk'
 
 // Pinned so the probability threshold we tune keeps meaning the same thing
 // when TypeSafe ships a new jev-latest.
@@ -42,5 +42,29 @@ export const jevSaysYes = async (
     } catch (e) {
         console.log(`[${tag}] Jev error, failing open (no match):`, e)
         return false
+    }
+}
+
+/**
+ * Ask Jev to pick one label for a piece of text. Returns the label and Jev's
+ * confidence in it, or null on any error so callers fail open.
+ */
+export const jevChoose = async (
+    tag: string,
+    instructions: string,
+    content: string,
+    criteria: ChoiceCriteria
+): Promise<{ label: string; confidence: number } | null> => {
+    try {
+        const { answers } = await getTypeSafeClient().systemOne({
+            state: content,
+            questions: { answer: choice(instructions, criteria) },
+        })
+        const { choice: label, confidence } = answers.answer
+        console.log(`[${tag}] jev chose "${label}" (${confidence.toFixed(3)})`)
+        return { label, confidence }
+    } catch (e) {
+        console.log(`[${tag}] Jev error, failing open (no choice):`, e)
+        return null
     }
 }
