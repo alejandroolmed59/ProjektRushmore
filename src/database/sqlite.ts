@@ -77,6 +77,27 @@ CREATE TABLE IF NOT EXISTS emoji_backfill (
     scanned     INTEGER NOT NULL DEFAULT 0,
     done        INTEGER NOT NULL DEFAULT 0
 );
+
+-- Game library: one row per copy someone owns. title_key is the normalized
+-- title (lowercase, no accents or punctuation) used for matching.
+CREATE TABLE IF NOT EXISTS games (
+    id          TEXT PRIMARY KEY,
+    title       TEXT NOT NULL,
+    title_key   TEXT NOT NULL,
+    owner_id    TEXT NOT NULL,
+    format      TEXT NOT NULL CHECK (format IN ('fisico', 'digital')),
+    active      INTEGER NOT NULL DEFAULT 1,
+    created_at  INTEGER NOT NULL,
+    UNIQUE (owner_id, title_key, format)
+);
+CREATE INDEX IF NOT EXISTS games_title ON games (title_key);
+
+-- Other names a title goes by ("totk", "lagrimas del reino"), shared by every
+-- copy of that title. Both columns are normalized keys.
+CREATE TABLE IF NOT EXISTS game_aliases (
+    alias_key   TEXT PRIMARY KEY,
+    title_key   TEXT NOT NULL
+);
 `
 
 let db: DatabaseSync | null = null

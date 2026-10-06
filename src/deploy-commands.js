@@ -181,6 +181,68 @@ function defineCommands() {
             .setName('deudas')
             .setDescription('Quién te debe y a quién le debes 💸')
             .toJSON(),
+        new SlashCommandBuilder()
+            .setName('juegos')
+            .setDescription('Biblioteca de juegos del grupo 🎮')
+            .addSubcommand((sub) =>
+                sub
+                    .setName('quien-tiene')
+                    .setDescription('Quién tiene un juego')
+                    .addStringOption((o) =>
+                        o.setName('titulo').setDescription('Ej: zelda totk').setRequired(true).setAutocomplete(true)
+                    )
+            )
+            .addSubcommand((sub) =>
+                sub
+                    .setName('catalogo')
+                    .setDescription('Todos los juegos, o los de alguien')
+                    .addUserOption((o) =>
+                        o.setName('usuario').setDescription('Ver solo los juegos de alguien (opcional)')
+                    )
+            )
+            .addSubcommand((sub) =>
+                sub
+                    .setName('agregar')
+                    .setDescription('Agregar un juego al catálogo')
+                    .addStringOption((o) =>
+                        o.setName('titulo').setDescription('Título del juego').setRequired(true).setAutocomplete(true)
+                    )
+                    .addStringOption((o) =>
+                        o
+                            .setName('formato')
+                            .setDescription('Físico o digital')
+                            .setRequired(true)
+                            .addChoices({ name: 'Físico', value: 'fisico' }, { name: 'Digital', value: 'digital' })
+                    )
+                    .addUserOption((o) =>
+                        o.setName('dueno').setDescription('De quién es (default tú)')
+                    )
+                    .addStringOption((o) =>
+                        o.setName('alias').setDescription('Otros nombres separados por coma, ej: totk,lagrimas del reino')
+                    )
+            )
+            .addSubcommand((sub) =>
+                sub
+                    .setName('quitar')
+                    .setDescription('Quitar un juego tuyo del catálogo')
+                    .addStringOption((o) =>
+                        o.setName('titulo').setDescription('Título del juego').setRequired(true).setAutocomplete(true)
+                    )
+                    .addStringOption((o) =>
+                        o
+                            .setName('formato')
+                            .setDescription('Solo si lo tienes físico y digital')
+                            .addChoices({ name: 'Físico', value: 'fisico' }, { name: 'Digital', value: 'digital' })
+                    )
+            )
+            .toJSON(),
+        new SlashCommandBuilder()
+            .setName('quien-tiene')
+            .setDescription('Quién tiene un juego 🎮')
+            .addStringOption((o) =>
+                o.setName('juego').setDescription('Ej: zelda totk').setRequired(true).setAutocomplete(true)
+            )
+            .toJSON(),
     ]
 }
 
