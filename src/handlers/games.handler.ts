@@ -94,6 +94,17 @@ const send = async (
             ? `${content.slice(0, MAX_MESSAGE_LENGTH)}\n…`
             : content
     if (interaction.deferred || interaction.replied) {
+        // A deferred reply's visibility is fixed, so swap it for a private
+        // follow-up rather than posting an error to the whole channel.
+        if (ephemeral) {
+            await interaction.deleteReply().catch(() => undefined)
+            await interaction.followUp({
+                content: text,
+                allowedMentions: { parse: [] },
+                flags: MessageFlags.Ephemeral,
+            })
+            return
+        }
         await interaction.editReply({
             content: text,
             allowedMentions: { parse: [] },
@@ -115,11 +126,13 @@ const date = (ms: number): string => `<t:${Math.floor(ms / 1000)}:D>`
 /**
  * Turn what the user typed into a library title: exact or token match first,
  * then Jev for nicknames and typos. Replies and returns null when it's
- * unknown or still ambiguous.
+ * unknown or still ambiguous. Commands that change data pass
+ * `actOnGuess: false`: a Jev guess is only suggested, never acted on.
  */
 const resolveTitle = async (
     interaction: ChatInputCommandInteraction,
-    query: string
+    query: string,
+    { actOnGuess }: { actOnGuess: boolean }
 ): Promise<TitleEntry | null> => {
     const entries = listTitles()
     const match = matchTitle(query, entries)
@@ -129,7 +142,15 @@ const resolveTitle = async (
     if (!interaction.deferred) await interaction.deferReply()
     const candidates = match.kind === 'ambiguous' ? match.candidates : entries
     const picked = await jevMatchTitle(query, candidates)
-    if (picked) return picked
+    if (picked && actOnGuess) return picked
+    if (picked) {
+        await send(
+            interaction,
+            `¿Quisiste decir **${picked.title}**? Vuelve a correr el comando eligiéndolo de la lista`,
+            true
+        )
+        return null
+    }
 
     if (match.kind === 'ambiguous') {
         const options = match.candidates.map((c) => `• ${c.title}`).join('\n')
@@ -182,7 +203,7 @@ const whoHas = async (
     interaction: ChatInputCommandInteraction,
     query: string
 ): Promise<void> => {
-    const entry = await resolveTitle(interaction, query)
+    const entry = await resolveTitle(interaction, query, { actOnGuess: true })
     if (!entry) return
     const copies = listCopies(entry.titleKey)
     await send(
@@ -257,7 +278,8 @@ const remove = async (
 ): Promise<void> => {
     const entry = await resolveTitle(
         interaction,
-        interaction.options.getString('titulo', true)
+        interaction.options.getString('titulo', true),
+        { actOnGuess: false }
     )
     if (!entry) return
     const format = interaction.options.getString('formato') as GameFormat | null
@@ -285,7 +307,8 @@ const lend = async (
         return send(interaction, 'No te puedes prestar a ti mismo', true)
     const entry = await resolveTitle(
         interaction,
-        interaction.options.getString('titulo', true)
+        interaction.options.getString('titulo', true),
+        { actOnGuess: false }
     )
     if (!entry) return
 
@@ -327,7 +350,8 @@ const giveBack = async (
 ): Promise<void> => {
     const entry = await resolveTitle(
         interaction,
-        interaction.options.getString('titulo', true)
+        interaction.options.getString('titulo', true),
+        { actOnGuess: false }
     )
     if (!entry) return
     const result = returnGame({
