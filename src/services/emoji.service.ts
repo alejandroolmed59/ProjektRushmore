@@ -130,29 +130,16 @@ export type EmojiTotal = {
     total: number
 }
 
-export type ServerTopEmoji = EmojiTotal & {
-    top_user_id: string
-    top_user_total: number
-}
-
-/** Server-wide most used emojis (typed + reactions), each with its biggest fan. */
-export const serverTopEmojis = (limit = 10): ServerTopEmoji[] =>
+/** Server-wide most used emojis (typed + reactions). */
+export const serverTopEmojis = (limit = 10): EmojiTotal[] =>
     getDb()
         .prepare(
-            `WITH per_user AS (
-                SELECT emoji_key, user_id, SUM(count) AS total FROM emoji_uses
-                GROUP BY emoji_key, user_id
-            ), ranked AS (
-                SELECT emoji_key, user_id, total,
-                    ROW_NUMBER() OVER (PARTITION BY emoji_key ORDER BY total DESC) AS rn
-                FROM per_user
-            )
-            SELECT e.emoji_key, MAX(e.emoji_name) AS emoji_name, MAX(e.animated) AS animated,
-                SUM(e.count) AS total, r.user_id AS top_user_id, r.total AS top_user_total
-            FROM emoji_uses e JOIN ranked r ON r.emoji_key = e.emoji_key AND r.rn = 1
-            GROUP BY e.emoji_key ORDER BY total DESC LIMIT ?`
+            `SELECT emoji_key, MAX(emoji_name) AS emoji_name, MAX(animated) AS animated,
+                SUM(count) AS total
+             FROM emoji_uses
+             GROUP BY emoji_key ORDER BY total DESC LIMIT ?`
         )
-        .all(limit) as ServerTopEmoji[]
+        .all(limit) as EmojiTotal[]
 
 /** A user's most used emojis (what they type plus how they react). */
 export const userTopEmojis = (userId: string, limit = 10): EmojiTotal[] =>

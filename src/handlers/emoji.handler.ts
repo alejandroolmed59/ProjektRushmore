@@ -113,8 +113,7 @@ export const handleEmojiInteraction = async (
 
     if (!user) {
         const lines = serverTopEmojis().map(
-            (e, i) =>
-                `**${i + 1}.** ${renderEmoji(e)} ×${e.total} — fan #1: <@${e.top_user_id}> (${e.top_user_total})`
+            (e, i) => `**${i + 1}.** ${renderEmoji(e)} ×${e.total}`
         )
         await interaction.reply({
             content: `🏆 **Emojis más usados del server**\n${lines.join('\n')}\n${footer}`,
