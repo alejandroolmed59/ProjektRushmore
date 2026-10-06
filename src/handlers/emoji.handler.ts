@@ -1,33 +1,26 @@
 import {
+    ChatInputCommandInteraction,
     Guild,
     Interaction,
     Message,
+    MessageFlags,
     MessageReaction,
     PartialMessageReaction,
     PartialUser,
     User,
 } from 'discord.js'
 import {
-    EmojiRef,
     emojiStatsSince,
     recordReactions,
     recordTypedEmojis,
     removeReaction,
     renderEmoji,
     serverTopEmojis,
+    toEmojiRef,
     totalsForEmojis,
-    unicodeKey,
     userTopEmojis,
     userTopReceived,
 } from '../services/emoji.service'
-
-const toEmojiRef = (
-    reaction: MessageReaction | PartialMessageReaction
-): EmojiRef | null => {
-    const { id, name, animated } = reaction.emoji
-    if (id) return { key: id, name: name ?? id, animated: !!animated }
-    return name ? { key: unicodeKey(name), name, animated: false } : null
-}
 
 // ---------- live tracking (best-effort: stats must never break the bot) ----------
 
@@ -48,17 +41,17 @@ export const trackMessageEmojis = (message: Message): void => {
     }
 }
 
+/** `message` is the reacted message, already fetched if it arrived partial. */
 export const trackReactionAdd = async (
     reaction: MessageReaction | PartialMessageReaction,
+    message: Message,
     user: User | PartialUser
 ): Promise<void> => {
-    if (user.bot) return
     try {
-        const emoji = toEmojiRef(reaction)
-        // Reactions on old, uncached messages arrive without the author.
-        const message = reaction.message.partial
-            ? await reaction.message.fetch()
-            : reaction.message
+        // An uncached reactor arrives partial with `bot` unknown (null).
+        const reactor = user.partial ? await user.fetch() : user
+        if (reactor.bot) return
+        const emoji = toEmojiRef(reaction.emoji)
         if (!emoji || !message.inGuild()) return
         recordReactions(
             {
@@ -80,7 +73,7 @@ export const trackReactionRemove = (
     reaction: MessageReaction | PartialMessageReaction,
     user: User | PartialUser
 ): void => {
-    const emoji = toEmojiRef(reaction)
+    const emoji = toEmojiRef(reaction.emoji)
     if (!emoji) return
     try {
         removeReaction(reaction.message.id, user.id, emoji.key)
@@ -133,16 +126,34 @@ export const handleEmojiInteraction = async (
         interaction.commandName !== 'emojis'
     )
         return false
+    try {
+        await showEmojiStats(interaction)
+    } catch (e) {
+        console.log('[emojis] /emojis failed:', e)
+        if (!interaction.replied && !interaction.deferred)
+            await interaction
+                .reply({
+                    content: 'No pude cargar las estadísticas de emojis 😵',
+                    flags: MessageFlags.Ephemeral,
+                })
+                .catch(() => undefined)
+    }
+    return true
+}
+
+const showEmojiStats = async (
+    interaction: ChatInputCommandInteraction
+): Promise<void> => {
     if (!interaction.inCachedGuild()) {
         await interaction.reply('Los comandos solo funcionan en server')
-        return true
+        return
     }
 
     const user = interaction.options.getUser('usuario')
     const { total, since } = emojiStatsSince()
     if (total === 0) {
         await interaction.reply('Todavía no tengo emojis registrados 🫥')
-        return true
+        return
     }
     const footer = `-# ${total} usos registrados desde <t:${Math.floor((since ?? Date.now()) / 1000)}:D>`
 
@@ -156,7 +167,7 @@ export const handleEmojiInteraction = async (
                 `${leastUsedSection(interaction.guild)}\n${footer}`,
             allowedMentions: { parse: [] },
         })
-        return true
+        return
     }
 
     const used = userTopEmojis(user.id)
@@ -166,7 +177,7 @@ export const handleEmojiInteraction = async (
             content: `<@${user.id}> no ha usado emojis todavía`,
             allowedMentions: { parse: [] },
         })
-        return true
+        return
     }
     const usedLine = used.map((e) => `${renderEmoji(e)} ×${e.total}`).join('  ')
     const receivedLine = received
@@ -179,5 +190,4 @@ export const handleEmojiInteraction = async (
             `Más le reaccionan: ${receivedLine || '—'}\n${footer}`,
         allowedMentions: { parse: [] },
     })
-    return true
 }

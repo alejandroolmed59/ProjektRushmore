@@ -9,14 +9,10 @@ import {
 } from 'discord.js'
 import { newMessageInChannel } from './handlers/new-message.handler'
 import { newInteractionHandler } from './handlers/new-interaction.handler'
-import {
-    maybeRelocateFootballByReaction,
-    maybeRespondFatigueByReaction,
-} from './services/message-relocator.service'
+import { newReactionHandler } from './handlers/new-reaction.handler'
 import { startReminderScheduler } from './services/reminder-scheduler.service'
 import {
     trackMessageEmojis,
-    trackReactionAdd,
     trackReactionRemove,
 } from './handlers/emoji.handler'
 
@@ -42,12 +38,13 @@ client.on('messageCreate', (message: Message) => {
     trackMessageEmojis(message)
 })
 client.on('interactionCreate', (interaction: Interaction) => {
-    newInteractionHandler(interaction)
+    // An uncaught rejection here would crash the bot.
+    newInteractionHandler(interaction).catch((e) =>
+        console.log('[interactions] unhandled error:', e)
+    )
 })
 client.on('messageReactionAdd', (reaction, user) => {
-    void maybeRelocateFootballByReaction(reaction)
-    void maybeRespondFatigueByReaction(reaction)
-    void trackReactionAdd(reaction, user)
+    void newReactionHandler(reaction, user)
 })
 client.on('messageReactionRemove', (reaction, user) => {
     trackReactionRemove(reaction, user)

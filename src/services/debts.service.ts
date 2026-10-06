@@ -39,6 +39,13 @@ export type Debt = {
     paid_at: number | null
 }
 
+/** A monthly charge row; the queries that return these filter out NULL schedules. */
+export type MonthlyCharge = Charge & {
+    kind: 'monthly'
+    day_of_month: number
+    next_run_at: number
+}
+
 export type Member = { userId: string; amountCents: number }
 
 export type DebtBatch = { charge: Charge; period: string; debts: Debt[] }
@@ -115,10 +122,10 @@ export const createMonthlyCharge = (input: {
     nagEveryDays: number
     members: Member[]
     now?: number
-}): Charge => {
+}): MonthlyCharge => {
     const now = input.now ?? Date.now()
-    const charge: Charge = {
-        id: GenerateId(),
+    const charge: MonthlyCharge = {
+        id: newChargeId(),
         kind: 'monthly',
         name: input.name,
         creditor_id: input.creditorId,
@@ -152,7 +159,7 @@ export const createOneOffCharge = (input: {
 }): DebtBatch => {
     const now = input.now ?? Date.now()
     const charge: Charge = {
-        id: GenerateId(),
+        id: newChargeId(),
         kind: 'oneoff',
         name: input.name,
         creditor_id: input.creditorId,
@@ -168,6 +175,17 @@ export const createOneOffCharge = (input: {
         return insertDebts(charge, ONE_OFF_PERIOD, input.members, now)
     })
     return { charge, period: ONE_OFF_PERIOD, debts }
+}
+
+/**
+ * Charge IDs are short so people can type them into /cobro-mensual cancelar,
+ * which makes collisions likely over time; draw until one is free.
+ */
+const newChargeId = (): string => {
+    for (;;) {
+        const id = GenerateId()
+        if (!getCharge(id)) return id
+    }
 }
 
 const insertCharge = (c: Charge): void => {
@@ -246,13 +264,17 @@ export const getChargeMembers = (chargeId: string): Member[] =>
             .all(chargeId) as { user_id: string; amount_cents: number }[]
     ).map((r) => ({ userId: r.user_id, amountCents: r.amount_cents }))
 
-export const listActiveMonthlyCharges = (creditorId: string): Charge[] =>
+// Matches the MonthlyCharge type: rows without a schedule are never returned.
+const MONTHLY_SCHEDULED = `kind = 'monthly' AND active = 1
+    AND day_of_month IS NOT NULL AND next_run_at IS NOT NULL`
+
+export const listActiveMonthlyCharges = (creditorId: string): MonthlyCharge[] =>
     getDb()
         .prepare(
-            `SELECT * FROM charges WHERE kind = 'monthly' AND active = 1 AND creditor_id = ?
+            `SELECT * FROM charges WHERE ${MONTHLY_SCHEDULED} AND creditor_id = ?
              ORDER BY created_at`
         )
-        .all(creditorId) as Charge[]
+        .all(creditorId) as MonthlyCharge[]
 
 /** Stop future billing. Debts already created stay until settled. */
 export const cancelMonthlyCharge = (
@@ -273,29 +295,45 @@ export const cancelMonthlyCharge = (
  * Bill every monthly charge whose run time has passed and advance it to the
  * next upcoming run. If the bot was down across several run dates, it bills
  * once (for the first missed period) instead of back-filling every one.
+ *
+ * Each charge commits on its own, so one that fails is logged and retried next
+ * tick without hiding the batches that did commit (they still need announcing).
  */
 export const runDueMonthlyCharges = (now: number = Date.now()): DebtBatch[] => {
     const due = getDb()
         .prepare(
-            `SELECT * FROM charges WHERE kind = 'monthly' AND active = 1 AND next_run_at <= ?`
+            `SELECT * FROM charges WHERE ${MONTHLY_SCHEDULED} AND next_run_at <= ?`
         )
-        .all(now) as Charge[]
+        .all(now) as MonthlyCharge[]
 
-    return due.map((charge) =>
-        transaction(() => {
-            const period = periodFor(charge.next_run_at!)
-            const debts = insertDebts(
-                charge,
-                period,
-                getChargeMembers(charge.id),
-                now
+    const batches: DebtBatch[] = []
+    for (const charge of due) {
+        try {
+            batches.push(
+                transaction(() => {
+                    const period = periodFor(charge.next_run_at)
+                    const debts = insertDebts(
+                        charge,
+                        period,
+                        getChargeMembers(charge.id),
+                        now
+                    )
+                    getDb()
+                        .prepare(
+                            'UPDATE charges SET next_run_at = ? WHERE id = ?'
+                        )
+                        .run(
+                            nextMonthlyRunAt(charge.day_of_month, now),
+                            charge.id
+                        )
+                    return { charge, period, debts }
+                })
             )
-            getDb()
-                .prepare('UPDATE charges SET next_run_at = ? WHERE id = ?')
-                .run(nextMonthlyRunAt(charge.day_of_month!, now), charge.id)
-            return { charge, period, debts }
-        })
-    )
+        } catch (e) {
+            console.log(`[debts] failed to bill charge ${charge.id}:`, e)
+        }
+    }
+    return batches
 }
 
 /**

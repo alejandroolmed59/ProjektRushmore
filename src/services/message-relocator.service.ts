@@ -1,33 +1,24 @@
 import {
     Message,
     MessageReaction,
-    PartialMessageReaction,
     Webhook,
     WebhookType,
     TextChannel,
     NewsChannel,
 } from 'discord.js'
-import {
-    isFootballMessage,
-    jevIsFootball,
-} from './football-detector.service'
+import { isFootballMessage, jevIsFootball } from './football-detector.service'
 import { isWorkRelated } from './work-detector.service'
+import { parseIdList } from '../utils/id-list'
 
 const WEBHOOK_NAME = 'shitpost-relocator'
 
-const parseUserIds = (raw: string | undefined): string[] =>
-    (raw ?? '')
-        .split(',')
-        .map((id) => id.trim())
-        .filter((id) => id.length > 0)
-
 // Watched user for the football relocator.
 export const getWatchedUserIds = (): string[] =>
-    parseUserIds(process.env.SHITPOST_USER_ID)
+    parseIdList(process.env.SHITPOST_USER_ID)
 
 // Watched user for the work/fatigue detector.
 export const getFatigueUserIds = (): string[] =>
-    parseUserIds(process.env.FATIGUE_USER_ID)
+    parseIdList(process.env.FATIGUE_USER_ID)
 
 const isWatchedUser = (userId: string, watchedUserIds: string[]): boolean =>
     watchedUserIds.includes(userId)
@@ -147,7 +138,8 @@ export const maybeRelocateFootballMessage = async (
  * configured trigger emoji, answer by reacting with the configured fatigue emoji.
  */
 export const maybeRespondFatigueByReaction = async (
-    reactionInput: MessageReaction | PartialMessageReaction
+    reaction: MessageReaction,
+    message: Message
 ): Promise<boolean> => {
     const watchedUserIds = getFatigueUserIds()
     const triggerEmoji = process.env.JB_FATIGUE_EMOJI
@@ -155,20 +147,13 @@ export const maybeRespondFatigueByReaction = async (
     if (!watchedUserIds.length || !triggerEmoji || !responseEmoji) return false
 
     if (
-        reactionInput.emoji.id !== triggerEmoji &&
-        reactionInput.emoji.name !== triggerEmoji
+        reaction.emoji.id !== triggerEmoji &&
+        reaction.emoji.name !== triggerEmoji
     ) {
         return false
     }
 
     try {
-        const reaction = reactionInput.partial
-            ? await reactionInput.fetch()
-            : reactionInput
-        const message = reaction.message.partial
-            ? await reaction.message.fetch()
-            : reaction.message
-
         if (!isWatchedUser(message.author.id, watchedUserIds)) {
             return false
         }
@@ -197,7 +182,8 @@ export const maybeRespondFatigueByReaction = async (
  * logged and leaves the original in place.
  */
 export const maybeRelocateFootballByReaction = async (
-    reactionInput: MessageReaction | PartialMessageReaction
+    reaction: MessageReaction,
+    message: Message
 ): Promise<boolean> => {
     const watchedUserIds = getWatchedUserIds()
     const targetChannelId = process.env.SHITPOST_TARGET_CHANNEL_ID
@@ -205,29 +191,18 @@ export const maybeRelocateFootballByReaction = async (
     if (!watchedUserIds.length || !targetChannelId || !triggerEmoji)
         return false
 
-    // Cheapest check first, against the partial: the emoji is always populated,
-    // so we reject the overwhelming majority of reactions (wrong emoji) before
-    // paying for any network fetch. Match by ID (custom emoji) or name (unicode).
+    // Match by ID (custom emoji) or name (unicode).
     if (
-        reactionInput.emoji.id !== triggerEmoji &&
-        reactionInput.emoji.name !== triggerEmoji
+        reaction.emoji.id !== triggerEmoji &&
+        reaction.emoji.name !== triggerEmoji
     )
         return false
 
     try {
-        // Resolve partials (reactions on uncached/old messages arrive partial).
-        const reaction = reactionInput.partial
-            ? await reactionInput.fetch()
-            : reactionInput
-
         // Only human reactions count toward the trigger, never Rushmore's own.
         const humanReactions = reaction.count - (reaction.me ? 1 : 0)
         if (humanReactions < 2) return false
         console.log('Reaccion es mayor a 2')
-        const message = reaction.message.partial
-            ? await reaction.message.fetch()
-            : reaction.message
-
         if (!isRelocatableMessage(message, watchedUserIds, targetChannelId))
             return false
 

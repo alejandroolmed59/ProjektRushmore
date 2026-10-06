@@ -175,7 +175,7 @@ const createMonthly = async (
         content:
             `🔁 Cobro mensual **${name}** creado (id \`${charge.id}\`)\n` +
             `${users.map(mention).join(' ')} → ${formatCents(amountCents)} c/u el día ${dayOfMonth} de cada mes\n` +
-            `Primer cobro: <t:${Math.floor(charge.next_run_at! / 1000)}:F> · ` +
+            `Primer cobro: <t:${Math.floor(charge.next_run_at / 1000)}:F> · ` +
             `recordatorio cada ${nagEveryDays} día(s) hasta que paguen`,
         allowedMentions: { parse: [] },
     })
@@ -194,7 +194,7 @@ const listMonthly = async (
     const lines = charges.map(
         (c) =>
             `\`${c.id}\` **${c.name}** · día ${c.day_of_month} · cada ${c.nag_every_days} día(s) · ` +
-            `próximo <t:${Math.floor(c.next_run_at! / 1000)}:D>`
+            `próximo <t:${Math.floor(c.next_run_at / 1000)}:D>`
     )
     await replyEphemeral(interaction, truncate(lines.join('\n')))
 }
@@ -238,18 +238,17 @@ const createBill = async (
             'No puedes cobrarle a un bot 🤖'
         ))
 
-    let members: Member[]
+    let members: Member[] | null
     if (amountsRaw) {
-        const amounts = amountsRaw.split(',').map(parseAmountToCents)
-        if (amounts.length !== users.length || amounts.some((a) => a === null))
+        members = pairAmounts(
+            users,
+            amountsRaw.split(',').map(parseAmountToCents)
+        )
+        if (!members)
             return void (await replyEphemeral(
                 interaction,
                 `Pon un monto por usuario en el mismo orden (${users.length}), ejemplo: 20,25.50,15`
             ))
-        members = users.map((userId, i) => ({
-            userId,
-            amountCents: amounts[i]!,
-        }))
     } else {
         const totalCents = totalRaw ? parseAmountToCents(totalRaw) : null
         if (totalCents === null)
@@ -262,11 +261,8 @@ const createBill = async (
             totalCents,
             users.length + (includeMe ? 1 : 0)
         )
-        members = users.map((userId, i) => ({
-            userId,
-            amountCents: shares[i]!,
-        }))
-        if (members.some((m) => m.amountCents === 0))
+        members = pairAmounts(users, shares.slice(0, users.length))
+        if (!members || members.some((m) => m.amountCents === 0))
             return void (await replyEphemeral(
                 interaction,
                 'El total es muy pequeño para dividirlo entre tantas personas'
@@ -280,13 +276,44 @@ const createBill = async (
         nagEveryDays,
         members,
     })
-    await interaction.reply(
-        debtBatchMessage(
-            batch,
-            `🧾 **${name}** — pagado por ${mention(creditorId)}`,
-            nagEveryDays
-        )
+    const message = debtBatchMessage(
+        batch,
+        `🧾 **${name}** — pagado por ${mention(creditorId)}`,
+        nagEveryDays
     )
+    // Post the bill where its reminders will go, so the "Ya pagué" button and
+    // the nags live in the same channel.
+    if (batch.charge.channel_id !== interaction.channelId) {
+        const channel = await interaction.client.channels
+            .fetch(batch.charge.channel_id)
+            .catch(() => null)
+        if (channel?.isSendable()) {
+            await channel.send(message)
+            return void (await replyEphemeral(
+                interaction,
+                `Cuenta publicada en <#${channel.id}>`
+            ))
+        }
+        console.log(
+            `[debts] channel ${batch.charge.channel_id} not sendable; posting bill in place`
+        )
+    }
+    await interaction.reply(message)
+}
+
+/** Pair each user with the amount at the same index; null if any is missing or invalid. */
+const pairAmounts = (
+    users: string[],
+    amounts: (number | null)[]
+): Member[] | null => {
+    if (amounts.length !== users.length) return null
+    const members: Member[] = []
+    for (const [i, userId] of users.entries()) {
+        const amountCents = amounts[i]
+        if (amountCents == null) return null
+        members.push({ userId, amountCents })
+    }
+    return members
 }
 
 const showBalances = async (

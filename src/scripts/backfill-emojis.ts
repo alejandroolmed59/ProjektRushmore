@@ -1,6 +1,6 @@
 /**
- * Overnight backfill for the emoji leaderboard: scans every text channel's
- * full history and records typed emojis plus who reacted with what. Looking up
+ * Overnight backfill for the emoji leaderboard: scans the full history of
+ * every text channel and thread (active, archived and forum posts) and records typed emojis plus who reacted with what. Looking up
  * reactors costs one request per emoji per message, so a large server takes
  * hours; progress is saved per channel and the script resumes where it left
  * off if it's stopped or the phone reboots.
@@ -9,25 +9,25 @@
  *   npm run build:backfill   (on the Mac), copy dist/backfill-emojis.js, then
  *   node dist/backfill-emojis.js   (on the phone, from ~/rushmore)
  *
- * Env: TOKEN, GUILD_ID; optional EMOJI_BACKFILL_CHANNEL_IDS (comma list).
+ * Env: TOKEN, GUILD_ID; optional EMOJI_BACKFILL_CHANNEL_IDS (comma list of
+ * channel, thread, forum or category IDs; parents include their threads).
  */
 import 'dotenv/config'
 
 import { APIMessage, APIReaction, APIUser, REST, Routes } from 'discord.js'
 import { getDb } from '../database/sqlite'
 import {
-    EmojiRef,
     MessageInfo,
     recordReactions,
     recordTypedEmojis,
-    unicodeKey,
+    toEmojiRef,
 } from '../services/emoji.service'
 import {
     channelName,
     listTextChannels,
     pageChannelHistory,
-    parseIdList,
 } from '../utils/discord-history'
+import { parseIdList } from '../utils/id-list'
 
 const rest = new REST().setToken(process.env.TOKEN ?? '')
 
@@ -54,17 +54,11 @@ const saveState = (channelId: string, state: ChannelState): void => {
         .run(channelId, state.before_id, state.scanned, state.done)
 }
 
-const toEmojiRef = (r: APIReaction): EmojiRef | null => {
-    const { id, name, animated } = r.emoji
-    if (id) return { key: id, name: name ?? id, animated: !!animated }
-    return name ? { key: unicodeKey(name), name, animated: false } : null
-}
-
 /** Path segment the reactions endpoint expects for an emoji. */
 const emojiParam = (r: APIReaction): string =>
     r.emoji.id
         ? `${r.emoji.name}:${r.emoji.id}`
-        : encodeURIComponent(r.emoji.name!)
+        : encodeURIComponent(r.emoji.name ?? '')
 
 /** Every non-bot user who reacted with this emoji (paged 100 at a time). */
 const fetchReactors = async (
@@ -86,8 +80,9 @@ const fetchReactors = async (
             { query }
         )) as APIUser[]
         ids.push(...users.filter((u) => !u.bot).map((u) => u.id))
-        if (users.length < 100) return ids
-        after = users[users.length - 1]!.id
+        const last = users[users.length - 1]
+        if (!last || users.length < 100) return ids
+        after = last.id
     }
 }
 
@@ -100,7 +95,7 @@ const processMessage = async (m: APIMessage): Promise<void> => {
     }
     if (!m.author.bot) recordTypedEmojis(info, m.content)
     for (const reaction of m.reactions ?? []) {
-        const emoji = toEmojiRef(reaction)
+        const emoji = toEmojiRef(reaction.emoji)
         if (!emoji) continue
         try {
             recordReactions(
@@ -144,7 +139,7 @@ async function main() {
             )) {
                 for (const m of batch) await processMessage(m)
                 state.scanned += batch.length
-                state.before_id = batch[batch.length - 1]!.id
+                state.before_id = batch[batch.length - 1]?.id ?? state.before_id
                 saveState(channel.id, state)
                 if (state.scanned % 1000 < 100)
                     console.log(`   #${name}: ${state.scanned} messages`)

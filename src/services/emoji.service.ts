@@ -15,6 +15,20 @@ const UNICODE_EMOJI =
 /** Discord sends unicode reactions with or without U+FE0F; key them the same. */
 export const unicodeKey = (emoji: string): string => emoji.replace(/️/g, '')
 
+/**
+ * EmojiRef for a reaction's emoji, from discord.js or the raw API. Live
+ * tracking and the backfill both use this so their rows key the same way.
+ */
+export const toEmojiRef = (emoji: {
+    id?: string | null
+    name?: string | null
+    animated?: boolean | null
+}): EmojiRef | null => {
+    const { id, name, animated } = emoji
+    if (id) return { key: id, name: name ?? id, animated: !!animated }
+    return name ? { key: unicodeKey(name), name, animated: false } : null
+}
+
 /** Every emoji typed in a message, with how many times each appears. */
 export const extractEmojis = (
     content: string
@@ -26,7 +40,7 @@ export const extractEmojis = (
         else found.set(emoji.key, { emoji, count: 1 })
     }
     for (const [, animated, name, id] of content.matchAll(CUSTOM_EMOJI))
-        add({ key: id!, name: name!, animated: animated === 'a' })
+        if (id && name) add({ key: id, name, animated: animated === 'a' })
     // Strip custom emoji first so their names can't match as unicode.
     for (const [match] of content
         .replace(CUSTOM_EMOJI, ' ')
