@@ -220,7 +220,7 @@ export const maybeRelocateFootballByReaction = async (
             ? await reactionInput.fetch()
             : reactionInput
 
-        // Rushmore's own shitpost reaction uses this same emoji; only humans count.
+        // Only human reactions count toward the trigger, never Rushmore's own.
         const humanReactions = reaction.count - (reaction.me ? 1 : 0)
         if (humanReactions < 2) return false
         console.log('Reaccion es mayor a 2')

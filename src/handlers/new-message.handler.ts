@@ -1,7 +1,6 @@
 import { Message, EmbedBuilder, Colors } from 'discord.js'
 import { createNewGambler, getMoney } from '../services/money.service'
 import { maybeRelocateFootballMessage } from '../services/message-relocator.service'
-import { maybeReactToShitpost } from '../services/shitpost-detector.service'
 import os from 'os'
 
 export const newMessageInChannel = async (message: Message): Promise<void> => {
@@ -9,7 +8,6 @@ export const newMessageInChannel = async (message: Message): Promise<void> => {
 
     // Relocate the watched user's football/soccer posts out of the channel.
     if (await maybeRelocateFootballMessage(message)) return
-    void maybeReactToShitpost(message)
 
     if (message.content === '!ping') {
         message.reply(
