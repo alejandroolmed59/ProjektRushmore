@@ -29,11 +29,13 @@ import { Gambler } from '../interfaces/gambler.interface'
 import { GenerateId } from '../utils/id-generator'
 import { guardRoleGambler } from '../utils/role-guard'
 import { handleDebtsInteraction } from './debts.handler'
+import { handleEmojiInteraction } from './emoji.handler'
 
 export const newInteractionHandler = async (
     interaction: Interaction
 ): Promise<void> => {
     if (await handleDebtsInteraction(interaction)) return
+    if (await handleEmojiInteraction(interaction)) return
     //COMANDOS
     if (interaction.isChatInputCommand()) {
         // Make sure it's a guild interaction (not a DM)

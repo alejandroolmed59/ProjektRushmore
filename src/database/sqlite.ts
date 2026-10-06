@@ -48,6 +48,35 @@ CREATE TABLE IF NOT EXISTS debts (
     UNIQUE (charge_id, period, debtor_id)
 );
 CREATE INDEX IF NOT EXISTS debts_due ON debts (status, next_nag_at);
+
+-- One row per emoji use. kind 'message': typed in a message by user_id
+-- (count = occurrences). kind 'reaction': user_id reacted on a message by
+-- target_user_id. The key makes live tracking and the history backfill
+-- idempotent, so they can overlap without double counting.
+CREATE TABLE IF NOT EXISTS emoji_uses (
+    message_id      TEXT NOT NULL,
+    channel_id      TEXT NOT NULL,
+    user_id         TEXT NOT NULL,
+    target_user_id  TEXT,
+    emoji_key       TEXT NOT NULL,
+    emoji_name      TEXT NOT NULL,
+    animated        INTEGER NOT NULL DEFAULT 0,
+    kind            TEXT NOT NULL CHECK (kind IN ('message', 'reaction')),
+    count           INTEGER NOT NULL DEFAULT 1,
+    created_at      INTEGER NOT NULL,
+    PRIMARY KEY (message_id, user_id, emoji_key, kind)
+);
+CREATE INDEX IF NOT EXISTS emoji_uses_user ON emoji_uses (user_id, emoji_key);
+CREATE INDEX IF NOT EXISTS emoji_uses_target ON emoji_uses (target_user_id, emoji_key);
+CREATE INDEX IF NOT EXISTS emoji_uses_emoji ON emoji_uses (emoji_key);
+
+-- Resume point per channel for the overnight history backfill.
+CREATE TABLE IF NOT EXISTS emoji_backfill (
+    channel_id  TEXT PRIMARY KEY,
+    before_id   TEXT,
+    scanned     INTEGER NOT NULL DEFAULT 0,
+    done        INTEGER NOT NULL DEFAULT 0
+);
 `
 
 let db: DatabaseSync | null = null
@@ -55,7 +84,10 @@ export const getDb = (): DatabaseSync => {
     if (!db) {
         fs.mkdirSync(path.dirname(DB_PATH), { recursive: true })
         db = new DatabaseSync(DB_PATH)
-        db.exec('PRAGMA journal_mode = WAL; PRAGMA foreign_keys = ON;')
+        // busy_timeout: the backfill script and the bot write concurrently.
+        db.exec(
+            'PRAGMA journal_mode = WAL; PRAGMA foreign_keys = ON; PRAGMA busy_timeout = 5000;'
+        )
         db.exec(SCHEMA)
     }
     return db

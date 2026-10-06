@@ -171,6 +171,13 @@ function defineCommands() {
             )
             .toJSON(),
         new SlashCommandBuilder()
+            .setName('emojis')
+            .setDescription('Leaderboard de emojis del server 🏆')
+            .addUserOption((o) =>
+                o.setName('usuario').setDescription('Ver los emojis favoritos de alguien (opcional)')
+            )
+            .toJSON(),
+        new SlashCommandBuilder()
             .setName('deudas')
             .setDescription('Quién te debe y a quién le debes 💸')
             .toJSON(),
