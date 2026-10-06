@@ -1,6 +1,4 @@
-import { getClient } from '../components/geminiClient'
-
-const GEMINI_MODEL = process.env.GEMINI_MODEL ?? ''
+import { jevSaysYes } from '../components/typesafeClient'
 
 const COMBINING_MARKS = /[̀-ͯ]/g
 const normalizeText = (text: string): string =>
@@ -87,35 +85,19 @@ export const keywordHasWorkRelated = (
     return 'maybe'
 }
 
+const WORK_QUESTION =
+    'This is a Discord message written in Spanish (it may mix in English). ' +
+    'Is it about work: getting to work, going to work, being at work, playing ' +
+    'video games during normal working hours, or tiredness/exhaustion caused ' +
+    'by work?'
+
 /**
- * Ask Gemini whether a Discord message is about work, getting to work,
- * or fatigue related to work. Fails open: any error returns false so the bot
- * does not react unless we are confident enough.
+ * Keyword pre-check first, Jev for anything ambiguous. Fails open: any error
+ * returns false so the bot does not react unless we are confident enough.
  */
-export const geminiIsWorkRelated = async (
-    content: string
-): Promise<boolean> => {
+export const isWorkRelated = async (content: string): Promise<boolean> => {
     const verdict = keywordHasWorkRelated(content)
     if (verdict === 'yes') return true
     if (verdict === 'no') return false
-
-    try {
-        const prompt = `El siguiente mensaje de Discord está escrito en español (puede mezclar inglés). ¿Habla de trabajo, de ponerse a trabajar, de ir a trabajar, de estar trabajando, de jugar videojuegos en horario normal o de cansancio/agotamiento relacionado con el trabajo? Responde ÚNICAMENTE con la palabra SI o NO.\n\nMensaje: """${content}"""`
-        console.log(`geminiIsWorkRelated prompt: ${prompt}`)
-        const response = await getClient().models.generateContent({
-            model: GEMINI_MODEL,
-            contents: prompt,
-        })
-
-        const answer = (response.text ?? '').trim().toLowerCase()
-        console.log(`geminiIsWorkRelated answer ${answer}`)
-        return (
-            answer.startsWith('si') ||
-            answer.startsWith('sí') ||
-            answer.startsWith('yes')
-        )
-    } catch (e) {
-        console.log('[work-detector] Gemini error, failing open:', e)
-        return false
-    }
+    return jevSaysYes('work-detector', WORK_QUESTION, content)
 }

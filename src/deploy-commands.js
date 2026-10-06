@@ -113,6 +113,74 @@ function defineCommands() {
                     .setRequired(true)
             )
             .toJSON(),
+        new SlashCommandBuilder()
+            .setName('cobro-mensual')
+            .setDescription('Cobros que se repiten cada mes (Spotify, Netflix...) 🔁')
+            .addSubcommand((sub) =>
+                sub
+                    .setName('crear')
+                    .setDescription('Cobrar un monto a varios usuarios cada mes')
+                    .addStringOption((o) =>
+                        o.setName('nombre').setDescription('Ej: Spotify').setRequired(true)
+                    )
+                    .addStringOption((o) =>
+                        o.setName('monto').setDescription('Monto por persona, ej: 3.50').setRequired(true)
+                    )
+                    .addStringOption((o) =>
+                        o.setName('usuarios').setDescription('Menciona a quienes pagan: @a @b @c').setRequired(true)
+                    )
+                    .addIntegerOption((o) =>
+                        o.setName('dia').setDescription('Día del mes para cobrar (1-28)').setMinValue(1).setMaxValue(28).setRequired(true)
+                    )
+                    .addIntegerOption((o) =>
+                        o.setName('cada-dias').setDescription('Recordar cada N días hasta que paguen (default 3)').setMinValue(1).setMaxValue(30)
+                    )
+            )
+            .addSubcommand((sub) =>
+                sub.setName('lista').setDescription('Tus cobros mensuales activos')
+            )
+            .addSubcommand((sub) =>
+                sub
+                    .setName('cancelar')
+                    .setDescription('Dejar de cobrar un cobro mensual')
+                    .addStringOption((o) =>
+                        o.setName('id').setDescription('Id del cobro, usa /cobro-mensual lista').setRequired(true)
+                    )
+            )
+            .toJSON(),
+        new SlashCommandBuilder()
+            .setName('cuenta')
+            .setDescription('Dividir una cuenta que pagaste (cena, uber...) 🧾')
+            .addStringOption((o) =>
+                o.setName('nombre').setDescription('Ej: Cena del viernes').setRequired(true)
+            )
+            .addStringOption((o) =>
+                o.setName('usuarios').setDescription('Menciona a quienes te deben: @a @b @c').setRequired(true)
+            )
+            .addStringOption((o) =>
+                o.setName('total').setDescription('Total para dividir parejo, ej: 60')
+            )
+            .addStringOption((o) =>
+                o.setName('montos').setDescription('O monto por usuario en el mismo orden, ej: 20,25.50,15')
+            )
+            .addBooleanOption((o) =>
+                o.setName('incluirme').setDescription('Al dividir el total, ¿cuentas tú también? (default sí)')
+            )
+            .addIntegerOption((o) =>
+                o.setName('cada-dias').setDescription('Recordar cada N días hasta que paguen (default 3)').setMinValue(1).setMaxValue(30)
+            )
+            .toJSON(),
+        new SlashCommandBuilder()
+            .setName('emojis')
+            .setDescription('Leaderboard de emojis del server 🏆')
+            .addUserOption((o) =>
+                o.setName('usuario').setDescription('Ver los emojis favoritos de alguien (opcional)')
+            )
+            .toJSON(),
+        new SlashCommandBuilder()
+            .setName('deudas')
+            .setDescription('Quién te debe y a quién le debes 💸')
+            .toJSON(),
     ]
 }
 
