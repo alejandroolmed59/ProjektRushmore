@@ -1,4 +1,5 @@
 import {
+    Guild,
     Interaction,
     Message,
     MessageReaction,
@@ -14,6 +15,7 @@ import {
     removeReaction,
     renderEmoji,
     serverTopEmojis,
+    totalsForEmojis,
     unicodeKey,
     userTopEmojis,
     userTopReceived,
@@ -89,6 +91,39 @@ export const trackReactionRemove = (
 
 // ---------- /emojis ----------
 
+const LEAST_USED_LIMIT = 10
+
+/**
+ * The server's own custom emojis with the fewest uses, including ones nobody
+ * has used at all (which the usage table can't know about on its own).
+ */
+const leastUsedSection = (guild: Guild): string => {
+    const emojis = [...guild.emojis.cache.values()]
+    if (emojis.length === 0) return ''
+    const totals = totalsForEmojis(emojis.map((e) => e.id))
+    const ranked = emojis
+        .map((e) => ({
+            emoji_key: e.id,
+            emoji_name: e.name ?? e.id,
+            animated: e.animated ? 1 : 0,
+            total: totals.get(e.id) ?? 0,
+        }))
+        .sort(
+            (a, b) =>
+                a.total - b.total || a.emoji_name.localeCompare(b.emoji_name)
+        )
+    const shown = ranked.slice(0, LEAST_USED_LIMIT)
+    const unusedNotShown = ranked
+        .slice(LEAST_USED_LIMIT)
+        .filter((e) => e.total === 0).length
+    const lines = shown.map(
+        (e, i) => `**${i + 1}.** ${renderEmoji(e)} ×${e.total}`
+    )
+    if (unusedNotShown > 0)
+        lines.push(`…y ${unusedNotShown} más que nadie ha usado`)
+    return `💤 **Emojis del server menos usados**\n${lines.join('\n')}\n`
+}
+
 /** Handles /emojis. Returns true when it took the interaction. */
 export const handleEmojiInteraction = async (
     interaction: Interaction
@@ -116,7 +151,9 @@ export const handleEmojiInteraction = async (
             (e, i) => `**${i + 1}.** ${renderEmoji(e)} ×${e.total}`
         )
         await interaction.reply({
-            content: `🏆 **Emojis más usados del server**\n${lines.join('\n')}\n${footer}`,
+            content:
+                `🏆 **Emojis más usados del server**\n${lines.join('\n')}\n\n` +
+                `${leastUsedSection(interaction.guild)}\n${footer}`,
             allowedMentions: { parse: [] },
         })
         return true

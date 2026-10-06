@@ -141,6 +141,18 @@ export const serverTopEmojis = (limit = 10): EmojiTotal[] =>
         )
         .all(limit) as EmojiTotal[]
 
+/** Total uses for each of `keys`; keys never used are left out of the map. */
+export const totalsForEmojis = (keys: string[]): Map<string, number> => {
+    const rows = getDb()
+        .prepare(
+            `SELECT emoji_key, SUM(count) AS total FROM emoji_uses
+             WHERE emoji_key IN (SELECT value FROM json_each(?))
+             GROUP BY emoji_key`
+        )
+        .all(JSON.stringify(keys)) as { emoji_key: string; total: number }[]
+    return new Map(rows.map((r) => [r.emoji_key, r.total]))
+}
+
 /** A user's most used emojis (what they type plus how they react). */
 export const userTopEmojis = (userId: string, limit = 10): EmojiTotal[] =>
     getDb()
