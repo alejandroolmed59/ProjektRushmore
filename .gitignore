@@ -3,3 +3,5 @@ dist
 node_modules
 data/*.db*
 data/backups
+data/shitpost-history.jsonl
+data/shitpost-examples.json
