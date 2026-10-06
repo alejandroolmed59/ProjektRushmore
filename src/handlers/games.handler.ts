@@ -8,10 +8,15 @@ import {
     addGame,
     Game,
     GameFormat,
+    lendGame,
     listCatalog,
     listCopies,
+    listLoans,
+    LoanWithGame,
     matchTitle,
+    openLoan,
     removeGame,
+    returnGame,
     searchTitles,
     TitleEntry,
 } from '../services/games.service'
@@ -103,6 +108,7 @@ const send = async (
 const mention = (userId: string): string => `<@${userId}>`
 const formatLabel = (format: GameFormat): string =>
     format === 'fisico' ? 'físico' : 'digital'
+const date = (ms: number): string => `<t:${Math.floor(ms / 1000)}:D>`
 
 /**
  * Turn what the user typed into a library title. Replies and returns null
@@ -143,11 +149,23 @@ const handleCommand = async (
             return add(interaction)
         case 'quitar':
             return remove(interaction)
+        case 'prestar':
+            return lend(interaction)
+        case 'devolver':
+            return giveBack(interaction)
+        case 'prestamos':
+            return showLoans(interaction)
     }
 }
 
-const copyLine = (game: Game): string =>
-    `• ${formatLabel(game.format)} de ${mention(game.owner_id)}`
+const copyLine = (game: Game): string => {
+    const base = `• ${formatLabel(game.format)} de ${mention(game.owner_id)}`
+    if (game.format === 'digital') return base
+    const loan = openLoan(game.id)
+    if (!loan) return `${base} · disponible`
+    const note = loan.note ? ` · _${loan.note}_` : ''
+    return `${base} → lo tiene ${mention(loan.borrower_id)} desde ${date(loan.lent_at)}${note}`
+}
 
 const whoHas = async (
     interaction: ChatInputCommandInteraction,
@@ -241,6 +259,125 @@ const remove = async (
         ok: `🗑️ Quitaste **${entry.title}** de tu catálogo`,
         'not-found': `No tienes **${entry.title}**${format ? ` (${formatLabel(format)})` : ''}`,
         ambiguous: `Tienes **${entry.title}** físico y digital, elige el \`formato\``,
+        lent: `**${entry.title}** está prestado, primero usa \`/juegos devolver\``,
     }
     await send(interaction, messages[result], result !== 'ok')
+}
+
+const lend = async (
+    interaction: ChatInputCommandInteraction
+): Promise<void> => {
+    const borrower = interaction.options.getUser('a', true)
+    if (borrower.bot)
+        return send(interaction, 'Los bots no juegan Switch 🤖', true)
+    if (borrower.id === interaction.user.id)
+        return send(interaction, 'No te puedes prestar a ti mismo', true)
+    const entry = await resolveTitle(
+        interaction,
+        interaction.options.getString('titulo', true)
+    )
+    if (!entry) return
+
+    const result = lendGame({
+        ownerId: interaction.user.id,
+        titleKey: entry.titleKey,
+        borrowerId: borrower.id,
+        note: interaction.options.getString('nota')?.trim() || null,
+    })
+    switch (result.status) {
+        case 'ok':
+            return send(
+                interaction,
+                `🤝 ${mention(interaction.user.id)} le prestó **${entry.title}** a ${mention(borrower.id)}`
+            )
+        case 'already-lent':
+            return send(
+                interaction,
+                `**${entry.title}** ya lo tiene ${mention(result.loan.borrower_id)} desde ${date(result.loan.lent_at)}`,
+                true
+            )
+        case 'digital-only':
+            return send(
+                interaction,
+                'Los juegos digitales se prestan desde Nintendo, aquí solo los físicos',
+                true
+            )
+        case 'not-owner':
+            return send(
+                interaction,
+                `No tienes **${entry.title}**, solo el dueño lo puede prestar`,
+                true
+            )
+    }
+}
+
+const giveBack = async (
+    interaction: ChatInputCommandInteraction
+): Promise<void> => {
+    const entry = await resolveTitle(
+        interaction,
+        interaction.options.getString('titulo', true)
+    )
+    if (!entry) return
+    const result = returnGame({
+        userId: interaction.user.id,
+        titleKey: entry.titleKey,
+    })
+    switch (result.status) {
+        case 'ok': {
+            const { loan } = result
+            return send(
+                interaction,
+                `📦 **${entry.title}** regresó con ${mention(loan.owner_id)} ` +
+                    `(${mention(loan.borrower_id)} lo tuvo del ${date(loan.lent_at)} al ${date(loan.returned_at ?? Date.now())})`
+            )
+        }
+        case 'not-found':
+            return send(
+                interaction,
+                `No hay un préstamo abierto de **${entry.title}** donde seas dueño o lo tengas tú`,
+                true
+            )
+        case 'ambiguous':
+            return send(
+                interaction,
+                `Hay varios préstamos abiertos de **${entry.title}** contigo:\n` +
+                    result.loans.map(loanLine).join('\n'),
+                true
+            )
+    }
+}
+
+const loanLine = (loan: LoanWithGame): string => {
+    const returned = loan.returned_at
+        ? ` → devuelto ${date(loan.returned_at)}`
+        : ''
+    const note = loan.note ? ` · _${loan.note}_` : ''
+    return (
+        `${loan.returned_at ? '✅' : '🔁'} **${loan.title}** de ${mention(loan.owner_id)} → ` +
+        `${mention(loan.borrower_id)} · ${date(loan.lent_at)}${returned}${note}`
+    )
+}
+
+const showLoans = async (
+    interaction: ChatInputCommandInteraction
+): Promise<void> => {
+    const includeReturned = interaction.options.getBoolean('historial') ?? false
+    const user = interaction.options.getUser('usuario')
+    const loans = listLoans({
+        includeReturned,
+        ...(user ? { userId: user.id } : {}),
+    })
+    if (loans.length === 0)
+        return send(
+            interaction,
+            includeReturned
+                ? 'No hay préstamos registrados'
+                : 'No hay juegos prestados ahora mismo',
+            true
+        )
+    const title = includeReturned
+        ? '📜 **Préstamos**'
+        : '🔁 **Prestados ahora**'
+    await send(interaction, `${title}\n${loans.map(loanLine).join('\n')}`)
 }

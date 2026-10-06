@@ -98,6 +98,20 @@ CREATE TABLE IF NOT EXISTS game_aliases (
     alias_key   TEXT PRIMARY KEY,
     title_key   TEXT NOT NULL
 );
+
+-- One row per loan of a physical copy; kept after the return as history.
+-- returned_at NULL = still lent out, and a copy has at most one such loan.
+CREATE TABLE IF NOT EXISTS game_loans (
+    id           TEXT PRIMARY KEY,
+    game_id      TEXT NOT NULL REFERENCES games(id),
+    borrower_id  TEXT NOT NULL,
+    lent_at      INTEGER NOT NULL,
+    returned_at  INTEGER,
+    note         TEXT,
+    created_at   INTEGER NOT NULL
+);
+CREATE UNIQUE INDEX IF NOT EXISTS game_loans_open
+    ON game_loans (game_id) WHERE returned_at IS NULL;
 `
 
 let db: DatabaseSync | null = null

@@ -235,6 +235,39 @@ function defineCommands() {
                             .addChoices({ name: 'Físico', value: 'fisico' }, { name: 'Digital', value: 'digital' })
                     )
             )
+            .addSubcommand((sub) =>
+                sub
+                    .setName('prestar')
+                    .setDescription('Prestar un juego físico tuyo')
+                    .addStringOption((o) =>
+                        o.setName('titulo').setDescription('Título del juego').setRequired(true).setAutocomplete(true)
+                    )
+                    .addUserOption((o) =>
+                        o.setName('a').setDescription('A quién se lo prestas').setRequired(true)
+                    )
+                    .addStringOption((o) =>
+                        o.setName('nota').setDescription('Nota opcional, ej: hasta navidad')
+                    )
+            )
+            .addSubcommand((sub) =>
+                sub
+                    .setName('devolver')
+                    .setDescription('Marcar un juego como devuelto (dueño o quien lo tiene)')
+                    .addStringOption((o) =>
+                        o.setName('titulo').setDescription('Título del juego').setRequired(true).setAutocomplete(true)
+                    )
+            )
+            .addSubcommand((sub) =>
+                sub
+                    .setName('prestamos')
+                    .setDescription('Juegos prestados ahora, o el historial')
+                    .addBooleanOption((o) =>
+                        o.setName('historial').setDescription('Incluir los ya devueltos')
+                    )
+                    .addUserOption((o) =>
+                        o.setName('usuario').setDescription('Solo los préstamos de alguien')
+                    )
+            )
             .toJSON(),
         new SlashCommandBuilder()
             .setName('quien-tiene')

@@ -186,7 +186,7 @@ export const ownedCopies = (
         (g) => g.owner_id === ownerId && (!format || g.format === format)
     )
 
-export type RemoveResult = 'ok' | 'not-found' | 'ambiguous'
+export type RemoveResult = 'ok' | 'not-found' | 'ambiguous' | 'lent'
 
 /** Soft-delete one of the owner's copies; needs `format` if they own both. */
 export const removeGame = (
@@ -198,9 +198,161 @@ export const removeGame = (
     const [copy] = copies
     if (!copy) return 'not-found'
     if (copies.length > 1) return 'ambiguous'
+    if (openLoan(copy.id)) return 'lent'
     getDb().prepare('UPDATE games SET active = 0 WHERE id = ?').run(copy.id)
     return 'ok'
 }
+
+// ---------- loans ----------
+
+export type Loan = {
+    id: string
+    game_id: string
+    borrower_id: string
+    lent_at: number
+    returned_at: number | null
+    note: string | null
+    created_at: number
+}
+
+/** A loan joined with the copy it's for. */
+export type LoanWithGame = Loan & {
+    title: string
+    owner_id: string
+}
+
+export const openLoan = (gameId: string): Loan | undefined =>
+    getDb()
+        .prepare(
+            'SELECT * FROM game_loans WHERE game_id = ? AND returned_at IS NULL'
+        )
+        .get(gameId) as Loan | undefined
+
+/** Record a loan as given; used by /juegos prestar and the seed script. */
+export const insertLoan = (input: {
+    gameId: string
+    borrowerId: string
+    lentAt: number
+    returnedAt?: number | null
+    note?: string | null
+    now?: number
+}): Loan => {
+    const loan: Loan = {
+        id: GenerateLongerId(),
+        game_id: input.gameId,
+        borrower_id: input.borrowerId,
+        lent_at: input.lentAt,
+        returned_at: input.returnedAt ?? null,
+        note: input.note ?? null,
+        created_at: input.now ?? Date.now(),
+    }
+    getDb()
+        .prepare(
+            `INSERT INTO game_loans (id, game_id, borrower_id, lent_at, returned_at, note, created_at)
+             VALUES (?, ?, ?, ?, ?, ?, ?)`
+        )
+        .run(
+            loan.id,
+            loan.game_id,
+            loan.borrower_id,
+            loan.lent_at,
+            loan.returned_at,
+            loan.note,
+            loan.created_at
+        )
+    return loan
+}
+
+export type LendResult =
+    | { status: 'ok'; game: Game; loan: Loan }
+    | { status: 'already-lent'; game: Game; loan: Loan }
+    | { status: 'digital-only' }
+    | { status: 'not-owner' }
+
+/**
+ * Lend the owner's physical copy. Digital games are shared through Nintendo's
+ * own system, so they can't be lent here.
+ */
+export const lendGame = (input: {
+    ownerId: string
+    titleKey: string
+    borrowerId: string
+    note?: string | null
+    now?: number
+}): LendResult => {
+    const now = input.now ?? Date.now()
+    return transaction(() => {
+        const [game] = ownedCopies(input.ownerId, input.titleKey, 'fisico')
+        if (!game)
+            return ownedCopies(input.ownerId, input.titleKey).length
+                ? { status: 'digital-only' }
+                : { status: 'not-owner' }
+        const current = openLoan(game.id)
+        if (current) return { status: 'already-lent', game, loan: current }
+        const loan = insertLoan({
+            gameId: game.id,
+            borrowerId: input.borrowerId,
+            lentAt: now,
+            note: input.note ?? null,
+            now,
+        })
+        return { status: 'ok', game, loan }
+    })
+}
+
+export type ReturnResult =
+    | { status: 'ok'; loan: LoanWithGame }
+    | { status: 'not-found' }
+    | { status: 'ambiguous'; loans: LoanWithGame[] }
+
+/** Close the open loan of a title that the user lent or borrowed. */
+export const returnGame = (input: {
+    userId: string
+    titleKey: string
+    now?: number
+}): ReturnResult => {
+    const now = input.now ?? Date.now()
+    return transaction(() => {
+        const loans = getDb()
+            .prepare(
+                `SELECT l.*, g.title, g.owner_id FROM game_loans l
+                     JOIN games g ON g.id = l.game_id
+                     WHERE l.returned_at IS NULL AND g.title_key = ?
+                       AND (g.owner_id = ? OR l.borrower_id = ?)`
+            )
+            .all(input.titleKey, input.userId, input.userId) as LoanWithGame[]
+        const [loan] = loans
+        if (!loan) return { status: 'not-found' }
+        if (loans.length > 1) return { status: 'ambiguous', loans }
+        getDb()
+            .prepare('UPDATE game_loans SET returned_at = ? WHERE id = ?')
+            .run(now, loan.id)
+        return { status: 'ok', loan: { ...loan, returned_at: now } }
+    })
+}
+
+/** Open loans first, then the history newest first; optionally only one user's. */
+export const listLoans = (input: {
+    includeReturned: boolean
+    userId?: string
+    limit?: number
+}): LoanWithGame[] =>
+    getDb()
+        .prepare(
+            `SELECT l.*, g.title, g.owner_id FROM game_loans l
+             JOIN games g ON g.id = l.game_id
+             WHERE (? OR l.returned_at IS NULL)
+               AND (? IS NULL OR g.owner_id = ? OR l.borrower_id = ?)
+             ORDER BY l.returned_at IS NOT NULL, l.lent_at DESC
+             LIMIT ?`
+        )
+        .all(
+            input.includeReturned ? 1 : 0,
+            input.userId ?? null,
+            input.userId ?? null,
+            input.userId ?? null,
+            input.limit ?? 30
+        ) as LoanWithGame[]
 
 // ---------- matching ----------
 
