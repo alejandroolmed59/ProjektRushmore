@@ -18,7 +18,7 @@ export const newMessageInChannel = async (message: Message): Promise<void> => {
     }
     if (message.content === '!cajero') {
         try {
-            const gamblerCreateResponse = await createNewGambler(
+            const gamblerCreateResponse = createNewGambler(
                 message.author.id,
                 message.author.displayName
             )

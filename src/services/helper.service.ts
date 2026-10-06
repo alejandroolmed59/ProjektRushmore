@@ -1,152 +1,118 @@
+import { getDb, transaction } from '../database/sqlite'
 import {
+    Forecast,
+    Gambler,
     GamblerResult,
     PredictionHistory,
 } from '../interfaces/gambler.interface'
 import { endForecastStatus, getForecast } from './forecast.service'
-import { getMoney, editGambler } from './money.service'
+import { getMoney } from './money.service'
 import {
     createPredictionFromForecast,
-    endPredictionStatus,
-    getPrectionsFromAForecast,
+    endPredictionsForForecast,
+    getPredictionsForForecast,
 } from './prediction.service'
 
-export const helperCreatePrediction = async (
+/** amountCents defaults to the forecast's wager (the SI/NO buttons). */
+export const helperCreatePrediction = (
     gambleId: string,
     discordId: string,
     decision: 'yes' | 'no',
-    amount?: number
-) => {
-    const forecastDdb = await getForecast(gambleId)
-    const amountWagered = amount ?? forecastDdb.amount
-    if (forecastDdb.status !== 'ACTIVE')
+    amountCents?: number
+): {
+    gambler: Gambler
+    forecast: Forecast
+    odds: number
+    multiplier: number
+    amountCents: number
+} => {
+    const forecast = getForecast(gambleId)
+    const wager = amountCents ?? forecast.amountCents
+    if (forecast.status !== 'ACTIVE')
         throw new Error(`gambleId: ${gambleId} not active`, {
-            cause: { forecastStatus: forecastDdb.status },
+            cause: { forecastStatus: forecast.status },
         })
-    if (amountWagered < 0) {
-        throw new Error(`Invalid wagered amount ${amountWagered}`)
-    }
-    const proba =
-        decision === 'yes'
-            ? forecastDdb.yesOdds
-            : decision === 'no'
-              ? 1 - forecastDdb.yesOdds
-              : 0
-    if (proba === 0)
+    if (!Number.isInteger(wager) || wager <= 0)
+        throw new Error(`Invalid wagered amount ${wager / 100}`)
+    const proba = decision === 'yes' ? forecast.yesOdds : 1 - forecast.yesOdds
+    if (proba <= 0)
         throw new Error(`Invalid zero odds value gambleId: ${gambleId}`, {
             cause: { status: 1 },
         })
     const multiplier = Number((1 / proba).toFixed(2))
 
-    const response = await createPredictionFromForecast(
+    const gambler = createPredictionFromForecast(
         gambleId,
-        amountWagered,
+        wager,
         discordId,
         multiplier,
         decision
     )
-    return {
-        status: 0,
-        ddbResponse: response,
-        forecast: forecastDdb,
-        odds: proba,
-        multiplier,
-        amountWagered,
-    }
+    return { gambler, forecast, odds: proba, multiplier, amountCents: wager }
 }
 
-export const helperEndForecast = async (
+/**
+ * Settle a forecast in one transaction. Stakes were already taken from
+ * money_cents when the bets were placed, so each gambler gets back stake x
+ * multiplier for their winning predictions, and every stake leaves reserved.
+ */
+export const helperEndForecast = (
     gambleId: string,
     finalOutcome: 'yes' | 'no'
-) => {
-    const forecastDdb = await getForecast(gambleId)
-    if (forecastDdb.status === 'DONE')
-        throw new Error(
-            `Trying to end a forecast in status DONE, gambleId ${gambleId}`
-        )
-    const gamblersDdb = await getMoney()
-    const predictions: PredictionHistory[] =
-        await getPrectionsFromAForecast(gambleId)
+): {
+    forecast: Forecast
+    predictions: PredictionHistory[]
+    arrayResults: GamblerResult[]
+    results: Record<string, GamblerResult>
+} =>
+    transaction(() => {
+        const forecast = getForecast(gambleId)
+        if (forecast.status === 'DONE')
+            throw new Error(
+                `Trying to end a forecast in status DONE, gambleId ${gambleId}`
+            )
+        const gamblers = getMoney()
+        const predictions = getPredictionsForForecast(gambleId)
 
-    const results: Record<string, GamblerResult> = {}
-    for (const prediction of predictions) {
-        if (!results[prediction.discordId]) {
-            const profile = gamblersDdb.find(
-                (g) => g.discordId === prediction.discordId
-            )
-            if (!profile) {
-                console.log(
-                    `discordId ${prediction.discordId} no longer exists`
+        const results: Record<string, GamblerResult> = {}
+        for (const prediction of predictions) {
+            let result = results[prediction.discordId]
+            if (!result) {
+                const profile = gamblers.find(
+                    (g) => g.discordId === prediction.discordId
                 )
-                continue
-            }
-            results[prediction.discordId] = {
-                discordId: prediction.discordId,
-                profile,
-                totalWon: 0,
-                totalLost: 0,
-                totalWageredForForecast: 0,
-            }
-        }
-        results[prediction.discordId]!.totalWageredForForecast +=
-            prediction.amountWagered
-        if (prediction.gambleDecision === finalOutcome) {
-            results[prediction.discordId]!.totalWon +=
-                prediction.amountWagered * prediction.multiplier
-        } else {
-            results[prediction.discordId]!.totalLost += prediction.amountWagered
-        }
-    }
-    const arrayResults = Object.values(results)
-    for (const gambler of arrayResults) {
-        try {
-            // Only sum in the database if the amount is positive, the balance was previosly deducted
-            const gambleResultsMoney = gambler.totalWon - gambler.totalLost
-            const moneyAwared =
-                gambleResultsMoney > 0
-                    ? Number(
-                          (gambler.profile.money + gambleResultsMoney).toFixed(
-                              2
-                          )
-                      )
-                    : gambler.profile.money
-            const amountWagered = Number(
-                (
-                    gambler.profile.moneyReserved -
-                    gambler.totalWageredForForecast
-                ).toFixed(2)
-            )
-            await editGambler(gambler.discordId, {
-                money: moneyAwared,
-                moneyReserved: amountWagered,
-            })
-        } catch (e) {
-            console.log(
-                `Gamblers money ${gambler.discordId} could not be updated`
-            )
-        }
-    }
-    //End all predictions
-    for (const prediction of predictions) {
-        try {
-            await endPredictionStatus(
-                prediction.discordId,
-                prediction.predictionId,
-                {
-                    status: 'DONE',
+                // Can't settle someone we can't pay: abort the whole settlement.
+                if (!profile)
+                    throw new Error(
+                        `Gambler ${prediction.discordId} not found, forecast not ended`
+                    )
+                result = {
+                    discordId: prediction.discordId,
+                    profile,
+                    payoutCents: 0,
+                    wageredCents: 0,
                 }
-            )
-        } catch (e) {
-            console.log(
-                `Error updating prediction money ${prediction.predictionId} of gambler ${prediction.discordId}`
-            )
+                results[prediction.discordId] = result
+            }
+            result.wageredCents += prediction.amountCents
+            if (prediction.gambleDecision === finalOutcome)
+                result.payoutCents += Math.round(
+                    prediction.amountCents * prediction.multiplier
+                )
         }
-    }
-    //End forecast
-    await endForecastStatus(gambleId, { status: 'DONE' })
-    return {
-        forecast: forecastDdb,
-        predictions,
-        arrayResults,
-        results,
-    }
-}
+
+        const settle = getDb().prepare(
+            `UPDATE gamblers SET money_cents = money_cents + ?, reserved_cents = reserved_cents - ?
+            WHERE discord_id = ?`
+        )
+        const arrayResults = Object.values(results)
+        for (const result of arrayResults)
+            settle.run(
+                result.payoutCents,
+                result.wageredCents,
+                result.discordId
+            )
+        endPredictionsForForecast(gambleId)
+        endForecastStatus(gambleId, finalOutcome)
+        return { forecast, predictions, arrayResults, results }
+    })

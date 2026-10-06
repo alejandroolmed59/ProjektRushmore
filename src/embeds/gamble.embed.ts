@@ -6,6 +6,7 @@ import {
     PredictionHistory,
 } from '../interfaces/gambler.interface'
 import { calculateOdds } from '../utils/calculate-odds'
+import { formatCcc } from '../utils/money'
 
 export const newPredictionEmbedBuilder = (
     forecast: Forecast,
@@ -13,15 +14,15 @@ export const newPredictionEmbedBuilder = (
     gambleDecision: 'yes' | 'no',
     discordDisplayName: string,
     multiplier: number,
-    amountWagered: number
+    amountCents: number
 ): EmbedBuilder => {
     const embed = new EmbedBuilder()
         .setTitle('Nueva predicción!')
         .setDescription(
-            `${discordDisplayName} acaba de apostar ${amountWagered} que ${gambleDecision === 'yes' ? 'SÍ ✅' : 'NO ❌'} se cumple a la apuesta de\n
+            `${discordDisplayName} acaba de apostar ${formatCcc(amountCents)} que ${gambleDecision === 'yes' ? 'SÍ ✅' : 'NO ❌'} se cumple a la apuesta de\n
              "${forecast.descripcion}"\n
-            Con un multiplicador de x${multiplier}, para ganar ${(multiplier * amountWagered).toFixed(2)} Cool Club Coins 🤑\n
-            CCC disponibles: ${gambler.money}, CCC lockeadas ${gambler.moneyReserved} `
+            Con un multiplicador de x${multiplier}, para ganar ${formatCcc(Math.round(multiplier * amountCents))} Cool Club Coins 🤑\n
+            CCC disponibles: ${formatCcc(gambler.moneyCents)}, CCC lockeadas ${formatCcc(gambler.reservedCents)} `
         )
         .setColor(gambleDecision === 'yes' ? Colors.DarkGreen : Colors.DarkRed)
     return embed
@@ -49,9 +50,9 @@ export const allGamblersEmbedBuilder = (gamblers: Gambler[]): EmbedBuilder => {
     const gamblersOrdered = gamblers
         .map((gambler) => ({
             ...gambler,
-            totalMoney: parseFloat((gambler.money + gambler.moneyReserved).toFixed(2)),
+            totalCents: gambler.moneyCents + gambler.reservedCents,
         }))
-        .sort((a, b) => b.totalMoney - a.totalMoney)
+        .sort((a, b) => b.totalCents - a.totalCents)
     const embed = new EmbedBuilder()
         .setTitle('Leaderboard 🔝')
         .setDescription(`Hall of fame de los mejores gamblers`)
@@ -63,7 +64,7 @@ export const allGamblersEmbedBuilder = (gamblers: Gambler[]): EmbedBuilder => {
                 if (index === 2) medalla = '🥉'
                 return {
                     name: `${gambler.displayName}${medalla}`,
-                    value: `Disponible ${gambler.money}. Lockeado ${gambler.moneyReserved}, Total ${gambler.totalMoney}`,
+                    value: `Disponible ${formatCcc(gambler.moneyCents)}. Lockeado ${formatCcc(gambler.reservedCents)}, Total ${formatCcc(gambler.totalCents)}`,
                 }
             })
         )
@@ -114,7 +115,7 @@ export const endForecastEmbedBuilder = (
     const predictionMessage = predictions
         .map(
             (prediction) =>
-                `Gambler ${results[prediction.discordId]!.profile.displayName}, Apuesta ${prediction.amountWagered}, Mult x${prediction.multiplier}, Decisión ${prediction.gambleDecision === 'yes' ? '🟢' : '🔴'} ${prediction.gambleDecision}`
+                `Gambler ${results[prediction.discordId]!.profile.displayName}, Apuesta ${formatCcc(prediction.amountCents)}, Mult x${prediction.multiplier}, Decisión ${prediction.gambleDecision === 'yes' ? '🟢' : '🔴'} ${prediction.gambleDecision}`
         )
         .join('\n')
     const embed = new EmbedBuilder()
@@ -126,8 +127,12 @@ export const endForecastEmbedBuilder = (
         )
         .addFields(
             arrayResults.map((gamblerResult) => {
-                const result = gamblerResult.totalWon - gamblerResult.totalLost;
-                const displayResult = result <= -300 ? `${result.toFixed(2)} REKT CCC 😭` : `${result.toFixed(2)} CCC`;
+                const result =
+                    gamblerResult.payoutCents - gamblerResult.wageredCents
+                const displayResult =
+                    result <= -30000
+                        ? `${formatCcc(result)} REKT CCC 😭`
+                        : `${formatCcc(result)} CCC`
                 return {
                     name: gamblerResult.profile.displayName,
                     value: `Resultado ${displayResult}`,
@@ -170,10 +175,12 @@ export const userActivePredictionsEmbedBuilder = (
         .setFields(
             predictions.map((prediction, index) => {
                 const decision = prediction.gambleDecision === 'yes' ? 'SI' : 'NO'
-                const potentialWin = (prediction.multiplier * prediction.amountWagered).toFixed(2)
+                const potentialWin = formatCcc(
+                    Math.round(prediction.multiplier * prediction.amountCents)
+                )
                 return {
                     name: `Predicción ${index + 1} - ${decision}`,
-                    value: `**Gamble ID:** ${prediction.gambleId}\n**Apuesta:** ${prediction.amountWagered} CCC\n**Mult:** x${prediction.multiplier}\n**Ganancia Potencial:** ${potentialWin} CCC`,
+                    value: `**Gamble ID:** ${prediction.gambleId}\n**Apuesta:** ${formatCcc(prediction.amountCents)} CCC\n**Mult:** x${prediction.multiplier}\n**Ganancia Potencial:** ${potentialWin} CCC`,
                     inline: false,
                 }
             })
@@ -200,9 +207,9 @@ export const gambleDetailsEmbedBuilder = (
     // Calculate totals
     const totalYesBets = predictions.filter(p => p.gambleDecision === 'yes')
     const totalNoBets = predictions.filter(p => p.gambleDecision === 'no')
-    const totalAmountWagered = predictions.reduce((sum, p) => sum + p.amountWagered, 0)
-    const totalYesAmount = totalYesBets.reduce((sum, p) => sum + p.amountWagered, 0)
-    const totalNoAmount = totalNoBets.reduce((sum, p) => sum + p.amountWagered, 0)
+    const totalAmountWagered = predictions.reduce((sum, p) => sum + p.amountCents, 0)
+    const totalYesAmount = totalYesBets.reduce((sum, p) => sum + p.amountCents, 0)
+    const totalNoAmount = totalNoBets.reduce((sum, p) => sum + p.amountCents, 0)
 
     const embed = new EmbedBuilder()
         .setTitle('📊 Detalles de la Apuesta')
@@ -210,17 +217,17 @@ export const gambleDetailsEmbedBuilder = (
         .addFields(
             {
                 name: '📈 Estadísticas',
-                value: `**Total de predicciones:** ${predictions.length}\n**Total apostado:** ${totalAmountWagered} CCC\n**Estado:** ${forecast.status === 'ACTIVE' ? '🟢 Activa' : '🔴 Finalizada'}`,
+                value: `**Total de predicciones:** ${predictions.length}\n**Total apostado:** ${formatCcc(totalAmountWagered)} CCC\n**Estado:** ${forecast.status === 'ACTIVE' ? '🟢 Activa' : '🔴 Finalizada'}`,
                 inline: false,
             },
             {
                 name: '✅ Apuestas por SÍ',
-                value: `**Cantidad:** ${totalYesBets.length}\n**Total:** ${totalYesAmount} CCC`,
+                value: `**Cantidad:** ${totalYesBets.length}\n**Total:** ${formatCcc(totalYesAmount)} CCC`,
                 inline: true,
             },
             {
                 name: '❌ Apuestas por NO',
-                value: `**Cantidad:** ${totalNoBets.length}\n**Total:** ${totalNoAmount} CCC`,
+                value: `**Cantidad:** ${totalNoBets.length}\n**Total:** ${formatCcc(totalNoAmount)} CCC`,
                 inline: true,
             },
             {
@@ -237,8 +244,10 @@ export const gambleDetailsEmbedBuilder = (
         const predictionsList = predictions.map((prediction) => {
             const displayName = discordIdToDisplayName.get(prediction.discordId) || "unknown"
             const decision = prediction.gambleDecision === 'yes' ? '✅ SÍ' : '❌ NO'
-            const potentialWin = (prediction.multiplier * prediction.amountWagered).toFixed(2)
-            return `${displayName} - ${decision} - ${prediction.amountWagered} CCC (x${prediction.multiplier}) → ${potentialWin} CCC`
+            const potentialWin = formatCcc(
+                    Math.round(prediction.multiplier * prediction.amountCents)
+                )
+            return `${displayName} - ${decision} - ${formatCcc(prediction.amountCents)} CCC (x${prediction.multiplier}) → ${potentialWin} CCC`
         }).join('\n')
 
         embed.addFields({

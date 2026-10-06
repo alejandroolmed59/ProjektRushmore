@@ -2,9 +2,10 @@ import fs from 'fs'
 import path from 'path'
 import { DatabaseSync } from 'node:sqlite'
 
-// Local SQLite store for the reminders/debts feature. Lives next to the bot on
-// the host (the Pixel), so it needs no cloud service. Resolved from cwd like
-// data/learned-keywords.json so ts-node and the esbuild bundle agree.
+// Local SQLite store for every feature (betting, debts, emoji stats, games).
+// Lives next to the bot on the host (the Pixel), so it needs no cloud service.
+// Resolved from cwd like data/learned-keywords.json so ts-node and the esbuild
+// bundle agree.
 const DB_PATH =
     process.env.SQLITE_PATH || path.join(process.cwd(), 'data', 'rushmore.db')
 const BACKUP_DIR = path.join(path.dirname(DB_PATH), 'backups')
@@ -112,6 +113,43 @@ CREATE TABLE IF NOT EXISTS game_loans (
 );
 CREATE UNIQUE INDEX IF NOT EXISTS game_loans_open
     ON game_loans (game_id) WHERE returned_at IS NULL;
+
+-- Betting. Balances are Cool Club Coins in cents: money_cents is spendable,
+-- reserved_cents is locked in predictions on forecasts still ACTIVE.
+CREATE TABLE IF NOT EXISTS gamblers (
+    discord_id      TEXT PRIMARY KEY,
+    display_name    TEXT NOT NULL,
+    money_cents     INTEGER NOT NULL CHECK (money_cents >= 0),
+    reserved_cents  INTEGER NOT NULL DEFAULT 0 CHECK (reserved_cents >= 0),
+    created_at      INTEGER NOT NULL
+);
+
+-- id is the short "Gamble ID" users type. amount_cents is the default wager
+-- of the SI/NO buttons.
+CREATE TABLE IF NOT EXISTS forecasts (
+    id            TEXT PRIMARY KEY,
+    created_by    TEXT NOT NULL,
+    description   TEXT NOT NULL,
+    yes_odds      REAL NOT NULL CHECK (yes_odds > 0 AND yes_odds < 1),
+    amount_cents  INTEGER NOT NULL CHECK (amount_cents > 0),
+    status        TEXT NOT NULL CHECK (status IN ('ACTIVE', 'DONE')),
+    outcome       TEXT CHECK (outcome IN ('yes', 'no')),
+    created_at    INTEGER NOT NULL,
+    ended_at      INTEGER
+);
+
+CREATE TABLE IF NOT EXISTS predictions (
+    id            TEXT PRIMARY KEY,
+    forecast_id   TEXT NOT NULL REFERENCES forecasts(id),
+    discord_id    TEXT NOT NULL REFERENCES gamblers(discord_id),
+    decision      TEXT NOT NULL CHECK (decision IN ('yes', 'no')),
+    multiplier    REAL NOT NULL,
+    amount_cents  INTEGER NOT NULL CHECK (amount_cents > 0),
+    status        TEXT NOT NULL CHECK (status IN ('ACTIVE', 'DONE')),
+    created_at    INTEGER NOT NULL
+);
+CREATE INDEX IF NOT EXISTS predictions_forecast ON predictions (forecast_id);
+CREATE INDEX IF NOT EXISTS predictions_user ON predictions (discord_id, status);
 `
 
 let db: DatabaseSync | null = null
@@ -128,10 +166,14 @@ export const getDb = (): DatabaseSync => {
     return db
 }
 
-/** Run fn inside a transaction, rolling back if it throws. */
+/**
+ * Run fn inside a transaction, rolling back if it throws. IMMEDIATE takes the
+ * write lock up front (waiting out busy_timeout) so a read-then-write can't
+ * fail with SQLITE_BUSY when the backfill script commits in between.
+ */
 export const transaction = <T>(fn: () => T): T => {
     const database = getDb()
-    database.exec('BEGIN')
+    database.exec('BEGIN IMMEDIATE')
     try {
         const result = fn()
         database.exec('COMMIT')
@@ -153,7 +195,12 @@ export const backupDb = (now: Date = new Date()): void => {
         `rushmore-${now.toISOString().slice(0, 10)}.db`
     )
     if (fs.existsSync(file)) return
-    getDb().exec(`VACUUM INTO '${file.replace(/'/g, "''")}'`)
+    // Write under a temp name so a kill mid-VACUUM never leaves a partial file
+    // that looks like today's backup (and gets uploaded to the cloud).
+    const tmp = `${file}.tmp`
+    fs.rmSync(tmp, { force: true })
+    getDb().exec(`VACUUM INTO '${tmp.replace(/'/g, "''")}'`)
+    fs.renameSync(tmp, file)
 
     const backups = fs
         .readdirSync(BACKUP_DIR)

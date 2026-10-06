@@ -1,0 +1,27 @@
+#!/data/data/com.termux/files/usr/bin/sh
+# runit service on the phone: copy the bot's daily SQLite snapshots
+# (data/backups/rushmore-YYYY-MM-DD.db) to Google Drive through rclone.
+# Setup and restore steps: docs/pixel-hosting.md, "Cloud backups".
+
+# runsvdir's environment is sparse, so don't rely on it.
+PREFIX=${PREFIX:-/data/data/com.termux/files/usr}
+export HOME=${HOME:-/data/data/com.termux/files/home}
+RCLONE=$PREFIX/bin/rclone
+REMOTE=${RUSHMORE_BACKUP_REMOTE:-rushmore-backup:}
+SRC=$HOME/rushmore/data/backups
+KEEP=60d          # snapshots older than this are deleted from Drive
+INTERVAL=21600    # seconds between runs (6h)
+
+exec >> "$HOME/rushmore/logs/backup-upload.log" 2>&1
+
+while true; do
+    # copy, never sync: if the phone loses data/, Drive keeps its copies.
+    # A snapshot caught mid-write is re-uploaded next run (size differs).
+    if "$RCLONE" copy "$SRC" "$REMOTE" --include 'rushmore-*.db'; then
+        "$RCLONE" delete "$REMOTE" --min-age "$KEEP" --include 'rushmore-*.db'
+        echo "$(date -Iseconds) uploaded"
+    else
+        echo "$(date -Iseconds) upload failed, retrying in ${INTERVAL}s"
+    fi
+    sleep "$INTERVAL"
+done
