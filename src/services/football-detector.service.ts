@@ -1,5 +1,4 @@
 import { loadLearnedKeywords } from './learned-keywords.service'
-import { getClient } from '../components/geminiClient'
 import { jevSaysYes } from '../components/typesafeClient'
 
 // Strong football/soccer signals. The watched user posts in Spanish, so the
@@ -50,7 +49,7 @@ const STRONG_KEYWORDS: string[] = [
 ]
 
 // Ambiguous words that could be football but also generic chatter. When one of
-// these shows up without a strong keyword we escalate to the LLM rather than
+// these shows up without a strong keyword we escalate to Jev rather than
 // guessing.
 const AMBIGUOUS_KEYWORDS: string[] = [
     'partido',
@@ -91,8 +90,8 @@ const compileMatcher = (needle: string): Matcher => {
 const matches = (text: string, m: Matcher): boolean =>
     'phrase' in m ? text.includes(m.phrase) : m.regex.test(text)
 
-// Merge the built-in lists with anything the one-time bootstrap learned from
-// the watched user's real history (deduped, accent-normalized to match).
+// Merge the built-in lists with the keywords previously learned from the
+// watched user's real history (deduped, accent-normalized to match).
 const learned = loadLearnedKeywords()
 const buildMatchers = (builtIn: string[], extra: string[]): Matcher[] => {
     const deduped = Array.from(
@@ -119,7 +118,7 @@ if (learned) {
 
 /**
  * Cheap, synchronous pre-check.
- * - 'yes'   -> definitely football, no LLM needed
+ * - 'yes'   -> definitely football, no Jev call needed
  * - 'no'    -> no football signal at all
  * - 'maybe' -> ambiguous, escalate to Jev
  */
@@ -142,131 +141,6 @@ const FOOTBALL_QUESTION =
  */
 export const jevIsFootball = (content: string): Promise<boolean> =>
     jevSaysYes('football-detector', FOOTBALL_QUESTION, content)
-
-// Gemini is only used by the offline keyword-extraction bootstrap below; Jev
-// returns typed decisions and can't generate keyword lists.
-const GEMINI_MODEL = process.env.GEMINI_MODEL || 'gemini-flash-latest'
-
-// Cap how much text we send Gemini in one extraction call to stay well within
-// the model's context and keep the request cheap.
-const EXTRACTION_BATCH_SIZE = 200
-
-export type ExtractedKeywords = { strong: string[]; ambiguous: string[] }
-export type ExtractionResult = ExtractedKeywords & {
-    totalBatches: number
-    failedBatches: number
-}
-
-const sleep = (ms: number): Promise<void> =>
-    new Promise((resolve) => setTimeout(resolve, ms))
-
-const isRetryable = (e: unknown): boolean => {
-    const status = (e as { status?: number })?.status
-    return status === 503 || status === 429 || status === 500
-}
-
-const cleanList = (value: unknown): string[] =>
-    Array.isArray(value)
-        ? value
-              .filter((v): v is string => typeof v === 'string')
-              .map((v) => v.trim().toLowerCase())
-              .filter((v) => v.length > 0)
-        : []
-
-/**
- * One-time bootstrap helper: show Gemini a batch of the watched user's real
- * messages and have it extract the football keywords/phrases THIS user actually
- * uses, split into strong (unambiguously football) vs ambiguous signals.
- */
-const extractBatch = async (messages: string[]): Promise<ExtractedKeywords> => {
-    const corpus = messages.map((m) => `- ${m.replace(/\n/g, ' ')}`).join('\n')
-    const prompt = `Eres un analista de lenguaje. Abajo hay mensajes reales de Discord (en español, a veces con inglés) de UN usuario. Extrae las palabras y frases que esta persona usa cuando habla de FÚTBOL/SOCCER (el deporte, jugadores, equipos, ligas, partidos, resultados, fichajes, memes futboleros).
-
-Clasifícalas en:
-- "strong": términos que casi siempre indican fútbol por sí solos.
-- "ambiguous": términos que podrían ser fútbol u otra cosa según el contexto.
-
-Reglas: usa minúsculas, sin signos de puntuación, sin duplicados, máximo ~40 por lista, solo términos presentes o claramente implícitos en los mensajes. Si no hay señales de fútbol, devuelve listas vacías. Responde SOLO con JSON: {"strong": string[], "ambiguous": string[]}.
-
-Mensajes:
-${corpus}`
-
-    // Retry transient overload/rate-limit errors with exponential backoff.
-    const maxAttempts = 4
-    for (let attempt = 1; attempt <= maxAttempts; attempt++) {
-        try {
-            const response = await getClient().models.generateContent({
-                model: GEMINI_MODEL,
-                contents: prompt,
-                config: { responseMimeType: 'application/json' },
-            })
-            const parsed = JSON.parse(response.text ?? '{}')
-            return {
-                strong: cleanList(parsed.strong),
-                ambiguous: cleanList(parsed.ambiguous),
-            }
-        } catch (e) {
-            if (isRetryable(e) && attempt < maxAttempts) {
-                const waitMs = 1000 * 2 ** (attempt - 1)
-                console.log(
-                    `[football-detector] batch attempt ${attempt} failed (retryable), retrying in ${waitMs}ms...`
-                )
-                await sleep(waitMs)
-                continue
-            }
-            throw e
-        }
-    }
-    // Unreachable: the loop either returns or throws.
-    throw new Error('extraction batch exhausted retries')
-}
-
-/**
- * Run Gemini extraction over the user's whole history (in batches) and return
- * the deduped union. Built-in keywords are excluded so we only persist what's
- * genuinely new for this user.
- */
-export const extractKeywordsFromHistory = async (
-    messages: string[],
-    onProgress?: (done: number, total: number) => void
-): Promise<ExtractionResult> => {
-    const builtIn = new Set(
-        [...STRONG_KEYWORDS, ...AMBIGUOUS_KEYWORDS].map(normalize)
-    )
-    const strong = new Set<string>()
-    const ambiguous = new Set<string>()
-    let totalBatches = 0
-    let failedBatches = 0
-
-    for (let i = 0; i < messages.length; i += EXTRACTION_BATCH_SIZE) {
-        const batch = messages.slice(i, i + EXTRACTION_BATCH_SIZE)
-        totalBatches++
-        try {
-            const result = await extractBatch(batch)
-            result.strong.forEach((w) => {
-                if (!builtIn.has(normalize(w))) strong.add(w)
-            })
-            result.ambiguous.forEach((w) => {
-                if (!builtIn.has(normalize(w)) && !strong.has(w))
-                    ambiguous.add(w)
-            })
-        } catch (e) {
-            failedBatches++
-            console.log('[football-detector] extraction batch gave up:', e)
-        }
-        onProgress?.(
-            Math.min(i + batch.length, messages.length),
-            messages.length
-        )
-    }
-
-    return {
-        strong: [...strong],
-        ambiguous: [...ambiguous],
-        totalBatches,
-        failedBatches,
-    }
-}
 
 /**
  * Two-stage detection: keyword pre-check first, Jev only for ambiguous cases.
