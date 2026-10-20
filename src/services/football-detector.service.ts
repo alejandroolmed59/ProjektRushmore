@@ -103,6 +103,42 @@ const buildMatchers = (builtIn: string[], extra: string[]): Matcher[] => {
 }
 
 const STRONG_MATCHERS = buildMatchers(STRONG_KEYWORDS, learned?.strong ?? [])
+
+// Single-word strong keywords long enough to fuzzy match. Short ones (gol,
+// var, fc) are one typo away from too many ordinary words.
+const MIN_FUZZY_LENGTH = 5
+const FUZZY_KEYWORDS = Array.from(
+    new Set([...STRONG_KEYWORDS, ...(learned?.strong ?? [])].map(normalize))
+).filter((w) => !w.includes(' ') && w.length >= MIN_FUZZY_LENGTH)
+
+/**
+ * True when `a` and `b` differ by at most one insertion, deletion,
+ * substitution or swap of adjacent letters ("mbape" vs "mbappe").
+ */
+const withinOneEdit = (a: string, b: string): boolean => {
+    if (Math.abs(a.length - b.length) > 1) return false
+    let i = 0
+    while (i < a.length && i < b.length && a[i] === b[i]) i++
+    if (a.length === b.length) {
+        if (a.slice(i + 1) === b.slice(i + 1)) return true // substitution
+        return (
+            a[i] === b[i + 1] &&
+            a[i + 1] === b[i] &&
+            a.slice(i + 2) === b.slice(i + 2)
+        ) // adjacent swap
+    }
+    const [shorter, longer] = a.length < b.length ? [a, b] : [b, a]
+    return shorter.slice(i) === longer.slice(i + 1) // insertion/deletion
+}
+
+// Misspelled strong keywords: a word one typo away from one escalates to Jev
+// instead of counting as a hit, so ordinary near-misses don't get moved.
+const hasNearMiss = (text: string): boolean =>
+    (text.match(/[a-z0-9]+/g) ?? []).some(
+        (word) =>
+            word.length >= MIN_FUZZY_LENGTH - 1 &&
+            FUZZY_KEYWORDS.some((k) => withinOneEdit(word, k))
+    )
 const AMBIGUOUS_MATCHERS = buildMatchers(
     AMBIGUOUS_KEYWORDS,
     learned?.ambiguous ?? []
@@ -120,13 +156,14 @@ if (learned) {
  * Cheap, synchronous pre-check.
  * - 'yes'   -> definitely football, no Jev call needed
  * - 'no'    -> no football signal at all
- * - 'maybe' -> ambiguous, escalate to Jev
+ * - 'maybe' -> ambiguous or a misspelled keyword, escalate to Jev
  */
 export const keywordHasFootball = (content: string): 'yes' | 'no' | 'maybe' => {
     const text = normalize(content)
 
     if (STRONG_MATCHERS.some((m) => matches(text, m))) return 'yes'
     if (AMBIGUOUS_MATCHERS.some((m) => matches(text, m))) return 'maybe'
+    if (hasNearMiss(text)) return 'maybe'
     return 'no'
 }
 const FOOTBALL_QUESTION =
