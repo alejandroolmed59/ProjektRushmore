@@ -7,7 +7,10 @@ import {
     Message,
     Interaction,
 } from 'discord.js'
-import { newMessageInChannel } from './handlers/new-message.handler'
+import {
+    messageEdited,
+    newMessageInChannel,
+} from './handlers/new-message.handler'
 import { newInteractionHandler } from './handlers/new-interaction.handler'
 import { newReactionHandler } from './handlers/new-reaction.handler'
 import { startReminderScheduler } from './services/reminder-scheduler.service'
@@ -36,6 +39,9 @@ client.once('clientReady', () => {
 client.on('messageCreate', (message: Message) => {
     newMessageInChannel(message)
     trackMessageEmojis(message)
+})
+client.on('messageUpdate', (oldMessage, newMessage) => {
+    void messageEdited(oldMessage, newMessage)
 })
 client.on('interactionCreate', (interaction: Interaction) => {
     // An uncaught rejection here would crash the bot.
