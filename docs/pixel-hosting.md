@@ -80,6 +80,21 @@ ssh -i ~/.ssh/rushmore_pixel -p 8022 <phone-tailscale-ip> 'cd ~/rushmore && $PRE
 
 It skips anything already there, so rerunning it is safe.
 
+### Downloading the message history
+
+The bot keeps a copy of every message in `data/rushmore.db` (`messages` table) and feeds it to the scanners, such as `/ranking-pene`. New, edited and deleted messages sync live, and on startup the bot catches up on what was posted while it was down. Older history needs a one-time download:
+
+```sh
+npm run build:backfill-messages
+scp -i ~/.ssh/rushmore_pixel -P 8022 dist/backfill-messages.js <phone-tailscale-ip>:~/rushmore/dist/backfill-messages.js
+scp -i ~/.ssh/rushmore_pixel -P 8022 deploy/pixel/start-backfill-messages.sh <phone-tailscale-ip>:~/rushmore/
+ssh -i ~/.ssh/rushmore_pixel -p 8022 <phone-tailscale-ip> sh rushmore/start-backfill-messages.sh
+```
+
+The start script runs it in the background, retries until it finishes, and stops any earlier run first. It logs progress and speed to `logs/backfill-messages.log`, and saves its place per channel (`message_backfill` table), so if it stops, run it again and it resumes. Keep the bot running while it downloads: the bot scans the new rows within a minute. Scanners that use Jev (`/ranking-pene` for words like "plátano") need `TYPESAFE_API_KEY` in the phone's `.env`.
+
+The archive holds the server's full chat text, and the daily backups (local and Drive) include it.
+
 ## Cloud backups
 
 The bot writes one consistent snapshot a day to `data/backups/rushmore-YYYY-MM-DD.db` and keeps the last 7 (`backupDb` in `src/database/sqlite.ts`). The `rushmore-backup` service (`deploy/pixel/rushmore-backup/run`) copies them to Google Drive with rclone every 6 hours and deletes Drive copies older than 60 days. It only uploads the snapshots, never the live `rushmore.db`, and uses `rclone copy`, so losing files on the phone never deletes anything on Drive.

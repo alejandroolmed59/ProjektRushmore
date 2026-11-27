@@ -18,6 +18,13 @@ import {
     trackMessageEmojis,
     trackReactionRemove,
 } from './handlers/emoji.handler'
+import {
+    archiveDeletedMessages,
+    archiveEditedMessage,
+    archiveNewMessage,
+    catchUpArchive,
+} from './handlers/archive.handler'
+import { startScanners } from './scanners/runner'
 
 const client = new Client({
     intents: [
@@ -34,14 +41,26 @@ const client = new Client({
 client.once('clientReady', () => {
     console.log(`✅ Logged in as ${client.user?.tag} !`)
     startReminderScheduler(client)
+    startScanners()
+    catchUpArchive(client.rest).catch((e) =>
+        console.log('[archive] catch-up failed:', e)
+    )
 })
 
 client.on('messageCreate', (message: Message) => {
     newMessageInChannel(message)
     trackMessageEmojis(message)
+    archiveNewMessage(message)
+})
+client.on('messageDelete', (message) => {
+    archiveDeletedMessages([message.id])
+})
+client.on('messageDeleteBulk', (messages) => {
+    archiveDeletedMessages([...messages.keys()])
 })
 client.on('messageUpdate', (oldMessage, newMessage) => {
     void messageEdited(oldMessage, newMessage)
+    void archiveEditedMessage(newMessage)
 })
 client.on('interactionCreate', (interaction: Interaction) => {
     // An uncaught rejection here would crash the bot.

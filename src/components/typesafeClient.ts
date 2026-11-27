@@ -22,15 +22,15 @@ const THRESHOLD =
         : 0.5
 
 /**
- * Ask Jev a yes/no question about a message. Returns the probability that the
- * answer is "yes" compared against TYPESAFE_THRESHOLD. Fails open: any error
- * returns false so callers never act on a message we're unsure about.
+ * Ask Jev a yes/no question about a message. Compares the probability that the
+ * answer is "yes" against TYPESAFE_THRESHOLD, or returns null if Jev failed so
+ * callers can tell an error from a "no".
  */
-export const jevSaysYes = async (
+export const jevAnswer = async (
     tag: string,
     question: string,
     content: string
-): Promise<boolean> => {
+): Promise<boolean | null> => {
     try {
         const { answers } = await getTypeSafeClient().systemOne({
             state: content,
@@ -41,9 +41,19 @@ export const jevSaysYes = async (
         return probability >= THRESHOLD
     } catch (e) {
         console.log(`[${tag}] Jev error, failing open (no match):`, e)
-        return false
+        return null
     }
 }
+
+/**
+ * Like jevAnswer, but fails open: any error returns false so callers never act
+ * on a message we're unsure about.
+ */
+export const jevSaysYes = async (
+    tag: string,
+    question: string,
+    content: string
+): Promise<boolean> => (await jevAnswer(tag, question, content)) ?? false
 
 /**
  * Ask Jev to pick one label for a piece of text. Returns the label and Jev's

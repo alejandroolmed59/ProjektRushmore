@@ -10,6 +10,7 @@ npm run build      # tsc --noEmit (typecheck) + esbuild bundle → dist/index.js
 npm run prettier   # format src/
 node src/deploy-commands.js deploy   # re-register slash commands after changing them
 npm run build:backfill        # bundle the emoji history backfill → dist/backfill-emojis.js
+npm run build:backfill-messages   # bundle the message history download → dist/backfill-messages.js
 npm run build:seed            # bundle the game library seed → dist/seed-games.js (reads data/games-seed.json)
 ```
 
@@ -21,8 +22,9 @@ There are no tests. `npm run build` is the check: run it before calling a change
 - `src/handlers/`: entry points per Discord event. `new-interaction.handler.ts` tries feature handlers first (`handleDebtsInteraction`, `handleEmojiInteraction`); each returns `true` if it handled the interaction. Add new features the same way instead of growing the big switch.
 - `src/services/`: feature logic. `src/embeds/`, `src/modals/`: Discord UI builders.
 - `src/components/`: API clients (`typesafeClient.ts`, the Jev classifier used by the football and work detectors).
-- `src/database/sqlite.ts`: the only store. SQLite (`node:sqlite`, `data/rushmore.db`) holds betting (gamblers, forecasts, predictions), debts, reminders, emoji usage and the game library. Add new features by extending `SCHEMA` with `CREATE ... IF NOT EXISTS`.
-- `src/scripts/`: one-off tools. `backfill-emojis.ts` is bundled and run on the phone; it resumes from a per-channel cursor.
+- `src/database/sqlite.ts`: the only store. SQLite (`node:sqlite`, `data/rushmore.db`) holds betting (gamblers, forecasts, predictions), debts, reminders, emoji usage, the game library and a full copy of the server's messages. Add new features by extending `SCHEMA` with `CREATE ... IF NOT EXISTS`.
+- `src/scanners/`: features that read message history (e.g. `/ranking-pene`). The `messages` table is kept in sync with Discord (`handlers/archive.handler.ts`), and the runner feeds every new, edited or downloaded message to each scanner in `SCANNERS`. For a new history feature, write a `MessageScanner` instead of a new backfill; bump its `version` to rescan everything. Use `cachedJevAnswer` for Jev calls so rescans don't pay twice.
+- `src/scripts/`: one-off tools. `backfill-emojis.ts` and `backfill-messages.ts` are bundled and run on the phone; they resume from a per-channel cursor.
 - `src/deploy-commands.js`: the slash command definitions. Keep it in sync with the handlers.
 
 ## Conventions
