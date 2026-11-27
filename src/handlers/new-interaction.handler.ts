@@ -34,6 +34,7 @@ import { guardRoleGambler } from '../utils/role-guard'
 import { handleDebtsInteraction } from './debts.handler'
 import { handleEmojiInteraction } from './emoji.handler'
 import { handleGamesInteraction } from './games.handler'
+import { handlePeneInteraction } from './pene.handler'
 
 export const newInteractionHandler = async (
     interaction: Interaction
@@ -41,6 +42,7 @@ export const newInteractionHandler = async (
     if (await handleDebtsInteraction(interaction)) return
     if (await handleEmojiInteraction(interaction)) return
     if (await handleGamesInteraction(interaction)) return
+    if (await handlePeneInteraction(interaction)) return
     //COMANDOS
     if (interaction.isChatInputCommand()) {
         // Make sure it's a guild interaction (not a DM)

@@ -123,6 +123,18 @@ CREATE TABLE IF NOT EXISTS jev_cache (
     created_at  INTEGER NOT NULL
 );
 
+-- /ranking-pene (pene scanner): one row per message that mentions a penis.
+-- count is the total occurrences and terms the JSON {word: occurrences}.
+CREATE TABLE IF NOT EXISTS pene_mentions (
+    message_id  TEXT PRIMARY KEY,
+    channel_id  TEXT NOT NULL,
+    user_id     TEXT NOT NULL,
+    count       INTEGER NOT NULL,
+    terms       TEXT NOT NULL,
+    created_at  INTEGER NOT NULL
+);
+CREATE INDEX IF NOT EXISTS pene_mentions_user ON pene_mentions (user_id);
+
 -- Game library: one row per copy someone owns. title_key is the normalized
 -- title (lowercase, no accents or punctuation) used for matching.
 CREATE TABLE IF NOT EXISTS games (

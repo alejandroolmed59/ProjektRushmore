@@ -178,6 +178,13 @@ function defineCommands() {
             )
             .toJSON(),
         new SlashCommandBuilder()
+            .setName('ranking-pene')
+            .setDescription('Quién ha dicho más veces pene (o sinónimos) 🍆')
+            .addUserOption((o) =>
+                o.setName('usuario').setDescription('Ver el conteo y palabras favoritas de alguien (opcional)')
+            )
+            .toJSON(),
+        new SlashCommandBuilder()
             .setName('deudas')
             .setDescription('Quién te debe y a quién le debes 💸')
             .toJSON(),
