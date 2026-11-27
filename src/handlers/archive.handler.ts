@@ -6,6 +6,7 @@ import {
     fromApiMessage,
     fromDiscordMessage,
     newestMessagePerChannel,
+    overwriteArchivedMessage,
 } from '../services/message-archive.service'
 import { pageChannelHistoryAfter } from '../utils/discord-history'
 
@@ -34,6 +35,30 @@ export const archiveEditedMessage = async (
         store([fromDiscordMessage(full)])
     } catch (e) {
         console.log('[archive] failed to store edit:', e)
+    }
+}
+
+/**
+ * Archive the relocator's webhook copy of a message under the person who
+ * wrote the original, so scanners count it for them. Discord reports the
+ * webhook as the copy's author, and a bot's messages aren't counted. The
+ * attribution lives only in the archive: a copy downloaded again into an
+ * empty archive comes back under the webhook.
+ */
+export const archiveRelocatedCopy = (
+    copy: Message,
+    original: Message
+): void => {
+    if (!copy.inGuild()) return
+    try {
+        overwriteArchivedMessage({
+            ...fromDiscordMessage(copy),
+            authorId: original.author.id,
+            authorBot: original.author.bot,
+        })
+        void drainScanners()
+    } catch (e) {
+        console.log('[archive] failed to store relocated copy:', e)
     }
 }
 

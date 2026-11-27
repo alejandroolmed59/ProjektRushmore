@@ -1,10 +1,11 @@
 import { createHash } from 'crypto'
-import { jevAnswer } from '../components/typesafeClient'
+import { jevAnswer, JEV_ANSWER_SETTINGS } from '../components/typesafeClient'
 import { getDb } from '../database/sqlite'
 
 /**
  * jevAnswer, remembering answers in SQLite so rescanning the message archive
- * doesn't ask Jev the same question twice. Errors (null) aren't cached, so
+ * doesn't ask Jev the same question twice. The model and threshold are part
+ * of the key, so changing either asks again. Errors (null) aren't cached, so
  * they're retried next time.
  */
 export const cachedJevAnswer = async (
@@ -13,7 +14,7 @@ export const cachedJevAnswer = async (
     content: string
 ): Promise<boolean | null> => {
     const key = createHash('sha256')
-        .update(`${tag}\0${question}\0${content}`)
+        .update(`${tag}\0${question}\0${content}\0${JEV_ANSWER_SETTINGS}`)
         .digest('hex')
     const db = getDb()
     const hit = db

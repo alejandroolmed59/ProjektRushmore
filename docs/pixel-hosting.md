@@ -91,7 +91,7 @@ scp -i ~/.ssh/rushmore_pixel -P 8022 deploy/pixel/start-backfill-messages.sh <ph
 ssh -i ~/.ssh/rushmore_pixel -p 8022 <phone-tailscale-ip> sh rushmore/start-backfill-messages.sh
 ```
 
-The start script runs it in the background, retries until it finishes, and stops any earlier run first. It logs progress and speed to `logs/backfill-messages.log`, and saves its place per channel (`message_backfill` table), so if it stops, run it again and it resumes. Keep the bot running while it downloads: the bot scans the new rows within a minute. Scanners that use Jev (`/ranking-pene` for words like "plátano") need `TYPESAFE_API_KEY` in the phone's `.env`.
+The start script runs it in the background, retries until it finishes, and stops any earlier run first. It logs progress and speed to `logs/backfill-messages.log`, and saves its place per channel (`message_backfill` table), so if it stops, run it again and it resumes. Keep the bot running while it downloads: the bot scans the new rows within a minute. Scanners that use Jev (`/ranking-pene` for words like "plátano") need `TYPESAFE_API_KEY` in the phone's `.env`. Without it, or while Jev is down, the scanner waits at the first message it needs Jev for: the log shows `[scanners] pene waiting at <message id>` and `/ranking-pene` shows how many messages are still pending. It carries on by itself once Jev answers.
 
 The archive holds the server's full chat text, and the daily backups (local and Drive) include it.
 

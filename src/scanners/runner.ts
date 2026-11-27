@@ -1,16 +1,21 @@
 import { getDb, transaction } from '../database/sqlite'
 import {
+    ArchivedMessage,
     countMessagesAfterSeq,
     deleteArchivedMessages,
+    isArchivedSeq,
     messagesAfterSeq,
 } from '../services/message-archive.service'
 import { SCANNERS } from '.'
-import { MessageScanner } from './types'
+import { MessageScanner, ScannerUnavailableError } from './types'
 
 const BATCH_SIZE = 200
 // A message whose scan keeps throwing is skipped after this many tries, so
 // one bad message can't stall a scanner forever.
 const MAX_ATTEMPTS = 3
+// A message that keeps failing with ScannerUnavailableError is skipped after
+// this long, so one the service can never answer can't stall a scanner either.
+const UNAVAILABLE_GIVE_UP_MS = 24 * 60 * 60_000
 // Picks up rows the backfill script writes from its own process.
 const POLL_INTERVAL_MS = 60_000
 
@@ -39,34 +44,92 @@ const saveSeq = (name: string, seq: number): void => {
 }
 
 const failures = new Map<string, number>()
+// The message each scanner is stuck on while a service it needs is down, and
+// since when.
+const waiting = new Map<string, { seq: number; since: number }>()
+
+/** After a failed scan: true to try the message again later, false to skip it. */
+const retryLater = (
+    scanner: MessageScanner,
+    message: ArchivedMessage,
+    e: unknown
+): boolean => {
+    if (e instanceof ScannerUnavailableError) {
+        const wait = waiting.get(scanner.name)
+        if (wait?.seq !== message.seq) {
+            waiting.set(scanner.name, { seq: message.seq, since: Date.now() })
+            console.log(
+                `[scanners] ${scanner.name} waiting at ${message.id}: ${e.message}`
+            )
+            return true
+        }
+        if (Date.now() - wait.since < UNAVAILABLE_GIVE_UP_MS) return true
+        console.log(
+            `[scanners] ${scanner.name} skipping ${message.id}: still failing after a day`
+        )
+        return false
+    }
+    const key = `${scanner.name}:${message.seq}`
+    const attempts = (failures.get(key) ?? 0) + 1
+    if (attempts < MAX_ATTEMPTS) {
+        failures.set(key, attempts)
+        console.log(
+            `[scanners] ${scanner.name} failed on ${message.id} (try ${attempts}), retrying later:`,
+            e
+        )
+        return true
+    }
+    failures.delete(key)
+    console.log(
+        `[scanners] ${scanner.name} skipping ${message.id} after ${attempts} tries`
+    )
+    return false
+}
+
+/**
+ * Scan one message. Returns false when the pass has to stop here and try the
+ * same message again later.
+ */
+const scanMessage = async (
+    scanner: MessageScanner,
+    message: ArchivedMessage
+): Promise<boolean> => {
+    try {
+        await scanner.scan(message)
+    } catch (e) {
+        if (retryLater(scanner, message, e)) return false
+    } finally {
+        // Deleted on Discord while the scan was waiting or while its batch
+        // was in memory: forgetMessages ran before the scan stored its
+        // result, so drop it now. An edit lands here too, harmlessly: its
+        // new row is scanned later.
+        if (!isArchivedSeq(message.seq)) scanner.forget([message.id])
+    }
+    waiting.delete(scanner.name)
+    return true
+}
 
 const drainScanner = async (scanner: MessageScanner): Promise<void> => {
     let seq = loadSeq(scanner)
     for (;;) {
         const batch = messagesAfterSeq(seq, BATCH_SIZE)
         if (batch.length === 0) return
+        let stopped = false
         for (const message of batch) {
-            try {
-                await scanner.scan(message)
-            } catch (e) {
-                const key = `${scanner.name}:${message.seq}`
-                const attempts = (failures.get(key) ?? 0) + 1
-                if (attempts < MAX_ATTEMPTS) {
-                    failures.set(key, attempts)
-                    console.log(
-                        `[scanners] ${scanner.name} failed on ${message.id} (try ${attempts}), retrying later:`,
-                        e
-                    )
-                    return
-                }
-                failures.delete(key)
-                console.log(
-                    `[scanners] ${scanner.name} skipping ${message.id} after ${attempts} tries`
-                )
+            if (!(await scanMessage(scanner, message))) {
+                stopped = true
+                break
             }
             seq = message.seq
-            saveSeq(scanner.name, seq)
         }
+        // One write per batch, not per message: a crash replays at most one
+        // batch, and scans overwrite their results by message ID.
+        saveSeq(scanner.name, seq)
+        if (stopped) return
+        // A scan that needs no network call never yields, so without this a
+        // full rescan would hold the event loop (commands, reminders, the
+        // gateway heartbeat) until the whole archive is read.
+        await new Promise((resolve) => setImmediate(resolve))
     }
 }
 

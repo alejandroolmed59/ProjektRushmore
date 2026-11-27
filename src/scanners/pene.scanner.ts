@@ -4,7 +4,7 @@ import {
     deletePeneMentions,
     recordPeneMentions,
 } from '../services/pene.service'
-import { MessageScanner } from './types'
+import { MessageScanner, ScannerUnavailableError } from './types'
 
 /** Counts penis references per message for /ranking-pene. */
 export const peneScanner: MessageScanner = {
@@ -18,7 +18,7 @@ export const peneScanner: MessageScanner = {
         // An edit can remove every mention.
         else deletePeneMentions([message.id])
         // The clear words are saved; retry later for the ambiguous ones.
-        if (result.jevFailed) throw new Error('Jev unavailable')
+        if (result.jevFailed) throw new ScannerUnavailableError('Jev failed')
     },
     forget: deletePeneMentions,
     reset: clearPeneMentions,

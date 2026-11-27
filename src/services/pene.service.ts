@@ -1,6 +1,7 @@
 import { getDb } from '../database/sqlite'
 import { cachedJevAnswer } from './jev-cache.service'
 import { ArchivedMessage } from './message-archive.service'
+import { normalizeText } from '../utils/text'
 
 // Each term is a label shown in /ranking-pene plus a regex over normalized
 // text (lowercase, no accents) for its plural, diminutive and augmentative
@@ -69,14 +70,10 @@ const PENE_QUESTION =
     'pico, pija or tool only count when they mean penis, not their literal ' +
     'meaning (food, a country, a bird, a stick, a posh person).'
 
-const COMBINING_MARKS = /[̀-ͯ]/g
 const URL = /https?:\/\/\S+/g
+// Link slugs aren't something anyone said.
 const normalize = (text: string): string =>
-    text
-        .replace(URL, ' ') // link slugs aren't something anyone said
-        .toLowerCase()
-        .normalize('NFD')
-        .replace(COMBINING_MARKS, '') // strip accents
+    normalizeText(text.replace(URL, ' '))
 
 type Matcher = { label: string; regex: RegExp }
 const compile = (terms: Term[]): Matcher[] =>

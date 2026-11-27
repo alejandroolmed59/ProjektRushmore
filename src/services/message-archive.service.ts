@@ -41,6 +41,28 @@ export const fromApiMessage = (m: APIMessage): ArchiveInput => ({
     editedAt: m.edited_timestamp ? Date.parse(m.edited_timestamp) : null,
 })
 
+const insertMessage = (m: ArchiveInput): void => {
+    // INSERT OR REPLACE (rather than UPDATE) removes the old row first, so
+    // the new one gets a new seq and the scanners pick up the edit.
+    getDb()
+        .prepare(
+            `INSERT OR REPLACE INTO messages (id, channel_id, author_id, author_bot,
+                content, reply_to_id, attachment_count, created_at, edited_at)
+             VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)`
+        )
+        .run(
+            m.id,
+            m.channelId,
+            m.authorId,
+            m.authorBot ? 1 : 0,
+            m.content,
+            m.replyToId,
+            m.attachmentCount,
+            m.createdAt,
+            m.editedAt
+        )
+}
+
 /**
  * Insert or rewrite one message. A message already stored with the same text
  * and edit time is left alone, so re-downloading history doesn't make the
@@ -57,30 +79,31 @@ const writeMessage = (m: ArchiveInput): boolean => {
         existing.edited_at === m.editedAt
     )
         return false
-    // Delete and reinsert (rather than UPDATE) so the row gets a new seq and
-    // the scanners pick up the edit.
-    db.prepare('DELETE FROM messages WHERE id = ?').run(m.id)
-    db.prepare(
-        `INSERT INTO messages (id, channel_id, author_id, author_bot, content,
-            reply_to_id, attachment_count, created_at, edited_at)
-         VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)`
-    ).run(
-        m.id,
-        m.channelId,
-        m.authorId,
-        m.authorBot ? 1 : 0,
-        m.content,
-        m.replyToId,
-        m.attachmentCount,
-        m.createdAt,
-        m.editedAt
-    )
+    insertMessage(m)
     return true
 }
 
 /** Store messages; returns how many were new or changed. */
 export const archiveMessages = (messages: ArchiveInput[]): number =>
     transaction(() => messages.filter(writeMessage).length)
+
+/**
+ * Store a message even if the archive already has it with the same text, so
+ * the scanners read it again. For a copy whose author differs from the one
+ * Discord reports: a later write of the same text leaves the row alone, so
+ * the author given here stays.
+ */
+export const overwriteArchivedMessage = (message: ArchiveInput): void => {
+    insertMessage(message)
+}
+
+/**
+ * Whether the row a scanner was handed is still in the archive. False once
+ * the message was deleted, or rewritten by an edit (which gets a new seq).
+ */
+export const isArchivedSeq = (seq: number): boolean =>
+    getDb().prepare('SELECT 1 FROM messages WHERE seq = ?').get(seq) !==
+    undefined
 
 export const deleteArchivedMessages = (ids: string[]): void => {
     getDb()

@@ -3,13 +3,14 @@ import { choice, ChoiceCriteria, noul, TypeSafeClient } from '@typesafe-ai/sdk'
 // Pinned so the probability threshold we tune keeps meaning the same thing
 // when TypeSafe ships a new jev-latest.
 const DEFAULT_MODEL = 'jev-1.13.0'
+const MODEL = process.env.TYPESAFE_DEFAULT_MODEL || DEFAULT_MODEL
 
 let typesafeClient: TypeSafeClient | null = null
 export const getTypeSafeClient = (): TypeSafeClient => {
     if (!typesafeClient) {
         typesafeClient = new TypeSafeClient({
             apiKey: process.env.TYPESAFE_API_KEY ?? '',
-            defaultModel: process.env.TYPESAFE_DEFAULT_MODEL || DEFAULT_MODEL,
+            defaultModel: MODEL,
         })
     }
     return typesafeClient
@@ -20,6 +21,13 @@ const THRESHOLD =
     Number.isFinite(parsedThreshold) && parsedThreshold > 0
         ? parsedThreshold
         : 0.5
+
+/**
+ * The settings a jevAnswer depends on besides its arguments. They are part of
+ * the cache key in jev-cache.service.ts, so an answer cached under one model
+ * or threshold isn't reused under another.
+ */
+export const JEV_ANSWER_SETTINGS = `${MODEL}@${THRESHOLD}`
 
 /**
  * Ask Jev a yes/no question about a message. Compares the probability that the

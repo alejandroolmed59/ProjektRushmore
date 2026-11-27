@@ -115,8 +115,8 @@ CREATE TABLE IF NOT EXISTS scanner_state (
     last_seq  INTEGER NOT NULL DEFAULT 0
 );
 
--- Jev answers by hash of (tag, question, text), so a rescan doesn't pay for
--- the same question twice.
+-- Jev answers by hash of (tag, question, text, model and threshold), so a
+-- rescan doesn't pay for the same question twice.
 CREATE TABLE IF NOT EXISTS jev_cache (
     key         TEXT PRIMARY KEY,
     answer      INTEGER NOT NULL,
