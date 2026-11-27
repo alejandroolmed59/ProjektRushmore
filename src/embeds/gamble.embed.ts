@@ -14,7 +14,8 @@ export const newPredictionEmbedBuilder = (
     gambleDecision: 'yes' | 'no',
     discordDisplayName: string,
     multiplier: number,
-    amountCents: number
+    amountCents: number,
+    registered: boolean
 ): EmbedBuilder => {
     const embed = new EmbedBuilder()
         .setTitle('Nueva predicción!')
@@ -25,6 +26,10 @@ export const newPredictionEmbedBuilder = (
             CCC disponibles: ${formatCcc(gambler.moneyCents)}, CCC lockeadas ${formatCcc(gambler.reservedCents)} `
         )
         .setColor(gambleDecision === 'yes' ? Colors.DarkGreen : Colors.DarkRed)
+    if (registered)
+        embed.setFooter({
+            text: `Primera apuesta de ${discordDisplayName} 🤠, recibió ${formatCcc(gambler.moneyCents + gambler.reservedCents)} CCC para empezar`,
+        })
     return embed
 }
 

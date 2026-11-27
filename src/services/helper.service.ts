@@ -7,6 +7,8 @@ import {
 } from '../interfaces/gambler.interface'
 import { endForecastStatus, getForecast } from './forecast.service'
 import { getMoney } from './money.service'
+import { formatCcc } from '../utils/money'
+import { UserError } from '../utils/user-error'
 import {
     createPredictionFromForecast,
     endPredictionsForForecast,
@@ -17,10 +19,12 @@ import {
 export const helperCreatePrediction = (
     gambleId: string,
     discordId: string,
+    displayName: string,
     decision: 'yes' | 'no',
     amountCents?: number
 ): {
     gambler: Gambler
+    registered: boolean
     forecast: Forecast
     odds: number
     multiplier: number
@@ -29,26 +33,32 @@ export const helperCreatePrediction = (
     const forecast = getForecast(gambleId)
     const wager = amountCents ?? forecast.amountCents
     if (forecast.status !== 'ACTIVE')
-        throw new Error(`gambleId: ${gambleId} not active`, {
+        throw new UserError(`gambleId: ${gambleId} not active`, {
             cause: { forecastStatus: forecast.status },
         })
     if (!Number.isInteger(wager) || wager <= 0)
-        throw new Error(`Invalid wagered amount ${wager / 100}`)
+        throw new UserError(`Invalid wagered amount ${formatCcc(wager)}`)
     const proba = decision === 'yes' ? forecast.yesOdds : 1 - forecast.yesOdds
     if (proba <= 0)
-        throw new Error(`Invalid zero odds value gambleId: ${gambleId}`, {
+        throw new UserError(`Invalid zero odds value gambleId: ${gambleId}`, {
             cause: { status: 1 },
         })
     const multiplier = Number((1 / proba).toFixed(2))
 
-    const gambler = createPredictionFromForecast(
-        gambleId,
-        wager,
-        discordId,
+    return {
+        ...createPredictionFromForecast(
+            gambleId,
+            wager,
+            discordId,
+            displayName,
+            multiplier,
+            decision
+        ),
+        forecast,
+        odds: proba,
         multiplier,
-        decision
-    )
-    return { gambler, forecast, odds: proba, multiplier, amountCents: wager }
+        amountCents: wager,
+    }
 }
 
 /**

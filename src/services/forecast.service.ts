@@ -1,3 +1,4 @@
+import { UserError } from '../utils/user-error'
 import { getDb } from '../database/sqlite'
 import { Forecast } from '../interfaces/gambler.interface'
 
@@ -23,7 +24,7 @@ export const getForecast = (gambleId: string): Forecast => {
     const row = getDb()
         .prepare('SELECT * FROM forecasts WHERE id = ?')
         .get(gambleId) as ForecastRow | undefined
-    if (!row) throw new Error(`Forecast ${gambleId} doesnt exist`)
+    if (!row) throw new UserError(`Forecast ${gambleId} doesnt exist`)
     return rowToForecast(row)
 }
 
@@ -69,7 +70,7 @@ export const editForecast = (
         yesOddsInput < 1 ||
         yesOddsInput > 99
     )
-        throw new Error('La probabilidad debe estar entre 1 y 99')
+        throw new UserError('La probabilidad debe estar entre 1 y 99')
     getForecast(gambleId)
     getDb()
         .prepare('UPDATE forecasts SET yes_odds = ? WHERE id = ?')
