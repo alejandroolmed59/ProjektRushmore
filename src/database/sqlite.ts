@@ -79,6 +79,62 @@ CREATE TABLE IF NOT EXISTS emoji_backfill (
     done        INTEGER NOT NULL DEFAULT 0
 );
 
+-- Local copy of every guild message, kept in sync with Discord: the bot
+-- inserts new ones, rewrites edited ones and deletes deleted ones, and the
+-- backfill script downloads the history. seq goes up every time a row is
+-- written (AUTOINCREMENT never reuses values), so scanners walk the table by
+-- seq and an edit is rescanned like a new message.
+CREATE TABLE IF NOT EXISTS messages (
+    seq               INTEGER PRIMARY KEY AUTOINCREMENT,
+    id                TEXT NOT NULL UNIQUE,
+    channel_id        TEXT NOT NULL,
+    author_id         TEXT NOT NULL,
+    author_bot        INTEGER NOT NULL DEFAULT 0,
+    content           TEXT NOT NULL,
+    reply_to_id       TEXT,
+    attachment_count  INTEGER NOT NULL DEFAULT 0,
+    created_at        INTEGER NOT NULL,
+    edited_at         INTEGER
+);
+CREATE INDEX IF NOT EXISTS messages_channel ON messages (channel_id, created_at);
+CREATE INDEX IF NOT EXISTS messages_author ON messages (author_id);
+
+-- Resume point per channel for the message history backfill.
+CREATE TABLE IF NOT EXISTS message_backfill (
+    channel_id  TEXT PRIMARY KEY,
+    before_id   TEXT,
+    scanned     INTEGER NOT NULL DEFAULT 0,
+    done        INTEGER NOT NULL DEFAULT 0
+);
+
+-- How far each message scanner (src/scanners) has read the messages table.
+-- A version change makes the scanner wipe its data and start over.
+CREATE TABLE IF NOT EXISTS scanner_state (
+    name      TEXT PRIMARY KEY,
+    version   INTEGER NOT NULL,
+    last_seq  INTEGER NOT NULL DEFAULT 0
+);
+
+-- Jev answers by hash of (tag, question, text, model and threshold), so a
+-- rescan doesn't pay for the same question twice.
+CREATE TABLE IF NOT EXISTS jev_cache (
+    key         TEXT PRIMARY KEY,
+    answer      INTEGER NOT NULL,
+    created_at  INTEGER NOT NULL
+);
+
+-- /ranking-pene (pene scanner): one row per message that mentions a penis.
+-- count is the total occurrences and terms the JSON {word: occurrences}.
+CREATE TABLE IF NOT EXISTS pene_mentions (
+    message_id  TEXT PRIMARY KEY,
+    channel_id  TEXT NOT NULL,
+    user_id     TEXT NOT NULL,
+    count       INTEGER NOT NULL,
+    terms       TEXT NOT NULL,
+    created_at  INTEGER NOT NULL
+);
+CREATE INDEX IF NOT EXISTS pene_mentions_user ON pene_mentions (user_id);
+
 -- Game library: one row per copy someone owns. title_key is the normalized
 -- title (lowercase, no accents or punctuation) used for matching.
 CREATE TABLE IF NOT EXISTS games (

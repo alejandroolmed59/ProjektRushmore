@@ -1,5 +1,6 @@
 import { loadLearnedKeywords } from './learned-keywords.service'
 import { jevSaysYes } from '../components/typesafeClient'
+import { normalizeText } from '../utils/text'
 
 // Strong football/soccer signals. The watched user posts in Spanish, so the
 // list is Spanish-first with a few code-switched English terms mixed in.
@@ -74,10 +75,6 @@ const AMBIGUOUS_KEYWORDS: string[] = [
     'transferencia',
 ]
 
-const COMBINING_MARKS = /[̀-ͯ]/g
-const normalize = (text: string): string =>
-    text.toLowerCase().normalize('NFD').replace(COMBINING_MARKS, '') // strip accents
-
 // Multi-word keywords match as a substring; single tokens match on word
 // boundaries to avoid false hits inside longer words. Compile each matcher
 // once at module load rather than per message.
@@ -96,7 +93,9 @@ const learned = loadLearnedKeywords()
 const buildMatchers = (builtIn: string[], extra: string[]): Matcher[] => {
     const deduped = Array.from(
         new Set(
-            [...builtIn, ...extra].map(normalize).filter((w) => w.length > 0)
+            [...builtIn, ...extra]
+                .map(normalizeText)
+                .filter((w) => w.length > 0)
         )
     )
     return deduped.map(compileMatcher)
@@ -108,7 +107,7 @@ const STRONG_MATCHERS = buildMatchers(STRONG_KEYWORDS, learned?.strong ?? [])
 // var, fc) are one typo away from too many ordinary words.
 const MIN_FUZZY_LENGTH = 5
 const FUZZY_KEYWORDS = Array.from(
-    new Set([...STRONG_KEYWORDS, ...(learned?.strong ?? [])].map(normalize))
+    new Set([...STRONG_KEYWORDS, ...(learned?.strong ?? [])].map(normalizeText))
 ).filter((w) => !w.includes(' ') && w.length >= MIN_FUZZY_LENGTH)
 
 /**
@@ -159,7 +158,7 @@ if (learned) {
  * - 'maybe' -> ambiguous or a misspelled keyword, escalate to Jev
  */
 export const keywordHasFootball = (content: string): 'yes' | 'no' | 'maybe' => {
-    const text = normalize(content)
+    const text = normalizeText(content)
 
     if (STRONG_MATCHERS.some((m) => matches(text, m))) return 'yes'
     if (AMBIGUOUS_MATCHERS.some((m) => matches(text, m))) return 'maybe'

@@ -8,6 +8,7 @@ import {
 } from 'discord.js'
 import { isFootballMessage, jevIsFootball } from './football-detector.service'
 import { isWorkRelated } from './work-detector.service'
+import { archiveRelocatedCopy } from '../handlers/archive.handler'
 import { parseIdList } from '../utils/id-list'
 
 const WEBHOOK_NAME = 'shitpost-relocator'
@@ -76,12 +77,13 @@ export const relocateMessage = async (
 
         if (body.length === 0) return
 
-        await webhook.send({
+        const copy = await webhook.send({
             content: body,
             username: message.member?.displayName ?? message.author.username,
             avatarURL: message.author.displayAvatarURL(),
             allowedMentions: { parse: [] }, // don't re-ping anyone on the copy
         })
+        archiveRelocatedCopy(copy, message)
 
         await message.delete()
     } catch (e) {
