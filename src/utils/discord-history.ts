@@ -135,3 +135,27 @@ export async function* pageChannelHistory(
         before = last.id
     }
 }
+
+/**
+ * Page a channel's messages posted after `after`, oldest batch first, in
+ * batches of 100. Used to catch up on what was sent while the bot was down.
+ */
+export async function* pageChannelHistoryAfter(
+    rest: REST,
+    channelId: string,
+    after: string
+): AsyncGenerator<APIMessage[]> {
+    for (;;) {
+        const query = new URLSearchParams({ limit: '100', after })
+        const batch = (await rest.get(Routes.channelMessages(channelId), {
+            query,
+        })) as APIMessage[]
+        if (batch.length === 0) return
+        yield batch
+        // Don't rely on the batch's order: take the highest snowflake.
+        after = batch
+            .map((m) => BigInt(m.id))
+            .reduce((a, b) => (a > b ? a : b))
+            .toString()
+    }
+}

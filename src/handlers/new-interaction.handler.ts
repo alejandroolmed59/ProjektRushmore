@@ -35,6 +35,7 @@ import { UserError } from '../utils/user-error'
 import { handleDebtsInteraction } from './debts.handler'
 import { handleEmojiInteraction } from './emoji.handler'
 import { handleGamesInteraction } from './games.handler'
+import { handlePeneInteraction } from './pene.handler'
 
 /** Log real faults only: a UserError is the user's mistake, not ours. */
 const logUnexpected = (label: string, e: unknown): void => {
@@ -91,6 +92,7 @@ export const newInteractionHandler = async (
     if (await handleDebtsInteraction(interaction)) return
     if (await handleEmojiInteraction(interaction)) return
     if (await handleGamesInteraction(interaction)) return
+    if (await handlePeneInteraction(interaction)) return
     if (!interaction.isRepliable()) return
     // Betting only works in the server: one guard for commands, modals and buttons.
     if (!interaction.inCachedGuild()) {

@@ -1,8 +1,5 @@
 import { jevSaysYes } from '../components/typesafeClient'
-
-const COMBINING_MARKS = /[̀-ͯ]/g
-const normalizeText = (text: string): string =>
-    text.toLowerCase().normalize('NFD').replace(COMBINING_MARKS, '')
+import { normalizeText } from '../utils/text'
 
 const STRONG_WORK_KEYWORDS = [
     'trabajo',
