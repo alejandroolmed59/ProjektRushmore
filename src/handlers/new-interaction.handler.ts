@@ -1,4 +1,4 @@
-import { Interaction } from 'discord.js'
+import { Interaction, RepliableInteraction } from 'discord.js'
 import {
     gamblingModalSubmission,
     gamblingModalBuilder,
@@ -31,10 +31,60 @@ import {
 import { parseAmountToCents } from '../utils/money'
 import { GenerateId } from '../utils/id-generator'
 import { guardRoleGambler } from '../utils/role-guard'
+import { UserError } from '../utils/user-error'
 import { handleDebtsInteraction } from './debts.handler'
 import { handleEmojiInteraction } from './emoji.handler'
 import { handleGamesInteraction } from './games.handler'
 import { handlePeneInteraction } from './pene.handler'
+
+/** Log real faults only: a UserError is the user's mistake, not ours. */
+const logUnexpected = (label: string, e: unknown): void => {
+    if (!(e instanceof UserError)) console.error(label, e)
+}
+
+/** Place a bet and reply with the result. amountCents defaults to the forecast's wager. */
+const placeBet = async (
+    interaction: RepliableInteraction<'cached'>,
+    label: string,
+    errorPrefix: string,
+    gambleId: string,
+    decision: 'yes' | 'no',
+    amountCents?: number
+): Promise<void> => {
+    let bet: ReturnType<typeof helperCreatePrediction>
+    try {
+        bet = helperCreatePrediction(
+            gambleId,
+            interaction.user.id,
+            interaction.user.displayName,
+            decision,
+            amountCents
+        )
+    } catch (e) {
+        logUnexpected(`[betting] ${label} failed`, e)
+        await interaction.reply(
+            e instanceof Error
+                ? `${errorPrefix}. ${e.message}, ${(e.cause && JSON.stringify(e.cause)) || ''}`
+                : errorPrefix
+        )
+        return
+    }
+    // Outside the try: the bet is committed by now, so a failed reply must not
+    // be reported as a failed bet or answered a second time.
+    await interaction.reply({
+        embeds: [
+            newPredictionEmbedBuilder(
+                bet.forecast,
+                bet.gambler,
+                decision,
+                interaction.user.displayName,
+                bet.multiplier,
+                bet.amountCents,
+                bet.registered
+            ),
+        ],
+    })
+}
 
 export const newInteractionHandler = async (
     interaction: Interaction
@@ -43,15 +93,16 @@ export const newInteractionHandler = async (
     if (await handleEmojiInteraction(interaction)) return
     if (await handleGamesInteraction(interaction)) return
     if (await handlePeneInteraction(interaction)) return
+    if (!interaction.isRepliable()) return
+    // Betting only works in the server: one guard for commands, modals and buttons.
+    if (!interaction.inCachedGuild()) {
+        await interaction.reply({
+            content: 'Los comandos solo funcionan en server',
+        })
+        return
+    }
     //COMANDOS
     if (interaction.isChatInputCommand()) {
-        // Make sure it's a guild interaction (not a DM)
-        if (!interaction.inCachedGuild()) {
-            interaction.reply({
-                content: 'Los comandos solo funcionan en server',
-            })
-            return
-        }
         switch (interaction.commandName) {
             case 'create-polymarket':
                 const gamblingModal = gamblingModalBuilder()
@@ -87,39 +138,14 @@ export const newInteractionHandler = async (
                     )
                     return
                 }
-                try {
-                    const helperResponse = helperCreatePrediction(
-                        gambleIdInput,
-                        interaction.user.id,
-                        interaction.user.displayName,
-                        forecastInput,
-                        amountCents
-                    )
-                    const embedForecast = newPredictionEmbedBuilder(
-                        helperResponse.forecast,
-                        helperResponse.gambler,
-                        forecastInput,
-                        interaction.user.displayName,
-                        helperResponse.multiplier,
-                        helperResponse.amountCents,
-                        helperResponse.registered
-                    )
-
-                    await interaction.reply({
-                        embeds: [embedForecast],
-                    })
-                } catch (e) {
-                    console.error('[betting] crear-prediccion failed', e)
-                    if (e instanceof Error) {
-                        const errorMessage = e.message
-                        const cause = e.cause
-                        await interaction.reply(
-                            `Error creando prediccion. ${errorMessage}, ${(cause && JSON.stringify(cause)) || ''}`
-                        )
-                        return
-                    }
-                    await interaction.reply('Error creando prediccion')
-                }
+                await placeBet(
+                    interaction,
+                    'crear-prediccion',
+                    'Error creando prediccion',
+                    gambleIdInput,
+                    forecastInput,
+                    amountCents
+                )
                 break
             case 'editar-apuesta':
                 try {
@@ -258,7 +284,7 @@ export const newInteractionHandler = async (
                     components: respuesta.modal.component,
                 })
             } catch (e) {
-                console.error('[betting] create-polymarket failed', e)
+                logUnexpected('[betting] create-polymarket failed', e)
                 if (e instanceof Error) {
                     const errorMessage = e.message
                     await interaction.reply(
@@ -271,58 +297,40 @@ export const newInteractionHandler = async (
             }
         } else if (interaction.customId.startsWith('custom-prediction-')) {
             // Handle custom prediction modal submission
-            try {
-                const gambleId = interaction.customId.replace('custom-prediction-', '')
-                const forecastDecisionInput = interaction.fields.getTextInputValue('forecastDecision').toLowerCase()
-                const amountCents = parseAmountToCents(
-                    interaction.fields.getTextInputValue('amountWagered')
+            const gambleId = interaction.customId.replace(
+                'custom-prediction-',
+                ''
+            )
+            const forecastDecisionInput = interaction.fields
+                .getTextInputValue('forecastDecision')
+                .toLowerCase()
+            const amountCents = parseAmountToCents(
+                interaction.fields.getTextInputValue('amountWagered')
+            )
+            // Validate forecast decision
+            if (
+                forecastDecisionInput !== 'sí' &&
+                forecastDecisionInput !== 'si' &&
+                forecastDecisionInput !== 'no'
+            ) {
+                await interaction.reply(
+                    'Error: La predicción debe ser "SI" o "NO" 0t'
                 )
-                // Validate forecast decision
-                if (forecastDecisionInput !== 'sí' && forecastDecisionInput !== 'si' && forecastDecisionInput !== 'no') {
-                    await interaction.reply('Error: La predicción debe ser "SI" o "NO" 0t')
-                    return
-                }
-                
-                const forecastDecision = (forecastDecisionInput === 'sí' || forecastDecisionInput === 'si') ? 'yes' : 'no'
-                
-                // Validate amount
-                if (amountCents === null) {
-                    await interaction.reply('Error: La apuesta debe ser mayor a 0')
-                    return
-                }
-                
-                const helperResponse = helperCreatePrediction(
-                    gambleId,
-                    interaction.user.id,
-                    interaction.user.displayName,
-                    forecastDecision,
-                    amountCents
-                )
-                const embedForecast = newPredictionEmbedBuilder(
-                    helperResponse.forecast,
-                    helperResponse.gambler,
-                    forecastDecision,
-                    interaction.user.displayName,
-                    helperResponse.multiplier,
-                    helperResponse.amountCents,
-                    helperResponse.registered
-                )
-
-                await interaction.reply({
-                    embeds: [embedForecast],
-                })
-            } catch (e) {
-                console.error('[betting] custom prediction failed', e)
-                if (e instanceof Error) {
-                    const errorMessage = e.message
-                    const cause = e.cause
-                    await interaction.reply(
-                        `Error creando predicción personalizada. ${errorMessage}, ${(cause && JSON.stringify(cause)) || ''}`
-                    )
-                    return
-                }
-                await interaction.reply('Error creando predicción personalizada')
+                return
             }
+            // Validate amount
+            if (amountCents === null) {
+                await interaction.reply('Error: La apuesta debe ser mayor a 0')
+                return
+            }
+            await placeBet(
+                interaction,
+                'custom prediction',
+                'Error creando predicción personalizada',
+                gambleId,
+                forecastDecisionInput === 'no' ? 'no' : 'yes',
+                amountCents
+            )
         }
     }
     // DESPUES DEL SLASH COMMAND
@@ -368,37 +376,12 @@ export const newInteractionHandler = async (
             throw new Error(
                 `Error when creating users bet, gambleId ${gambleId}, decision ${gambleDecision} `
             )
-        try {
-            const helperResponse = helperCreatePrediction(
-                gambleId,
-                interaction.user.id,
-                interaction.user.displayName,
-                gambleDecision
-            )
-            const embedRes = newPredictionEmbedBuilder(
-                helperResponse.forecast,
-                helperResponse.gambler,
-                gambleDecision,
-                interaction.user.displayName,
-                helperResponse.multiplier,
-                helperResponse.amountCents,
-                helperResponse.registered
-            )
-
-            await interaction.reply({
-                embeds: [embedRes],
-            })
-        } catch (e) {
-            console.error('[betting] button prediction failed', e)
-            if (e instanceof Error) {
-                const errorMessage = e.message
-                const cause = e.cause
-                await interaction.reply(
-                    `Error creando prediccion. ${errorMessage}, ${(cause && JSON.stringify(cause)) || ''}`
-                )
-                return
-            }
-            await interaction.reply('Error creando prediccion')
-        }
+        await placeBet(
+            interaction,
+            'button prediction',
+            'Error creando prediccion',
+            gambleId,
+            gambleDecision
+        )
     }
 }
