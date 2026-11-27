@@ -65,7 +65,7 @@ ssh -i ~/.ssh/rushmore_pixel -p 8022 <phone-tailscale-ip> 'SVDIR=$PREFIX/var/ser
 
 App layout on the phone: `~/rushmore/{dist/index.js, data/, .env, logs/}`. Copy `.env` by hand; it's not in git.
 
-Everything, betting included, lives in `data/rushmore.db`; the bot needs no cloud database. Betting moved off DynamoDB without importing the old data, so balances start fresh: everyone runs `!cajero` again for 1000 CCC. The phone's `.env` no longer needs `AWS_REGION` or the `*_TABLE_NAME` vars.
+Everything, betting included, lives in `data/rushmore.db`; the bot needs no cloud database. Betting moved off DynamoDB without importing the old data, so balances start fresh: everyone gets a new account with 1000 CCC on their first bet (or by running `!cajero`). The phone's `.env` no longer needs `AWS_REGION` or the `*_TABLE_NAME` vars.
 
 ### Seeding the game library
 

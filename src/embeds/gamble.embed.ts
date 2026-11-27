@@ -15,7 +15,7 @@ export const newPredictionEmbedBuilder = (
     discordDisplayName: string,
     multiplier: number,
     amountCents: number,
-    registered: boolean = false
+    registered: boolean
 ): EmbedBuilder => {
     const embed = new EmbedBuilder()
         .setTitle('Nueva predicción!')

@@ -7,6 +7,8 @@ import {
 } from '../interfaces/gambler.interface'
 import { endForecastStatus, getForecast } from './forecast.service'
 import { getMoney } from './money.service'
+import { formatCcc } from '../utils/money'
+import { UserError } from '../utils/user-error'
 import {
     createPredictionFromForecast,
     endPredictionsForForecast,
@@ -31,29 +33,27 @@ export const helperCreatePrediction = (
     const forecast = getForecast(gambleId)
     const wager = amountCents ?? forecast.amountCents
     if (forecast.status !== 'ACTIVE')
-        throw new Error(`gambleId: ${gambleId} not active`, {
+        throw new UserError(`gambleId: ${gambleId} not active`, {
             cause: { forecastStatus: forecast.status },
         })
     if (!Number.isInteger(wager) || wager <= 0)
-        throw new Error(`Invalid wagered amount ${wager / 100}`)
+        throw new UserError(`Invalid wagered amount ${formatCcc(wager)}`)
     const proba = decision === 'yes' ? forecast.yesOdds : 1 - forecast.yesOdds
     if (proba <= 0)
-        throw new Error(`Invalid zero odds value gambleId: ${gambleId}`, {
+        throw new UserError(`Invalid zero odds value gambleId: ${gambleId}`, {
             cause: { status: 1 },
         })
     const multiplier = Number((1 / proba).toFixed(2))
 
-    const { gambler, registered } = createPredictionFromForecast(
-        gambleId,
-        wager,
-        discordId,
-        displayName,
-        multiplier,
-        decision
-    )
     return {
-        gambler,
-        registered,
+        ...createPredictionFromForecast(
+            gambleId,
+            wager,
+            discordId,
+            displayName,
+            multiplier,
+            decision
+        ),
         forecast,
         odds: proba,
         multiplier,

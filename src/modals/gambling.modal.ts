@@ -1,3 +1,4 @@
+import { UserError } from '../utils/user-error'
 import {
     ActionRowBuilder,
     ActionRowData,
@@ -36,7 +37,7 @@ export const gamblingModalSubmission = (
     const montoInput = interaction.fields.getTextInputValue('montoApuesta')
     const amountCents = parseAmountToCents(montoInput)
     if (amountCents === null)
-        throw new Error(`Monto de apuesta ${montoInput} invalido`)
+        throw new UserError(`Monto de apuesta ${montoInput} invalido`)
     const probabilidadApuestaInput =
         Number(interaction.fields.getTextInputValue('probabilidadApuesta')) /
         100
@@ -46,7 +47,7 @@ export const gamblingModalSubmission = (
         probabilidadApuestaInput < 0.01 ||
         probabilidadApuestaInput > 0.99
     )
-        throw new Error(
+        throw new UserError(
             `Numero no valido ${probabilidadApuestaInput} en probabilidad de apuesta`
         )
     //Calcular los porcentajes
