@@ -17,10 +17,12 @@ import {
 export const helperCreatePrediction = (
     gambleId: string,
     discordId: string,
+    displayName: string,
     decision: 'yes' | 'no',
     amountCents?: number
 ): {
     gambler: Gambler
+    registered: boolean
     forecast: Forecast
     odds: number
     multiplier: number
@@ -41,14 +43,22 @@ export const helperCreatePrediction = (
         })
     const multiplier = Number((1 / proba).toFixed(2))
 
-    const gambler = createPredictionFromForecast(
+    const { gambler, registered } = createPredictionFromForecast(
         gambleId,
         wager,
         discordId,
+        displayName,
         multiplier,
         decision
     )
-    return { gambler, forecast, odds: proba, multiplier, amountCents: wager }
+    return {
+        gambler,
+        registered,
+        forecast,
+        odds: proba,
+        multiplier,
+        amountCents: wager,
+    }
 }
 
 /**

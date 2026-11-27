@@ -2,7 +2,7 @@ import { getDb, transaction } from '../database/sqlite'
 import { Gambler, PredictionHistory } from '../interfaces/gambler.interface'
 import { GenerateLongerId } from '../utils/id-generator'
 import { formatCcc } from '../utils/money'
-import { getGambler } from './money.service'
+import { getGambler, registerGambler } from './money.service'
 
 type PredictionRow = {
     id: string
@@ -26,16 +26,19 @@ const rowToPrediction = (row: PredictionRow): PredictionHistory => ({
 
 /**
  * Place a bet: move the stake from the gambler's spendable money to reserved
- * and record the prediction, atomically. Returns the updated gambler.
+ * and record the prediction, atomically. Someone betting for the first time is
+ * registered with the starting balance, the same as !cajero. Returns the
+ * updated gambler and whether they were just registered.
  */
 export const createPredictionFromForecast = (
     gambleId: string,
     amountCents: number,
     discordId: string,
+    displayName: string,
     multiplier: number,
     gambleDecision: 'yes' | 'no',
     now: number = Date.now()
-): Gambler =>
+): { gambler: Gambler; registered: boolean } =>
     transaction(() => {
         // Checked here too: a stake on a DONE forecast would stay reserved forever.
         const forecast = getDb()
@@ -43,9 +46,8 @@ export const createPredictionFromForecast = (
             .get(gambleId) as { status: string } | undefined
         if (forecast?.status !== 'ACTIVE')
             throw new Error(`gambleId: ${gambleId} not active`)
-        const gambler = getGambler(discordId)
-        if (!gambler)
-            throw new Error('Gambler not found', { cause: { status: 2 } })
+        const existing = getGambler(discordId)
+        const gambler = existing ?? registerGambler(discordId, displayName, now)
         if (gambler.moneyCents < amountCents)
             throw new Error('Not enough ccc, negative remaining money', {
                 cause: {
@@ -74,9 +76,12 @@ export const createPredictionFromForecast = (
             )
             .run(amountCents, amountCents, discordId)
         return {
-            ...gambler,
-            moneyCents: gambler.moneyCents - amountCents,
-            reservedCents: gambler.reservedCents + amountCents,
+            gambler: {
+                ...gambler,
+                moneyCents: gambler.moneyCents - amountCents,
+                reservedCents: gambler.reservedCents + amountCents,
+            },
+            registered: !existing,
         }
     })
 

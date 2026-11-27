@@ -32,6 +32,26 @@ export const getMoney = (): Gambler[] =>
         rowToGambler
     )
 
+/** Insert a gambler with the starting balance. Caller checks they don't exist. */
+export const registerGambler = (
+    discordId: string,
+    displayName: string,
+    now: number = Date.now()
+): Gambler => {
+    getDb()
+        .prepare(
+            `INSERT INTO gamblers (discord_id, display_name, money_cents, reserved_cents, created_at)
+            VALUES (?, ?, ?, 0, ?)`
+        )
+        .run(discordId, displayName, STARTING_CENTS, now)
+    return {
+        discordId,
+        displayName,
+        moneyCents: STARTING_CENTS,
+        reservedCents: 0,
+    }
+}
+
 /** !cajero: register a new gambler, or refill one who is nearly broke. */
 export const createNewGambler = (
     discordId: string,
@@ -51,12 +71,7 @@ export const createNewGambler = (
             action: 'Sacando 250$ CCC de la cuenta del banco para las apuestas 🤑',
         }
     }
-    getDb()
-        .prepare(
-            `INSERT INTO gamblers (discord_id, display_name, money_cents, reserved_cents, created_at)
-            VALUES (?, ?, ?, 0, ?)`
-        )
-        .run(discordId, displayName, STARTING_CENTS, now)
+    registerGambler(discordId, displayName, now)
     return {
         action: 'Hoy nacio un apostador exitoso 🤠, ten tus primeros 1000 CCC, aprovechalos y multiplicalos',
     }

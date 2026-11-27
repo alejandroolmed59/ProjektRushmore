@@ -89,6 +89,7 @@ export const newInteractionHandler = async (
                     const helperResponse = helperCreatePrediction(
                         gambleIdInput,
                         interaction.user.id,
+                        interaction.user.displayName,
                         forecastInput,
                         amountCents
                     )
@@ -98,13 +99,15 @@ export const newInteractionHandler = async (
                         forecastInput,
                         interaction.user.displayName,
                         helperResponse.multiplier,
-                        helperResponse.amountCents
+                        helperResponse.amountCents,
+                        helperResponse.registered
                     )
 
                     await interaction.reply({
                         embeds: [embedForecast],
                     })
                 } catch (e) {
+                    console.error('[betting] crear-prediccion failed', e)
                     if (e instanceof Error) {
                         const errorMessage = e.message
                         const cause = e.cause
@@ -253,6 +256,7 @@ export const newInteractionHandler = async (
                     components: respuesta.modal.component,
                 })
             } catch (e) {
+                console.error('[betting] create-polymarket failed', e)
                 if (e instanceof Error) {
                     const errorMessage = e.message
                     await interaction.reply(
@@ -288,6 +292,7 @@ export const newInteractionHandler = async (
                 const helperResponse = helperCreatePrediction(
                     gambleId,
                     interaction.user.id,
+                    interaction.user.displayName,
                     forecastDecision,
                     amountCents
                 )
@@ -297,13 +302,15 @@ export const newInteractionHandler = async (
                     forecastDecision,
                     interaction.user.displayName,
                     helperResponse.multiplier,
-                    helperResponse.amountCents
+                    helperResponse.amountCents,
+                    helperResponse.registered
                 )
 
                 await interaction.reply({
                     embeds: [embedForecast],
                 })
             } catch (e) {
+                console.error('[betting] custom prediction failed', e)
                 if (e instanceof Error) {
                     const errorMessage = e.message
                     const cause = e.cause
@@ -363,6 +370,7 @@ export const newInteractionHandler = async (
             const helperResponse = helperCreatePrediction(
                 gambleId,
                 interaction.user.id,
+                interaction.user.displayName,
                 gambleDecision
             )
             const embedRes = newPredictionEmbedBuilder(
@@ -371,13 +379,15 @@ export const newInteractionHandler = async (
                 gambleDecision,
                 interaction.user.displayName,
                 helperResponse.multiplier,
-                helperResponse.amountCents
+                helperResponse.amountCents,
+                helperResponse.registered
             )
 
             await interaction.reply({
                 embeds: [embedRes],
             })
         } catch (e) {
+            console.error('[betting] button prediction failed', e)
             if (e instanceof Error) {
                 const errorMessage = e.message
                 const cause = e.cause
